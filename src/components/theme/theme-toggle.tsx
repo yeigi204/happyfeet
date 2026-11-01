@@ -26,7 +26,8 @@ function applyTheme(pref: ThemePreference): void {
 /**
  * Umschalter Hell / Dunkel / Auto. Wirkt sofort (Attribut auf <html>) und merkt sich die Wahl im Cookie,
  * damit der Server beim nächsten Aufruf gleich richtig rendert.
- * `segmented`: Pillen mit Text · `compact`: nur Icons (mit aria-label).
+ * `segmented`: Pillen mit Icon und Text · `labels`: nur Text (für schmale Stellen wie die Seitenleiste) ·
+ * `compact`: nur Icons (mit aria-label).
  */
 export function ThemeToggle({
   value,
@@ -35,11 +36,12 @@ export function ThemeToggle({
 }: {
   value: ThemePreference;
   className?: string;
-  variant?: "segmented" | "compact";
+  variant?: "segmented" | "labels" | "compact";
 }) {
   // Startwert vom Server (Cookie); danach führt der Klick – Cookie und Attribut folgen sofort.
   const [current, setCurrent] = useState<ThemePreference>(value);
   const compact = variant === "compact";
+  const labelsOnly = variant === "labels";
 
   return (
     <div role="group" aria-label="Darstellung" className={cn("inline-flex shrink-0 gap-0.5 rounded-full bg-surface-2 p-[3px]", className)}>
@@ -58,10 +60,10 @@ export function ThemeToggle({
             "inline-flex items-center justify-center gap-1.5 rounded-full font-semibold text-ink-muted transition-colors",
             "hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus",
             "aria-pressed:bg-surface aria-pressed:text-ink aria-pressed:shadow-sm",
-            compact ? "size-7 [&_svg]:size-3.5" : "h-8 px-3 text-[13px] [&_svg]:size-3.5",
+            compact ? "size-7 [&_svg]:size-3.5" : labelsOnly ? "h-8 px-2.5 text-[13px]" : "h-8 px-3 text-[13px] [&_svg]:size-3.5",
           )}
         >
-          <Icon aria-hidden />
+          {labelsOnly ? null : <Icon aria-hidden />}
           {compact ? null : label}
         </button>
       ))}

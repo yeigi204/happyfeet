@@ -47,12 +47,14 @@ export async function AppShell({ children }: { children: ReactNode }) {
   const items = navItemsFor(viewer);
   const post = canPost(viewer);
   const account = <UserMenu />;
+  // In der Seitenleiste stehen Name und Handle daneben – dort reicht der kurze Chip.
+  const sidebarAccount = <UserMenu compact />;
   const name = viewer.displayName ?? (viewer.handle ? `@${viewer.handle}` : "Dein Konto");
 
   return (
     <div className="min-h-dvh bg-canvas text-ink lg:grid lg:grid-cols-[236px_minmax(0,1fr)]">
       <SkipLink />
-      <Sidebar items={items} canPost={post} theme={theme} account={account} profile={{ name, handle: viewer.handle }} />
+      <Sidebar items={items} canPost={post} theme={theme} account={sidebarAccount} profile={{ name, handle: viewer.handle }} />
       <div className="flex min-w-0 flex-col">
         <MobileTopBar theme={theme} account={account} showAdmin={viewer.isAdmin && viewer.status === "active"} />
         <main id="inhalt" tabIndex={-1} className={cn("flex-1 outline-none", SHELL_MAIN_CLASSES)}>

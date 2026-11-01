@@ -60,15 +60,16 @@ export function Sidebar({
         </Link>
       ) : null}
       <div className="flex-1" />
+      {/* Innen nur 181 px breit: Konto (Avatar bzw. „Dev“) + Name in einer Zeile, Umschalter nur mit Text. */}
       <div className="grid gap-3 rounded-control border border-line bg-surface p-3">
-        <div className="flex min-w-0 items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <div className="flex shrink-0 items-center">{account}</div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-[13px] leading-tight font-bold text-ink">{profile.name}</p>
             {profile.handle ? <p className="truncate text-xs text-ink-muted">@{profile.handle}</p> : null}
           </div>
-          <div className="max-w-[60%] shrink-0 overflow-hidden">{account}</div>
         </div>
-        <ThemeToggle value={theme} className="flex w-full [&>button]:flex-1 [&>button]:px-1.5" />
+        <ThemeToggle value={theme} variant="labels" className="flex w-full [&>button]:flex-1" />
       </div>
     </aside>
   );

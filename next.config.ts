@@ -17,6 +17,8 @@ const SECURITY_HEADERS = [
 ];
 
 const nextConfig: NextConfig = {
+  // Dev-Toolbar („N“) unten rechts – unten links lag sie über der Konto-Karte der Seitenleiste. Nur in `next dev`.
+  devIndicators: { position: "bottom-right" },
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },
