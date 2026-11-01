@@ -15,7 +15,7 @@ import postgres from "postgres";
 
 import { normalizeHandle } from "@/lib/domain/handles";
 import * as schema from "@/server/db/schema";
-import { users } from "@/server/db/schema";
+import { auditLog, users } from "@/server/db/schema";
 
 function fail(message: string): never {
   console.error(`✗ ${message}`);
@@ -67,7 +67,17 @@ async function main() {
       return;
     }
 
-    await db.update(users).set({ isAdmin: true, updatedAt: new Date() }).where(eq(users.id, user.id));
+    await db.transaction(async (tx) => {
+      await tx.update(users).set({ isAdmin: true, updatedAt: new Date() }).where(eq(users.id, user.id));
+      // Rechte-Änderung nachvollziehbar machen (Akteur: System/CLI).
+      await tx.insert(auditLog).values({
+        actorId: null,
+        action: "user.admin_granted",
+        targetType: "user",
+        targetId: user.id,
+        metadata: { via: "cli" },
+      });
+    });
     console.log(`✓ ${label} ist jetzt Admin.`);
   } finally {
     await client.end({ timeout: 5 });

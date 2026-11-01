@@ -1,5 +1,3 @@
-import { unstable_rethrow } from "next/navigation";
-
 /** Basisklasse für erwartbare Fehler aus Services. `message` ist nutzer-tauglich (deutsch). */
 export class AppError extends Error {
   readonly code: string;
@@ -49,27 +47,6 @@ export class ValidationError extends AppError {
 export type ActionResult<T = void> =
   | { ok: true; data: T }
   | { ok: false; error: string; fieldErrors?: FieldErrors };
-
-/**
- * Führt einen Use-Case in einer Server Action aus und übersetzt erwartbare Fehler
- * in ein serialisierbares Ergebnis. Next.js-Kontrollfluss (redirect/notFound) wird durchgereicht,
- * unerwartete Fehler werden geloggt und generisch beantwortet.
- */
-export async function toActionResult<T>(fn: () => Promise<T>): Promise<ActionResult<T>> {
-  try {
-    return { ok: true, data: await fn() };
-  } catch (error) {
-    unstable_rethrow(error);
-    if (error instanceof ValidationError) {
-      return { ok: false, error: error.message, fieldErrors: error.fieldErrors };
-    }
-    if (error instanceof AppError) {
-      return { ok: false, error: error.message };
-    }
-    console.error("[action] unerwarteter Fehler", error);
-    return { ok: false, error: "Etwas ist schiefgelaufen. Bitte versuche es erneut." };
-  }
-}
 
 /** Wandelt zod-Fehler in FieldErrors um. */
 export function zodFieldErrors(issues: ReadonlyArray<{ path: PropertyKey[]; message: string }>): FieldErrors {

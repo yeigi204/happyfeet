@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 
 import { normalizeHandle, validateHandle } from "@/lib/domain/handles";
 import { getViewer, requireViewer } from "@/server/auth/viewer";
-import { toActionResult, ValidationError, type FieldErrors } from "@/server/errors";
+import { toActionResult } from "@/server/action-result";
+import { ValidationError, type FieldErrors } from "@/server/errors";
 import { completeOnboarding, HandleTakenError, isHandleAvailable } from "@/server/services/users";
 
 export type OnboardingValues = {

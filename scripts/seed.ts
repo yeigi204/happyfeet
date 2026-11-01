@@ -17,7 +17,6 @@ import "dotenv/config";
 
 import { randomUUID } from "node:crypto";
 import { rm } from "node:fs/promises";
-import Module, { createRequire } from "node:module";
 import path from "node:path";
 
 import { sql } from "drizzle-orm";
@@ -46,7 +45,6 @@ import {
 import { getPlatformSettings } from "@/server/services/settings";
 import { getMediaStorage } from "@/server/storage";
 import { mediaKeys } from "@/server/storage/keys";
-// `@/server/storage/images` wird erst nach `aliasNextNavigationForReactServer()` dynamisch geladen.
 
 // ─── Grundlagen ───────────────────────────────────────────────────────────────
 
@@ -536,23 +534,6 @@ function premiumAt(creator: Creator, at: Date): boolean {
 
 // ─── Hauptprogramm ────────────────────────────────────────────────────────────
 
-/**
- * Next.js ersetzt `next/navigation` in Server-Code per Bundler-Alias durch die react-server-Variante.
- * Unter `tsx --conditions=react-server` fehlt dieser Alias: `@/server/errors` (→ `processUpload`) würde
- * dann die Client-Variante laden, die an `React.createContext` scheitert. Wir setzen denselben Alias
- * über den Modul-Cache, bevor diese Module geladen werden.
- */
-function aliasNextNavigationForReactServer(): void {
-  const requireFromRoot = createRequire(path.join(process.cwd(), "package.json"));
-  const clientPath = requireFromRoot.resolve("next/navigation");
-  const serverVariant: unknown = requireFromRoot("next/dist/client/components/navigation.react-server.js");
-  const alias = new Module(clientPath);
-  alias.filename = clientPath;
-  alias.loaded = true;
-  alias.exports = serverVariant;
-  requireFromRoot.cache[clientPath] = alias;
-}
-
 const LOCAL_DB_HOSTS = new Set(["", "localhost", "127.0.0.1", "::1", "[::1]"]);
 
 /**
@@ -583,7 +564,6 @@ async function main() {
   if (!url) throw new Error("DATABASE_URL ist nicht gesetzt (siehe .env.example).");
   assertSeedTarget(url);
   const reset = process.argv.includes("--reset");
-  aliasNextNavigationForReactServer();
 
   const client = postgres(url, { max: 4, prepare: false, onnotice: () => {} });
   const db = drizzle(client, { schema });

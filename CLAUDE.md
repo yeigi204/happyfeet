@@ -16,7 +16,7 @@ Next.js 16 und Clerk v7 weichen von älterem Wissen ab: vor Nutzung die Doku in 
   - `auth/viewer.ts` – `getViewer()`, `requireViewer()`, `requireOnboardedViewer()`, `requireCreator()`, `requireAdmin()`.
   - `services/*.ts` – Use-Cases. **Autorisierung passiert hier.** Signatur-Konvention: `fn(viewer: Viewer, input, opts?: { now?: Date })`; DB via `getDb()`; erwartbare Fehler aus `src/server/errors.ts` werfen.
   - `storage/` (`MediaStorage`), `payments/` (`PaymentProvider`).
-- `src/app/**` – Pages (Server Components) rufen Services; Mutationen über Server Actions in `actions.ts` (`"use server"`), Ergebnis via `toActionResult()`, danach `revalidatePath()`.
+- `src/app/**` – Pages (Server Components) rufen Services; Mutationen über Server Actions in `actions.ts` (`"use server"`), Ergebnis via `toActionResult()` aus `src/server/action-result.ts`, danach `revalidatePath()`.
 - Browser greift nie direkt auf DB/Storage zu. Bilder nur über signierte, kurzlebige URLs aus dem Server.
 
 ## Konventionen

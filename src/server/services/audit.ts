@@ -17,6 +17,7 @@ export type AuditAction =
   | "report.dismissed"
   | "user.banned"
   | "user.unbanned"
+  | "user.admin_granted"
   | "settings.updated"
   | "payouts.generated"
   | "payout.paid"
