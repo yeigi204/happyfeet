@@ -83,6 +83,28 @@ describe("SupabaseMediaStorage", () => {
     expect(bucket.remove).toHaveBeenCalledWith(["a.webp", "b.webp"]);
   });
 
+  it("löscht in Blöcken von höchstens 1000 Keys (Supabase-Limit)", async () => {
+    const chunks: string[][] = [];
+    const bucket = fakeBucket({
+      remove: vi.fn(async (paths: string[]) => {
+        chunks.push([...paths]);
+        return { data: [], error: null };
+      }),
+    });
+    const keys = Array.from({ length: 2500 }, (_, i) => `posts/p/${i}.webp`);
+
+    await new SupabaseMediaStorage(bucket, "media").remove(keys);
+
+    expect(chunks.map((chunk) => chunk.length)).toEqual([1000, 1000, 500]);
+    expect(chunks.flat()).toEqual(keys);
+  });
+
+  it("schickt für eine leere Batch-Liste keinen Request", async () => {
+    const bucket = fakeBucket();
+    await expect(new SupabaseMediaStorage(bucket, "media").signedUrls([], 300)).resolves.toEqual(new Map());
+    expect(bucket.createSignedUrls).not.toHaveBeenCalled();
+  });
+
   it("wirft bei Löschfehlern", async () => {
     const bucket = fakeBucket({ remove: vi.fn(async () => ({ data: null, error: new Error("weg") })) });
     await expect(new SupabaseMediaStorage(bucket, "media").remove(["a.webp"])).rejects.toThrow(/weg/);

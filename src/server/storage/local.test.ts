@@ -139,6 +139,15 @@ describe("verifyLocalMediaSignature", () => {
     expect(verifyLocalMediaSignature(KEY, Number(exp), sig, new Date("2026-11-01T12:04:59Z"))).toBe(true);
   });
 
+  it("prüft ohne now-Argument gegen die aktuelle Uhrzeit", async () => {
+    const { exp, sig } = await signed();
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-11-01T12:04:59Z"));
+    expect(verifyLocalMediaSignature(KEY, exp, sig)).toBe(true);
+    vi.setSystemTime(new Date("2026-11-01T12:05:00Z"));
+    expect(verifyLocalMediaSignature(KEY, exp, sig)).toBe(false);
+  });
+
   it("lehnt abgelaufene Signaturen ab", async () => {
     const { exp, sig } = await signed();
     expect(verifyLocalMediaSignature(KEY, exp, sig, new Date("2026-11-01T12:05:00Z"))).toBe(false);

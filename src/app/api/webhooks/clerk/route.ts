@@ -16,7 +16,15 @@ const clerkUserSchema = z.object({
   id: z.string().min(1),
   image_url: z.string().nullish(),
   primary_email_address_id: z.string().nullish(),
-  email_addresses: z.array(z.object({ id: z.string(), email_address: z.string() })).default([]),
+  email_addresses: z
+    .array(
+      z.object({
+        id: z.string(),
+        email_address: z.string(),
+        verification: z.object({ status: z.string() }).nullish(),
+      }),
+    )
+    .default([]),
 });
 
 const deletedUserSchema = z.object({ id: z.string().min(1) });
@@ -25,9 +33,13 @@ function text(body: string, status: number): Response {
   return new Response(body, { status, headers: TEXT_HEADERS });
 }
 
-function primaryEmail(user: z.infer<typeof clerkUserSchema>): string | null {
+/**
+ * Nur die primäre und bestätigte Adresse. Eine unbestätigte E-Mail darf niemanden identifizieren
+ * (z. B. `npm run admin:grant -- <email>`); `null` lässt eine bekannte E-Mail unverändert.
+ */
+function verifiedPrimaryEmail(user: z.infer<typeof clerkUserSchema>): string | null {
   const primary = user.email_addresses.find((e) => e.id === user.primary_email_address_id);
-  return (primary ?? user.email_addresses[0])?.email_address ?? null;
+  return primary?.verification?.status === "verified" ? primary.email_address : null;
 }
 
 export async function POST(request: NextRequest): Promise<Response> {
@@ -46,7 +58,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       if (!parsed.success) return text("Ungültiger Nutzer-Payload.", 400);
       await upsertUserFromClerk({
         clerkId: parsed.data.id,
-        email: primaryEmail(parsed.data),
+        email: verifiedPrimaryEmail(parsed.data),
         imageUrl: parsed.data.image_url ?? null,
       });
       break;

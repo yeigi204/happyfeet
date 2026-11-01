@@ -44,15 +44,15 @@ function input(c: Case): PostAccessInput & { hasActiveSubscription: boolean } {
 /**
  * Rules from the spec, written as a plain lookup:
  * - Listing: deleted → nobody; admin/owner → everything else; others → only approved posts of non-banned creators.
- * - Media: admin ✓; owner ✓; otherwise only listed posts, and `subscribers` posts only with an active subscription.
+ * - Media: admin ✓; owner ✓; otherwise only listed posts, and `subscribers` posts only with an active subscription
+ *   of a signed-in viewer (an anonymous visitor cannot hold a subscription, whatever flag is passed).
  */
 function expected(c: Case): { listed: boolean; media: boolean } {
   const privileged = c.viewer === "admin" || c.viewer === "owner";
   const publiclyVisible = c.moderationStatus === "approved" && !c.creatorBanned && !c.deleted;
+  const subscribed = c.viewer !== "anonymous" && c.hasActiveSubscription;
   const listed = !c.deleted && (privileged || publiclyVisible);
-  const media =
-    privileged ||
-    (publiclyVisible && (c.visibility === "public" || c.hasActiveSubscription));
+  const media = privileged || (publiclyVisible && (c.visibility === "public" || subscribed));
   return { listed, media };
 }
 
@@ -167,6 +167,10 @@ describe("canViewPostMedia", () => {
 
   it("reveals subscriber-only media with an active subscription", () => {
     expect(canViewPostMedia(input({ ...base, hasActiveSubscription: true }))).toBe(true);
+  });
+
+  it("never unlocks subscriber-only media for anonymous visitors, even if a subscription flag is passed", () => {
+    expect(canViewPostMedia(input({ ...base, viewer: "anonymous", hasActiveSubscription: true }))).toBe(false);
   });
 
   it("reveals public media to everyone, including anonymous visitors", () => {

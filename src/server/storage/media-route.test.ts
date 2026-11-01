@@ -49,6 +49,7 @@ describe("GET /api/media/[...key]", () => {
     expect(res.status).toBe(200);
     expect(Buffer.from(await res.arrayBuffer()).toString()).toBe("WEBPDATA");
     expect(res.headers.get("content-type")).toBe("image/webp");
+    expect(res.headers.get("content-length")).toBe(String("WEBPDATA".length));
     expect(res.headers.get("x-content-type-options")).toBe("nosniff");
     expect(res.headers.get("cache-control")).toBe("private, max-age=300");
   });

@@ -13,12 +13,11 @@ import {
   upsertUserFromClerk,
 } from "@/server/services/users";
 
-import { useTestDb } from "../helpers/db";
+import { setupTestDb } from "../helpers/db";
 import { createCreator, createUser, makePremium, viewerFor } from "../helpers/factories";
 
-// useTestDb ist kein React-Hook, sondern registriert Vitest-Hooks (Namenskonvention aus tests/helpers/db.ts).
-// eslint-disable-next-line react-hooks/rules-of-hooks
-const t = useTestDb();
+// setupTestDb ist kein React-Hook, sondern registriert Vitest-Hooks (Namenskonvention aus tests/helpers/db.ts).
+const t = setupTestDb();
 
 const NOW = new Date("2026-11-01T12:00:00Z");
 
@@ -204,6 +203,23 @@ describe("completeOnboarding", () => {
     }
   });
 
+  it("lehnt Steuer- und Richtungszeichen im Anzeigenamen ab", async () => {
+    const viewer = await freshViewer();
+    for (const displayName of ["Anna\u0000", "Anna\nAdmin", "Anna\u202Enimda"]) {
+      const error = await expectValidation(
+        completeOnboarding(viewer, { ...validInput, displayName }, { now: NOW }),
+      );
+      expect(error.fieldErrors.displayName, JSON.stringify(displayName)).toBeDefined();
+    }
+    expect((await rowFor(viewer.id)).onboardedAt).toBeNull();
+  });
+
+  it("erlaubt Umlaute und Emoji im Anzeigenamen", async () => {
+    const viewer = await freshViewer();
+    await completeOnboarding(viewer, { ...validInput, displayName: "Zoë 👣🏽 Grüezi" }, { now: NOW });
+    expect((await rowFor(viewer.id)).displayName).toBe("Zoë 👣🏽 Grüezi");
+  });
+
   it("verlangt die 18+-Bestätigung", async () => {
     const viewer = await freshViewer();
     const error = await expectValidation(
@@ -246,6 +262,21 @@ describe("completeOnboarding", () => {
     expect(rejected[0].reason).toBeInstanceOf(HandleTakenError);
     const owners = await t.db.select().from(users).where(eq(users.handle, "anna_zh"));
     expect(owners).toHaveLength(1);
+  });
+
+  it("lässt bei doppeltem Absenden desselben Nutzers nur das erste Onboarding gelten", async () => {
+    const viewer = await freshViewer();
+    const results = await Promise.allSettled([
+      completeOnboarding(viewer, { ...validInput, handle: "erster" }, { now: NOW }),
+      completeOnboarding(viewer, { ...validInput, handle: "zweiter" }, { now: NOW }),
+    ]);
+    expect(results[0].status).toBe("fulfilled");
+    expect(results[1].status).toBe("rejected");
+    const reason = (results[1] as PromiseRejectedResult).reason;
+    expect(reason).toBeInstanceOf(ConflictError);
+    expect(reason).not.toBeInstanceOf(HandleTakenError);
+    expect((await rowFor(viewer.id)).handle).toBe("erster");
+    expect(await isHandleAvailable("zweiter")).toBe(true);
   });
 
   it("wirft ConflictError (kein HandleTakenError), wenn das Onboarding schon abgeschlossen ist", async () => {

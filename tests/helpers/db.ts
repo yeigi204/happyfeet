@@ -3,7 +3,7 @@
  *
  * Verwendung in einer Testdatei:
  *
- *   const t = useTestDb();          // registriert beforeEach/afterEach
+ *   const t = setupTestDb();        // registriert beforeEach/afterEach
  *   it("…", async () => { const db = t.db; … });
  *
  * Jede Testdatei bekommt eine frische Instanz; zwischen Tests werden alle Tabellen geleert.
@@ -44,7 +44,7 @@ export async function truncateAll(db: Db): Promise<void> {
   await db.execute(sql`INSERT INTO platform_settings (id) VALUES (1)`);
 }
 
-export function useTestDb(): { readonly db: Db } {
+export function setupTestDb(): { readonly db: Db } {
   let current: { db: Db; close: () => Promise<void> } | null = null;
 
   beforeAll(async () => {
@@ -64,7 +64,7 @@ export function useTestDb(): { readonly db: Db } {
 
   return {
     get db() {
-      if (!current) throw new Error("useTestDb: Datenbank noch nicht bereit (nur innerhalb von Tests verwenden).");
+      if (!current) throw new Error("setupTestDb: Datenbank noch nicht bereit (nur innerhalb von Tests verwenden).");
       return current.db;
     },
   };

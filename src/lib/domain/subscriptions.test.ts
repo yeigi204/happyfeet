@@ -18,6 +18,7 @@ describe("isSubscriptionActive", () => {
     ["active", earlier, false],
     ["canceled", earlier, false],
     ["active", now, false],
+    ["canceled", now, false],
     ["pending", later, false],
     ["expired", later, false],
     ["active", null, false],

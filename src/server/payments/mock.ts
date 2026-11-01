@@ -38,7 +38,30 @@ const HEX_SHA256_PATTERN = /^[0-9a-f]{64}$/;
 
 const checkoutKindSchema = z.enum(["fan_subscription", "premium_plan"]);
 const idSchema = z.string().min(1).max(200);
+/** Provider-Refs/-IDs: Platz für Präfix + `idSchema` (z. B. `mocksub_` + referenceId). */
+const providerIdSchema = z.string().min(1).max(256);
 const amountSchema = z.number().int().positive();
+
+/**
+ * Redirect-Ziel nach dem Checkout: relativer App-Pfad (`/…`, nicht `//` oder `/\`) oder absolute
+ * http(s)-URL. Keine Leer-/Steuerzeichen (Browser entfernen Tabs → `/\t/evil` würde zu `//evil`).
+ */
+function isSafeRedirectUrl(value: string): boolean {
+  if (/[\s\u0000-\u001f\u007f]/.test(value)) return false;
+  if (value.startsWith("/")) return !value.startsWith("//") && !value.startsWith("/\\");
+  try {
+    const { protocol } = new URL(value);
+    return protocol === "http:" || protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+const redirectUrlSchema = z
+  .string()
+  .min(1)
+  .max(2000)
+  .refine(isSafeRedirectUrl, "Nur relative Pfade oder http(s)-URLs sind erlaubt.");
 
 const checkoutRequestSchema = z.object({
   kind: checkoutKindSchema,
@@ -47,8 +70,8 @@ const checkoutRequestSchema = z.object({
   amountRappen: amountSchema,
   currency: z.literal("CHF"),
   description: z.string().max(500),
-  successUrl: z.string().min(1).max(2000),
-  cancelUrl: z.string().min(1).max(2000),
+  successUrl: redirectUrlSchema,
+  cancelUrl: redirectUrlSchema,
 });
 
 const sessionPayloadSchema = checkoutRequestSchema.extend({
@@ -60,14 +83,14 @@ const isoDateSchema = z.iso.datetime({ offset: true }).transform((value) => new 
 
 const eventBase = {
   provider: z.literal(PROVIDER_NAME),
-  eventId: idSchema,
+  eventId: providerIdSchema,
   kind: checkoutKindSchema,
-  providerSubscriptionRef: idSchema,
+  providerSubscriptionRef: providerIdSchema,
   occurredAt: isoDateSchema,
 };
 
 const paymentFields = {
-  providerPaymentId: idSchema,
+  providerPaymentId: providerIdSchema,
   amountRappen: amountSchema,
   currency: z.literal("CHF"),
 };
@@ -135,6 +158,10 @@ export class MockPaymentProvider implements PaymentProvider {
     const exp = this.clock().getTime() + SESSION_TTL_MS;
     const payload = Buffer.from(JSON.stringify({ ...parsed.data, exp }), "utf8").toString("base64url");
     const sessionId = `${payload}.${signSessionPayload(secret, payload)}`;
+    // Sonst entstünde eine Session, die decodeSession (und der URL-Pfad) nicht mehr annimmt.
+    if (sessionId.length > MAX_SESSION_ID_LENGTH) {
+      throw new ValidationError("Die Checkout-Anfrage ist zu gross.");
+    }
     return { provider: this.name, sessionId, redirectUrl: `/checkout/mock/${sessionId}` };
   }
 

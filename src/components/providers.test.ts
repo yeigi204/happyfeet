@@ -43,4 +43,11 @@ describe("Clerk-Appearance", () => {
   it("nutzt den Nagellack-Akzent", () => {
     expect(clerkAppearance.variables?.colorPrimary).toBe("#d7352a");
   });
+
+  it("setzt Element-Klassen mit !-Modifier, damit sie Clerks ungelayerte Styles schlagen", () => {
+    // Tailwind v4 legt Utilities in `@layer utilities`; Clerks Styles sind ungelayert und gewinnen sonst immer.
+    const classes = Object.values(clerkAppearance.elements).flatMap((value) => value.split(/\s+/).filter(Boolean));
+    expect(classes.length).toBeGreaterThan(0);
+    expect(classes.filter((c) => !c.endsWith("!"))).toEqual([]);
+  });
 });

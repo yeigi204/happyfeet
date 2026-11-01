@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Viewer } from "@/lib/domain/types";
 import { users } from "@/server/db/schema";
 
-import { useTestDb } from "../../../../tests/helpers/db";
+import { setupTestDb } from "../../../../tests/helpers/db";
 import { createUser, viewerFor } from "../../../../tests/helpers/factories";
 
 const auth = vi.hoisted(() => ({ viewer: null as Viewer | null }));
@@ -29,9 +29,8 @@ vi.mock("next/cache", () => ({ revalidatePath: nav.revalidatePath }));
 
 const { checkHandleAvailability, submitOnboarding } = await import("./actions");
 
-// useTestDb ist kein React-Hook, sondern registriert Vitest-Hooks (Namenskonvention aus tests/helpers/db.ts).
-// eslint-disable-next-line react-hooks/rules-of-hooks
-const t = useTestDb();
+// setupTestDb ist kein React-Hook, sondern registriert Vitest-Hooks (Namenskonvention aus tests/helpers/db.ts).
+const t = setupTestDb();
 
 function form(values: Record<string, string>): FormData {
   const data = new FormData();

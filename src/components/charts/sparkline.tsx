@@ -1,3 +1,5 @@
+import { useId } from "react";
+
 import { cn } from "@/components/ui/cn";
 
 import { areaPath, linePath, seriesColorVar } from "./scale";
@@ -20,6 +22,7 @@ const PAD = 3;
  * Linie bleibt dank non-scaling-stroke 1.5px, der Endpunkt ist HTML und damit immer rund.
  */
 export function Sparkline({ values, color, label, className }: SparklineProps) {
+  const gradientId = `spark-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const box = cn("relative block h-8 w-full", className);
   if (values.length === 0) return <span role="img" aria-label={label} className={box} />;
 
@@ -36,7 +39,13 @@ export function Sparkline({ values, color, label, className }: SparklineProps) {
   return (
     <span role="img" aria-label={label} className={box}>
       <svg aria-hidden viewBox={`0 0 ${VB_W} ${VB_H}`} preserveAspectRatio="none" className="absolute inset-0 size-full overflow-visible">
-        <path d={areaPath(xs, ys.map(() => VB_H), ys)} fill={stroke} fillOpacity={0.1} />
+        <defs>
+          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={stroke} stopOpacity={0.24} />
+            <stop offset="100%" stopColor={stroke} stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <path d={areaPath(xs, ys.map(() => VB_H), ys)} fill={`url(#${gradientId})`} />
         <path
           d={linePath(xs, ys)}
           fill="none"

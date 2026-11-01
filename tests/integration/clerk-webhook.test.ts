@@ -8,12 +8,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { POST } from "@/app/api/webhooks/clerk/route";
 import { users } from "@/server/db/schema";
 
-import { useTestDb } from "../helpers/db";
+import { setupTestDb } from "../helpers/db";
 import { createUser } from "../helpers/factories";
 
-// useTestDb ist kein React-Hook, sondern registriert Vitest-Hooks (Namenskonvention aus tests/helpers/db.ts).
-// eslint-disable-next-line react-hooks/rules-of-hooks
-const t = useTestDb();
+// setupTestDb ist kein React-Hook, sondern registriert Vitest-Hooks (Namenskonvention aus tests/helpers/db.ts).
+const t = setupTestDb();
 
 const SECRET = `whsec_${Buffer.from("happyfeet-test-signing-secret-32b").toString("base64")}`;
 
@@ -43,8 +42,9 @@ function userEvent(type: "user.created" | "user.updated", data: Record<string, u
       image_url: "https://img.clerk.com/avatar.png",
       primary_email_address_id: "idn_primary",
       email_addresses: [
-        { id: "idn_other", email_address: "zweit@example.ch" },
-        { id: "idn_primary", email_address: "haupt@example.ch" },
+        { id: "idn_other", email_address: "zweit@example.ch", verification: { status: "verified" } },
+        { id: "idn_primary", email_address: "haupt@example.ch", verification: { status: "verified" } },
+        { id: "idn_unverified", email_address: "boss@example.ch", verification: { status: "unverified" } },
       ],
       ...data,
     },
@@ -100,6 +100,29 @@ describe("POST /api/webhooks/clerk", () => {
     expect(res.status).toBe(200);
     const [row] = await t.db.select().from(users).where(eq(users.id, existing.id));
     expect(row).toMatchObject({ email: "zweit@example.ch", handle: "bestand", isAdmin: true });
+  });
+
+  it("übernimmt keine unbestätigte primäre E-Mail (sie könnte z. B. bei admin:grant jemanden identifizieren)", async () => {
+    const res = await POST(
+      signedRequest(userEvent("user.created", { id: "user_sneaky", primary_email_address_id: "idn_unverified" })),
+    );
+    expect(res.status).toBe(200);
+    const [row] = await t.db.select().from(users).where(eq(users.clerkId, "user_sneaky"));
+    expect(row.email).toBeNull();
+  });
+
+  it("greift ohne primäre Adresse nicht auf irgendeine andere zurück", async () => {
+    const res = await POST(signedRequest(userEvent("user.created", { id: "user_phone", primary_email_address_id: null })));
+    expect(res.status).toBe(200);
+    const [row] = await t.db.select().from(users).where(eq(users.clerkId, "user_phone"));
+    expect(row.email).toBeNull();
+  });
+
+  it("behält beim Update die bekannte E-Mail, wenn die neue primäre Adresse unbestätigt ist", async () => {
+    await createUser(t.db, { clerkId: "user_known", email: "bestand@example.ch" });
+    await POST(signedRequest(userEvent("user.updated", { id: "user_known", primary_email_address_id: "idn_unverified" })));
+    const [row] = await t.db.select().from(users).where(eq(users.clerkId, "user_known"));
+    expect(row.email).toBe("bestand@example.ch");
   });
 
   it("löscht bei user.deleted den Nutzer", async () => {

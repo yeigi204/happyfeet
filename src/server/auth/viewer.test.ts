@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { users } from "@/server/db/schema";
 
-import { useTestDb } from "../../../tests/helpers/db";
+import { setupTestDb } from "../../../tests/helpers/db";
 import { createCreator, createUser } from "../../../tests/helpers/factories";
 
 const clerk = vi.hoisted(() => ({
@@ -25,9 +25,8 @@ vi.mock("next/navigation", async (importOriginal) => ({
 
 const { getViewer, requireAdmin, requireCreator, requireOnboardedViewer, requireViewer } = await import("./viewer");
 
-// useTestDb ist kein React-Hook, sondern registriert Vitest-Hooks (Namenskonvention aus tests/helpers/db.ts).
-// eslint-disable-next-line react-hooks/rules-of-hooks
-const t = useTestDb();
+// setupTestDb ist kein React-Hook, sondern registriert Vitest-Hooks (Namenskonvention aus tests/helpers/db.ts).
+const t = setupTestDb();
 
 function signedInAs(clerkId: string | null) {
   clerk.auth.mockResolvedValue({ userId: clerkId });
@@ -62,12 +61,21 @@ describe("getViewer (Clerk)", () => {
     clerk.currentUser.mockResolvedValue({
       id: "user_lazy",
       imageUrl: "https://img.clerk.com/x.png",
-      primaryEmailAddress: { emailAddress: "lazy@example.ch" },
+      primaryEmailAddress: { emailAddress: "lazy@example.ch", verification: { status: "verified" } },
     });
     const viewer = await getViewer();
     expect(viewer).toMatchObject({ clerkId: "user_lazy", email: "lazy@example.ch", onboarded: false, creator: null });
     const rows = await t.db.select().from(users).where(eq(users.clerkId, "user_lazy"));
     expect(rows).toHaveLength(1);
+  });
+
+  it("übernimmt bei der Lazy-Anlage keine unbestätigte E-Mail", async () => {
+    signedInAs("user_unverified");
+    clerk.currentUser.mockResolvedValue({
+      id: "user_unverified",
+      primaryEmailAddress: { emailAddress: "boss@example.ch", verification: { status: "unverified" } },
+    });
+    expect(await getViewer()).toMatchObject({ clerkId: "user_unverified", email: null });
   });
 
   it("legt den Nutzer auch an, wenn das Clerk-Profil nicht abrufbar ist", async () => {

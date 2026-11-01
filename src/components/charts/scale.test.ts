@@ -46,6 +46,13 @@ describe("niceTicks", () => {
   it("uses 2.5 steps where they fit better than 5", () => {
     expect(niceTicks(0, 9)).toEqual([0, 2.5, 5, 7.5, 10]);
   });
+
+  it("keeps ticks whole for counts (no „2.5 Abos“)", () => {
+    expect(niceTicks(0, 9, 4, true)).toEqual([0, 5, 10]);
+    expect(niceTicks(0, 3, 4, true)).toEqual([0, 1, 2, 3]);
+    expect(niceTicks(-2, 1, 4, true)).toEqual([-2, -1, 0, 1]);
+    expect(niceTicks(0, 1234, 4, true)).toEqual([0, 500, 1000, 1500]);
+  });
 });
 
 describe("linearScale", () => {
@@ -102,6 +109,13 @@ describe("value formats", () => {
     expect(formatAxisValue(0, "chf")).toBe("0");
     expect(formatAxisValue(120000, "chf")).toBe("1’200");
     expect(formatAxisValue(250_000_000, "chf")).toBe(`2.5${NBSP}Mio.`);
+  });
+
+  it("never rounds a fractional CHF tick to a wrong label", () => {
+    // Kleine Beträge (z. B. neuer Creator, < CHF 10 pro Tag) ergeben 2.5er-Schritte in Franken.
+    expect(formatAxisValue(250, "chf")).toBe("2.5");
+    expect(formatAxisValue(750, "chf")).toBe("7.5");
+    expect(formatAxisValue(1000, "chf")).toBe("10");
   });
 
   it("formats number and percent axis ticks", () => {

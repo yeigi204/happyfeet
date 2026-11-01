@@ -25,22 +25,48 @@ const VALUE_SIZES = {
 
 const DIRECTION_TEXT = { up: "gestiegen", down: "gesunken", flat: "unverändert" } as const;
 
+/** Mono-Apostroph belegt eine volle Zelle – optisch enger setzen, damit „48’210“ ein Wort bleibt. */
+function tighten(text: string, size: StatProps["size"]): ReactNode {
+  const parts = text.split("’");
+  if (parts.length === 1) return text;
+  const margin = size === "lg" ? "-mx-[0.16em]" : "-mx-[0.11em]";
+  return parts.flatMap((part, i) =>
+    i === 0
+      ? [part]
+      : [
+          <span key={i} className={margin}>
+            ’
+          </span>,
+          part,
+        ],
+  );
+}
+
 /**
  * „CHF 48’210.00“ → kleines, gedämpftes „CHF“ + Betrag + gedämpfte Rappen.
  * Andere Werte (ReactNode) werden unverändert gerendert.
  */
 function renderValue(value: ReactNode, size: StatProps["size"]): ReactNode {
   if (typeof value !== "string") return value;
-  const m = value.match(/^(CHF)[\s ](-?[\d’'.]+?)(\.\d{2})?$/);
-  if (!m) return value;
+  const m = value.match(/^(CHF)[\s\u00a0](-?[\d’'.]+?)(\.\d{2})?$/);
+  if (!m) return tighten(value, size);
   const [, unit, amount, cents] = m;
   return (
     <>
-      <span data-unit className={cn("font-sans font-medium tracking-normal text-ink-faint", size === "lg" ? "mr-2 align-[0.95em] text-[13px] sm:text-[15px]" : "mr-1 text-[0.5em]")}>
+      <span
+        data-unit
+        className={cn(
+          "font-sans font-medium tracking-normal text-ink-faint",
+          // Hero: „CHF“ hängt oben an der Versalhöhe der Ziffern (Wert-Zeile ist dort ein Flex-Container)
+          size === "lg" ? "mt-[0.45em] mr-2.5 text-[13px] sm:mt-[0.6em] sm:text-[15px]" : "mr-1 text-[0.5em]",
+        )}
+      >
         {unit}
       </span>
-      {amount}
-      {cents ? <span className={cn("text-ink-faint", size === "lg" && "text-[0.55em] tracking-[-0.02em]")}>{cents}</span> : null}
+      <span>
+        {tighten(amount, size)}
+        {cents ? <span className={cn("text-ink-faint", size === "lg" && "text-[0.55em] tracking-[-0.02em]")}>{cents}</span> : null}
+      </span>
     </>
   );
 }
@@ -53,7 +79,7 @@ export function Stat({ label, value, delta, hint, children, size = "md", classNa
   return (
     <div className={cn("min-w-0", className)}>
       <p className={cn("text-ink-muted", size === "lg" ? "eyebrow" : "text-[12.5px]")}>{label}</p>
-      <p className={cn("mt-2 font-mono font-medium whitespace-nowrap text-ink", VALUE_SIZES[size])}>{renderValue(value, size)}</p>
+      <p className={cn("mt-2 font-mono font-medium whitespace-nowrap text-ink", size === "lg" && "flex items-start", VALUE_SIZES[size])}>{renderValue(value, size)}</p>
       {delta || hint ? (
         <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
           {delta ? (

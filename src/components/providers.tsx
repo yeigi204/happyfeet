@@ -92,12 +92,14 @@ export const clerkAppearance = {
     fontFamilyMono: "var(--font-geist-mono), ui-monospace, monospace",
     borderRadius: "0.625rem",
   },
+  // Tailwind v4 legt Utilities in `@layer utilities`, Clerks Styles sind ungelayert und schlagen sie sonst.
+  // Der `!`-Modifier (important) setzt sich durch, ohne die Layer-Reihenfolge in globals.css anzufassen.
   elements: {
-    cardBox: "shadow-none border border-line rounded-2xl",
-    card: "shadow-none",
-    headerTitle: "font-display text-2xl tracking-tight",
-    formButtonPrimary: "shadow-none",
-    footer: "bg-canvas",
+    cardBox: "shadow-none! border! border-line! rounded-2xl!",
+    card: "shadow-none!",
+    headerTitle: "font-display! text-2xl! tracking-tight!",
+    formButtonPrimary: "shadow-none!",
+    footer: "bg-canvas!",
   },
 } satisfies ClerkAppearance;
 

@@ -3,10 +3,10 @@ import { describe, expect, it } from "vitest";
 import { getPlatformSettings } from "@/server/services/settings";
 import { writeAudit } from "@/server/services/audit";
 import { auditLog, payments } from "@/server/db/schema";
-import { useTestDb } from "../helpers/db";
+import { setupTestDb } from "../helpers/db";
 import { createActiveSubscription, createCreator, createUser, viewerFor, makePremium } from "../helpers/factories";
 
-const t = useTestDb();
+const t = setupTestDb();
 
 describe("Schema & Fundament", () => {
   it("liefert Standard-Einstellungen aus der Migration", async () => {

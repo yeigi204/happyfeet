@@ -95,9 +95,10 @@ const HOUR_MS = 60 * MINUTE_MS;
 const DAY_MS = 24 * HOUR_MS;
 const RELATIVE_DAYS_LIMIT = 7;
 
-/** „gerade eben“, „vor 5 Min.“, „vor 3 Std.“, „vor 2 Tagen“ – ab 7 Tagen (und für die Zukunft) das Datum. */
+/** „gerade eben“, „vor 5 Min.“, „vor 3 Std.“, „vor 2 Tagen“ – ab 7 Tagen (und für die Zukunft) das Datum; ungültig → „–“. */
 export function formatRelative(d: Date, now: Date): string {
   const diff = now.getTime() - d.getTime();
+  if (Number.isNaN(diff)) return MISSING;
   if (diff < MINUTE_MS && diff > -MINUTE_MS) return "gerade eben";
   if (diff < 0) return formatDate(d);
   if (diff < HOUR_MS) return `vor ${Math.floor(diff / MINUTE_MS)} Min.`;

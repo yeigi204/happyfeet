@@ -36,14 +36,15 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
   if (existing) return existing;
 
   // Clerk-Profil nur für die E-Mail; ist es nicht abrufbar, legen wir den Nutzer trotzdem an
-  // (der Webhook ergänzt die E-Mail später).
+  // (der Webhook ergänzt die E-Mail später). Wie im Webhook zählt nur eine bestätigte Adresse.
   const profile = await currentUser().catch((error: unknown) => {
     console.warn("[auth] Clerk-Profil nicht abrufbar, lege Nutzer ohne E-Mail an", error);
     return null;
   });
+  const primary = profile?.primaryEmailAddress;
   await upsertUserFromClerk({
     clerkId: userId,
-    email: profile?.primaryEmailAddress?.emailAddress ?? null,
+    email: primary?.verification?.status === "verified" ? primary.emailAddress : null,
     imageUrl: profile?.imageUrl ?? null,
   });
   return findViewerByClerkId(userId);

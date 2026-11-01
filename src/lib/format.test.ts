@@ -169,4 +169,9 @@ describe("formatRelative", () => {
   it("shows the date for timestamps further in the future", () => {
     expect(formatRelative(new Date(now.getTime() + 2 * HOUR), now)).toBe("01.11.2026");
   });
+
+  it("renders an invalid date (or an invalid now) as a dash instead of „vor NaN Tagen“", () => {
+    expect(formatRelative(new Date("nope"), now)).toBe("–");
+    expect(formatRelative(now, new Date(Number.NaN))).toBe("–");
+  });
 });

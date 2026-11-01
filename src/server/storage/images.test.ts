@@ -178,6 +178,7 @@ describe("processUpload", () => {
     expect(await sharp(bomb, { limitInputPixels: false }).metadata()).toMatchObject({ width: 20_000, height: 20_000 }); // Vorbedingung
 
     await expect(processUpload({ bytes: bomb })).rejects.toThrow(/Megapixel/);
+    await expect(processUpload({ bytes: bomb })).rejects.toBeInstanceOf(ValidationError);
   });
 
   it("prüft den Inhalt, nicht eine angebliche Endung oder Signatur am Anfang", async () => {

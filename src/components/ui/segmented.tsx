@@ -7,7 +7,7 @@ export type SegmentedItem = { href: string; label: string; count?: number };
 /** Link-basierte Tabs (funktionieren ohne JS, Zustand steckt in der URL). */
 export function Segmented({ items, active, label = "Ansicht", className }: { items: SegmentedItem[]; active: string; label?: string; className?: string }) {
   return (
-    <nav aria-label={label} className={cn("inline-flex max-w-full overflow-x-auto rounded-control border border-line bg-surface-2 p-0.5 scrollbar-none", className)}>
+    <nav aria-label={label} className={cn("relative inline-flex max-w-full overflow-x-auto rounded-control border border-line bg-surface-2 p-0.5 scrollbar-none", className)}>
       {items.map((item) => {
         const isActive = item.href === active;
         return (

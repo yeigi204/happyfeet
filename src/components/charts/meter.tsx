@@ -63,9 +63,9 @@ export function Meter({ parts, format, title, className }: MeterProps) {
 
       <ul className="mt-4 grid gap-2">
         {withShare.map((p) => (
-          <li key={p.label} className="grid grid-cols-[auto_1fr_auto_3.5rem] items-center gap-2 text-[13px]">
-            <span aria-hidden className="size-2.5 rounded-[2px]" style={{ background: seriesColorVar(p.color) }} />
-            <span className="truncate text-ink-muted">{p.label}</span>
+          <li key={p.label} className="grid grid-cols-[auto_minmax(0,1fr)_auto_2.75rem] items-baseline gap-x-2 text-[13px]">
+            <span aria-hidden className="size-2.5 translate-y-px rounded-[2px]" style={{ background: seriesColorVar(p.color) }} />
+            <span className="leading-snug text-ink-muted">{p.label}</span>
             <span className="font-mono text-ink tabular-nums">{formatChartValue(p.value, format)}</span>
             <span className="text-right font-mono text-ink-faint tabular-nums">{formatPercent(p.share, 0)}</span>
           </li>

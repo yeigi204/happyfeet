@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { ageInYears, isAdult } from "@/lib/domain/age";
@@ -13,6 +13,12 @@ import { creatorProfiles, premiumSubscriptions, users, type User } from "@/serve
 import { ConflictError, ValidationError, zodFieldErrors } from "@/server/errors";
 
 const OLDEST_PLAUSIBLE_AGE_YEARS = 120;
+
+/**
+ * Steuerzeichen (NUL bricht das DB-Update, Zeilenumbrüche das Layout) und Bidi-Steuerzeichen
+ * (Namens-Spoofing mit U+202E u. a.). Emoji-Sequenzen mit ZWJ bleiben erlaubt.
+ */
+const UNSAFE_NAME_CHARS = /[\u0000-\u001F\u007F-\u009F\u202A-\u202E\u2066-\u2069]/;
 
 /** Handle ist schon vergeben – eigene Klasse, damit die UI den Fehler dem Feld `handle` zuordnen kann. */
 export class HandleTakenError extends ConflictError {
@@ -136,7 +142,8 @@ function onboardingSchema(now: Date) {
       .string()
       .trim()
       .min(2, "Dein Name braucht mindestens 2 Zeichen.")
-      .max(40, "Dein Name darf höchstens 40 Zeichen lang sein."),
+      .max(40, "Dein Name darf höchstens 40 Zeichen lang sein.")
+      .refine((name) => !UNSAFE_NAME_CHARS.test(name), "Dein Name enthält unzulässige Zeichen."),
     birthDate: z
       .string()
       .trim()
@@ -190,14 +197,18 @@ export async function completeOnboarding(
 
   if (!(await isHandleAvailable(handle))) throw new HandleTakenError();
 
+  let updated: { id: string }[];
   try {
-    await db
+    // `onboarded_at IS NULL` im WHERE: bei doppeltem Absenden gewinnt genau ein Aufruf.
+    updated = await db
       .update(users)
       .set({ handle, displayName, birthDate, ageConfirmedAt: now, onboardedAt: now, updatedAt: now })
-      .where(eq(users.id, viewer.id));
+      .where(and(eq(users.id, viewer.id), isNull(users.onboardedAt)))
+      .returning({ id: users.id });
   } catch (error) {
     // Zwei gleichzeitige Anmeldungen mit demselben Handle: der eindeutige Index entscheidet.
     if (isUniqueViolation(error)) throw new HandleTakenError();
     throw error;
   }
+  if (updated.length === 0) throw new ConflictError("Dein Profil ist bereits eingerichtet.");
 }

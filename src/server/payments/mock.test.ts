@@ -1,4 +1,4 @@
-import { createHmac } from "node:crypto";
+import { createHash, createHmac } from "node:crypto";
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
@@ -140,11 +140,60 @@ describe("MockPaymentProvider – Checkout-Sessions", () => {
     expect(provider().decodeSession(sessionId, NOW)).toBeNull();
   });
 
+  it("nicht-kanonische Schreibweise derselben Signatur-Bytes → null (genau eine gültige Session-ID → genau eine Zahlungs-ID)", async () => {
+    const p = provider();
+    const { sessionId } = await p.createCheckout(request());
+    const [payload, sig] = sessionId.split(".");
+    // 32 Byte HMAC = 43 base64url-Zeichen; die letzten 2 Bits des letzten Zeichens sind ungenutzt.
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+    const alt = sig.slice(0, -1) + alphabet[alphabet.indexOf(sig.at(-1)!) ^ 1];
+    expect(Buffer.from(alt, "base64url").equals(Buffer.from(sig, "base64url"))).toBe(true);
+
+    expect(p.decodeSession(`${payload}.${alt}`, NOW)).toBeNull();
+    expect(p.decodeSession(`${payload}.${sig}=`, NOW)).toBeNull();
+    expect(() => p.completedEventFor(`${payload}.${alt}`, NOW)).toThrow(ValidationError);
+  });
+
   it("createCheckout lehnt ungültige Beträge ab", async () => {
     const p = provider();
     await expect(p.createCheckout(request({ amountRappen: 0 }))).rejects.toBeInstanceOf(ValidationError);
     await expect(p.createCheckout(request({ amountRappen: 9.9 }))).rejects.toBeInstanceOf(ValidationError);
     await expect(p.createCheckout(request({ referenceId: "" }))).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it.each([
+    ["javascript:", "javascript:alert(1)"],
+    ["data:", "data:text/html,<script>alert(1)</script>"],
+    ["protokoll-relativ", "//evil.example/abo"],
+    ["Backslash-Trick", "/\\evil.example/abo"],
+    ["Tab-Trick (Browser entfernt Tabs → //)", "/\t/evil.example/abo"],
+    ["kein Pfad", "c/zehenspitze"],
+  ])("createCheckout lehnt unsichere Redirect-URLs ab (%s)", async (_label, url) => {
+    const p = provider();
+    await expect(p.createCheckout(request({ successUrl: url }))).rejects.toBeInstanceOf(ValidationError);
+    await expect(p.createCheckout(request({ cancelUrl: url }))).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it("createCheckout akzeptiert relative App-Pfade und absolute http(s)-URLs als Redirect", async () => {
+    const p = provider();
+    const req = request({ successUrl: "/c/zehenspitze?abo=ok", cancelUrl: "https://happyfeet.ch/c/zehenspitze" });
+    const { sessionId } = await p.createCheckout(req);
+
+    expect(p.decodeSession(sessionId, NOW)).toMatchObject({
+      successUrl: "/c/zehenspitze?abo=ok",
+      cancelUrl: "https://happyfeet.ch/c/zehenspitze",
+    });
+  });
+
+  it("createCheckout lehnt Anfragen ab, deren Session-ID zu lang für decodeSession würde", async () => {
+    const p = provider();
+    const huge = request({
+      description: "€".repeat(500),
+      successUrl: `/${"€".repeat(1999)}`,
+      cancelUrl: `/${"€".repeat(1999)}`,
+    });
+
+    await expect(p.createCheckout(huge)).rejects.toBeInstanceOf(ValidationError);
   });
 
   it("ohne PAYMENT_WEBHOOK_SECRET wirft createCheckout einen Konfigurationsfehler", async () => {
@@ -193,8 +242,10 @@ describe("MockPaymentProvider – Events", () => {
       occurredAt: at,
     });
     if (event.type !== "checkout.completed") throw new Error("falscher Event-Typ");
-    expect(event.providerPaymentId).toMatch(/^mockpay_[0-9a-f]{24}$/);
+    // Formel laut Plan: "mockpay_" + sha256(sessionId).slice(0, 24)
+    expect(event.providerPaymentId).toBe(`mockpay_${createHash("sha256").update(sessionId).digest("hex").slice(0, 24)}`);
     expect(event.eventId).toMatch(/^mockevt_[0-9a-f]{24}$/);
+    expect(event.eventId.slice(8)).not.toBe(event.providerPaymentId.slice(8));
   });
 
   it("completedEventFor zweimal (Doppelklick) → gleiche providerPaymentId und eventId", async () => {
@@ -308,6 +359,26 @@ describe("MockPaymentProvider – Webhooks", () => {
       const body = JSON.stringify(event);
       await expect(p.parseWebhook(webhookRequest(body, p.signWebhookBody(body)))).resolves.toEqual(event);
     }
+  });
+
+  it("Roundtrip klappt auch mit maximal langer referenceId (providerSubscriptionRef = mocksub_ + referenceId)", async () => {
+    const p = provider();
+    const { sessionId } = await p.createCheckout(request({ referenceId: "r".repeat(200) }));
+    const event = p.completedEventFor(sessionId, NOW);
+    const body = JSON.stringify(event);
+
+    await expect(p.parseWebhook(webhookRequest(body, p.signWebhookBody(body)))).resolves.toEqual(event);
+  });
+
+  it("Webhook-Signatur passt nicht als Session-Signatur und umgekehrt (Domänentrennung)", async () => {
+    const p = provider();
+    const { sessionId } = await p.createCheckout(request());
+    const [payload, sessionSig] = sessionId.split(".");
+    const sessionSigHex = Buffer.from(sessionSig, "base64url").toString("hex");
+
+    await expect(p.parseWebhook(webhookRequest(payload, sessionSigHex))).rejects.toBeInstanceOf(InvalidWebhookError);
+    const webhookSig = Buffer.from(p.signWebhookBody(payload), "hex").toString("base64url");
+    expect(p.decodeSession(`${payload}.${webhookSig}`, NOW)).toBeNull();
   });
 
   it("signWebhookBody ist HMAC-SHA256 (hex) über den Body", () => {

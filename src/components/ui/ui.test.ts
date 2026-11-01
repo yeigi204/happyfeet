@@ -59,7 +59,7 @@ describe("Button", () => {
 
 describe("Field", () => {
   it("associates label, hint and control", () => {
-    const markup = html(h(Field, { label: "Handle", hint: "3–24 Zeichen" }, h(Input, { name: "handle" })));
+    const markup = html(h(Field, { label: "Handle", hint: "3–24 Zeichen", children: h(Input, { name: "handle" }) }));
     const id = attr(markup, "input", "id");
     expect(id).toBeTruthy();
     expect(attr(markup, "label", "for")).toBe(id);
@@ -69,14 +69,14 @@ describe("Field", () => {
   });
 
   it("marks the control invalid and announces the error", () => {
-    const markup = html(h(Field, { label: "Preis", error: "Mindestens CHF 4.90" }, h(Input, { name: "price" })));
+    const markup = html(h(Field, { label: "Preis", error: "Mindestens CHF 4.90", children: h(Input, { name: "price" }) }));
     expect(attr(markup, "input", "aria-invalid")).toBe("true");
     expect(markup).toContain('role="alert"');
     expect(markup).toContain("Mindestens CHF 4.90");
   });
 
   it("keeps an id the caller already set", () => {
-    const markup = html(h(Field, { label: "Bio" }, h(Textarea, { id: "bio" })));
+    const markup = html(h(Field, { label: "Bio", children: h(Textarea, { id: "bio" }) }));
     expect(attr(markup, "label", "for")).toBe("bio");
     expect(attr(markup, "textarea", "id")).toBe("bio");
   });
@@ -92,7 +92,7 @@ describe("Select", () => {
 
 describe("Card", () => {
   it("renders title as a heading and the action", () => {
-    const markup = html(h(Card, { title: "Umsatz 90 Tage", action: h("a", { href: "/x" }, "Alle") }, "Inhalt"));
+    const markup = html(h(Card, { title: "Umsatz 90 Tage", action: h("a", { href: "/x" }, "Alle"), children: "Inhalt" }));
     expect(markup).toMatch(/<h2[^>]*>Umsatz 90 Tage<\/h2>/);
     expect(markup).toContain('href="/x"');
     expect(markup).toContain("border-line");
@@ -101,13 +101,13 @@ describe("Card", () => {
 
 describe("Badge", () => {
   it("pairs status tones with an icon so color never carries meaning alone", () => {
-    expect(html(h(Badge, { tone: "danger" }, "Kritisch"))).toContain("<svg");
-    expect(html(h(Badge, { tone: "success" }, "Freigegeben"))).toContain("<svg");
-    expect(html(h(Badge, { tone: "warning" }, "Wartet"))).toContain("<svg");
+    expect(html(h(Badge, { tone: "danger", children: "Kritisch" }))).toContain("<svg");
+    expect(html(h(Badge, { tone: "success", children: "Freigegeben" }))).toContain("<svg");
+    expect(html(h(Badge, { tone: "warning", children: "Wartet" }))).toContain("<svg");
   });
 
   it("keeps neutral badges plain", () => {
-    const markup = html(h(Badge, { tone: "neutral" }, "Entwurf"));
+    const markup = html(h(Badge, { tone: "neutral", children: "Entwurf" }));
     expect(markup).not.toContain("<svg");
     expect(markup).toContain("Entwurf");
   });
@@ -159,7 +159,13 @@ describe("Stat", () => {
   it("sets the currency unit apart from the amount", () => {
     const markup = html(h(Stat, { label: "MRR", value: "CHF 48’210.00" }));
     expect(markup).toMatch(/<span[^>]*data-unit[^>]*>CHF<\/span>/);
-    expect(markup).toContain("48’210");
+    expect(markup.replace(/<[^>]+>/g, "")).toContain("CHF48’210.00");
+  });
+
+  it("sets the mono apostrophe tighter so grouped numbers read as one word", () => {
+    const markup = html(h(Stat, { label: "Aktive Abos", value: "5’784" }));
+    expect(markup).toMatch(/<span class="-mx-\[[\d.]+em\]">’<\/span>/);
+    expect(markup.replace(/<[^>]+>/g, "")).toContain("5’784");
   });
 
   it("renders hint and trend children", () => {

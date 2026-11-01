@@ -53,6 +53,7 @@ describe("isPremiumActive", () => {
 
   it("is false exactly at the end of the period", () => {
     expect(isPremiumActive({ status: "active", currentPeriodEnd: now }, now)).toBe(false);
+    expect(isPremiumActive({ status: "canceled", currentPeriodEnd: now }, now)).toBe(false);
   });
 
   it("is false for an expired subscription even with a future period end", () => {

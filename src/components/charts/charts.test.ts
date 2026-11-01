@@ -44,6 +44,11 @@ describe("Sparkline", () => {
   it("uses the requested series color", () => {
     expect(html(h(Sparkline, { values: [1, 2], label: "x", color: "series-2" }))).toContain("var(--color-series-2)");
   });
+
+  it("marks the current value with a dot unless the marker is turned off (e.g. in table rows)", () => {
+    expect(html(h(Sparkline, { values: [1, 2], label: "x" }))).toContain("data-marker");
+    expect(html(h(Sparkline, { values: [1, 2], label: "x", marker: false }))).not.toContain("data-marker");
+  });
 });
 
 describe("ChartLegend", () => {
@@ -111,6 +116,34 @@ describe("BarChart", () => {
     const down = pathD(markup, "canceled").match(/^M([\d.]+),([\d.]+)V([\d.]+)/);
     expect(up && Number(up[3]) < Number(up[2])).toBe(true);
     expect(down && Number(down[3]) > Number(down[2])).toBe(true);
+  });
+
+  it("leaves a 2px surface gap between the upward and the downward bar at the baseline", () => {
+    const markup = html(h(BarChart, { data: subs, series: subSeries, mode: "diverging", format: "number", title: "Abos" }));
+    const upBase = Number(pathD(markup, "newSubs").match(/^M[\d.]+,([\d.]+)/)?.[1]);
+    const downBase = Number(pathD(markup, "canceled").match(/^M[\d.]+,([\d.]+)/)?.[1]);
+    expect(downBase - upBase).toBeCloseTo(2, 5);
+  });
+
+  it("keeps bars visible when many days share a narrow plot", () => {
+    const many: DatumRow[] = Array.from({ length: 200 }, (_, i) => ({
+      date: new Date(Date.UTC(2026, 3, 1) + i * 86_400_000).toISOString().slice(0, 10),
+      newSubs: 5 + (i % 7),
+      canceled: 1 + (i % 3),
+    }));
+    const markup = html(h(BarChart, { data: many, series: subSeries, mode: "diverging", format: "number", title: "Abos" }));
+    const widths = [...markup.matchAll(/data-width="([\d.]+)"/g)].map((m) => Number(m[1]));
+    // SSR-Breite 640px → Band ≈ 3px: Balken dürfen nicht zu 1px-Haarlinien schrumpfen
+    expect(Math.min(...widths)).toBeGreaterThanOrEqual(1.8);
+  });
+
+  it("never puts fractional ticks on a count axis", () => {
+    const small: DatumRow[] = [
+      { date: "2026-10-31", newSubs: 9, canceled: 0 },
+      { date: "2026-11-01", newSubs: 3, canceled: 0 },
+    ];
+    const markup = html(h(BarChart, { data: small, series: [subSeries[0]], format: "number", title: "Abos", height: 250 }));
+    expect(markup).not.toMatch(/>\d+\.\d+<\/text>/);
   });
 
   it("labels the lower half with absolute values", () => {

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getMediaStorage, setMediaStorageForTesting, signMediaUrl, signMediaUrls } from "./index";
-import { LocalMediaStorage } from "./local";
+import { LocalMediaStorage, verifyLocalMediaSignature } from "./local";
 import { InMemoryMediaStorage } from "./memory";
 import { SupabaseMediaStorage } from "./supabase";
 import type { BatchSigningMediaStorage, MediaStorage } from "./types";
@@ -77,6 +77,20 @@ describe("signMediaUrl / signMediaUrls", () => {
     await expect(signMediaUrl("posts/p/0-a-preview.webp")).resolves.toBe(
       "memory://posts/p/0-a-preview.webp?exp=1793534700",
     );
+  });
+
+  it("signiert mit STORAGE_DRIVER=local eine URL, die 300 Sekunden gültig ist", async () => {
+    vi.stubEnv("STORAGE_DRIVER", "local");
+    vi.stubEnv("MEDIA_SIGNING_SECRET", "index-secret-index-secret-index-secret");
+    const key = "posts/p/0-a-preview.webp";
+
+    const url = new URL(await signMediaUrl(key), "http://localhost");
+
+    expect(url.pathname).toBe(`/api/media/${key}`);
+    expect(url.searchParams.get("exp")).toBe("1793534700");
+    const sig = url.searchParams.get("sig") ?? "";
+    expect(verifyLocalMediaSignature(key, "1793534700", sig, new Date("2026-11-01T12:04:59Z"))).toBe(true);
+    expect(verifyLocalMediaSignature(key, "1793534700", sig, new Date("2026-11-01T12:05:00Z"))).toBe(false);
   });
 
   it("liefert eine URL pro (eindeutigem) Key", async () => {

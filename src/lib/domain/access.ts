@@ -29,9 +29,10 @@ export function isPostListed(input: PostAccessInput): boolean {
 /**
  * Darf der Viewer die Original-Medien sehen? Sonst gibt es nur die verpixelte Vorschau.
  * Admin und Eigentümer immer; alle anderen nur bei sichtbaren Posts, und `subscribers` nur mit aktivem Abo.
+ * Anonyme Besucher können kein Abo haben – ein fälschlich gesetztes `hasActiveSubscription` schaltet nichts frei.
  */
 export function canViewPostMedia(input: PostAccessInput & { hasActiveSubscription: boolean }): boolean {
   if (isAdminOrOwner(input)) return true;
   if (!isPubliclyVisible(input)) return false;
-  return input.post.visibility === "public" || input.hasActiveSubscription;
+  return input.post.visibility === "public" || (input.viewer !== null && input.hasActiveSubscription);
 }

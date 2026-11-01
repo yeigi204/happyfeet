@@ -132,6 +132,14 @@ describe("isSafeHref", () => {
     expect(isSafeHref("javascript:alert(1)")).toBe(false);
     expect(isSafeHref("https://evil.test")).toBe(false);
   });
+
+  it("rejects paths the URL parser turns into another origin", () => {
+    // Der URL-Parser entfernt Tabs/Zeilenumbrüche und liest „\“ als „/“ → „//evil.test“.
+    expect(isSafeHref("/\t/evil.test")).toBe(false);
+    expect(isSafeHref("/\n/evil.test")).toBe(false);
+    expect(isSafeHref("/\\evil.test")).toBe(false);
+    expect(isSafeHref("")).toBe(false);
+  });
 });
 
 describe("QueuePill", () => {
@@ -159,14 +167,11 @@ describe("Ticker", () => {
 
 describe("AdminShell", () => {
   const markup = html(
-    h(
-      AdminShell,
-      {
-        counts: { verifications: 3, moderation: 6, reports: 7 },
-        ticker: [{ label: "Aktive Abos", value: "4’912" }],
-      },
-      h("p", null, "Seiteninhalt"),
-    ),
+    h(AdminShell, {
+      counts: { verifications: 3, moderation: 6, reports: 7 },
+      ticker: [{ label: "Aktive Abos", value: "4’912" }],
+      children: h("p", null, "Seiteninhalt"),
+    }),
   );
 
   it("switches to the admin theme and renders the page", () => {
