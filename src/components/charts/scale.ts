@@ -11,8 +11,11 @@ const MONTHS = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", 
 const WEEKDAYS = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"] as const;
 const NICE_STEPS = [1, 2, 2.5, 5, 10] as const;
 
-/** Runde Achsenwerte, die [min, max] abdecken (Domain = erster bis letzter Tick). */
-export function niceTicks(min: number, max: number, target = 4): number[] {
+/**
+ * Runde Achsenwerte, die [min, max] abdecken (Domain = erster bis letzter Tick).
+ * `integer`: nur ganze Schritte (Anzahlen – kein „2.5 Abos“).
+ */
+export function niceTicks(min: number, max: number, target = 4, integer = false): number[] {
   const lo = Math.min(min, 0);
   const hi = Math.max(max, 0);
   if (hi - lo <= 0) return [0, 1];
@@ -20,7 +23,8 @@ export function niceTicks(min: number, max: number, target = 4): number[] {
   const raw = (hi - lo) / target;
   const magnitude = 10 ** Math.floor(Math.log10(raw));
   const normalized = raw / magnitude;
-  const step = (NICE_STEPS.find((s) => s >= normalized) ?? 10) * magnitude;
+  const fits = (s: number) => s >= normalized && (!integer || Number.isInteger(s * magnitude));
+  const step = Math.max(integer ? 1 : 0, (NICE_STEPS.find(fits) ?? 10) * magnitude);
 
   const first = Math.floor(lo / step + 1e-9) * step;
   const last = Math.ceil(hi / step - 1e-9) * step;
@@ -85,12 +89,16 @@ function millions(v: number): string {
   return `${formatNumber(Math.round(v / 100_000) / 10)}${NBSP}Mio.`;
 }
 
-/** Kompakte Achsenbeschriftung (Einheit steht im Titel): CHF in ganzen Franken, ab 1 Mio. „2.5 Mio.“ */
+/**
+ * Kompakte Achsenbeschriftung (Einheit steht im Titel): CHF in Franken ohne Rappen-Nullen
+ * („1’200“, bei kleinen Skalen „2.5“), ab 1 Mio. „2.5 Mio.“
+ */
 export function formatAxisValue(value: number, format: ValueFormat): string {
   switch (format) {
     case "chf": {
       const francs = value / 100;
-      return Math.abs(francs) >= 1_000_000 ? millions(francs) : formatNumber(Math.round(francs));
+      // Auf Rappen runden, nicht auf Franken: ein 2.5er-Tick darf nicht als „3“ erscheinen.
+      return Math.abs(francs) >= 1_000_000 ? millions(francs) : formatNumber(Math.round(francs * 100) / 100);
     }
     case "number":
       return Math.abs(value) >= 1_000_000 ? millions(value) : formatNumber(value);

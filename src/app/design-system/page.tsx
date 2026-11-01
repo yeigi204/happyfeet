@@ -316,7 +316,7 @@ export default function DesignSystemPage() {
             <Card>
               <div className="grid gap-8">
                 <Meter
-                  title="Wohin ein Abo-Franken geht"
+                  title="Wohin ein Abo geht"
                   format="chf"
                   parts={[
                     { label: "Creator (Standard, 85 %)", value: 841, color: "series-2" },
@@ -501,7 +501,8 @@ function SwatchPanel({ world }: { world: "hell" | "admin" }) {
         {SWATCHES.map((g) => (
           <div key={g.group}>
             <p className="eyebrow mb-2">{g.group}</p>
-            <ul className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+            {/* auto-fill statt fixer Spalten: Token-Namen wie „line-strong“ bleiben lesbar statt „line-str…“ */}
+            <ul className="grid grid-cols-[repeat(auto-fill,minmax(4.5rem,1fr))] gap-2">
               {g.tokens.map(([name, light, admin]) => (
                 <li key={name} className="min-w-0">
                   <span className="block h-11 rounded-[4px] border border-line" style={{ background: `var(--color-${name})` }} />
@@ -970,6 +971,9 @@ function QueueList() {
   );
 }
 
+/* Sortiert wie beschriftet („nach Brutto“) – nicht nach Abo-Zahl. */
+const TOP_CREATORS = [...CREATORS].sort((a, b) => b.gross30 - a.gross30);
+
 function TopCreators() {
   return (
     <Card title="Top-Creator · 30 T" action={<span className="font-mono text-xs text-ink-faint">nach Brutto</span>} flush>
@@ -985,7 +989,7 @@ function TopCreators() {
           </TR>
         </THead>
         <TBody>
-          {CREATORS.map((c, i) => (
+          {TOP_CREATORS.map((c, i) => (
             <TR key={c.handle}>
               <TD className="hidden font-mono text-[12px] text-ink-faint tabular-nums sm:table-cell">{String(i + 1).padStart(2, "0")}</TD>
               <TD>
@@ -1001,7 +1005,7 @@ function TopCreators() {
                 </span>
               </TD>
               <TD className="hidden w-28 md:table-cell">
-                <Sparkline values={c.trend} label={`Abos von ${c.name}, 30 Tage`} className="h-6 w-24" />
+                <Sparkline values={c.trend} label={`Abos von ${c.name}, 30 Tage`} marker={false} className="h-6 w-24" />
               </TD>
               <TD numeric>{formatNumber(c.subs)}</TD>
               <TD numeric>{formatChf(c.gross30)}</TD>

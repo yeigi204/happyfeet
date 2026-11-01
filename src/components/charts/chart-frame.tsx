@@ -78,14 +78,32 @@ export function ChartFrame({ title, unit, legend, table, children, className }: 
 
 export type TooltipRow = { key: string; label: string; value: string; color?: string; separated?: boolean };
 
-/** Ein Tooltip, alle Serien: Wert zuerst (kräftig), Name danach; Serien-Schlüssel als kurzer Strich. */
-export function ChartTooltip({ x, width, top, heading, rows }: { x: number; width: number; top: number; heading: string; rows: TooltipRow[] }) {
+/**
+ * Ein Tooltip, alle Serien: Wert zuerst (kräftig), Name danach; Serien-Schlüssel als kurzer Strich.
+ * `offset`: Abstand zur Marke – bei Balken mindestens das halbe Band, damit die aktive Spalte frei bleibt.
+ */
+export function ChartTooltip({
+  x,
+  width,
+  top,
+  heading,
+  rows,
+  offset = 14,
+}: {
+  x: number;
+  width: number;
+  top: number;
+  heading: string;
+  rows: TooltipRow[];
+  offset?: number;
+}) {
   const flip = x > width * 0.58;
+  const dx = Math.round(offset);
   return (
     <div
       aria-hidden
       className="pointer-events-none absolute z-10 min-w-44 rounded-control border border-line-strong bg-surface px-3 py-2"
-      style={{ left: `${(x / width) * 100}%`, top, transform: flip ? "translateX(calc(-100% - 14px))" : "translateX(14px)" }}
+      style={{ left: `${(x / width) * 100}%`, top, transform: flip ? `translateX(calc(-100% - ${dx}px))` : `translateX(${dx}px)` }}
     >
       <p className="font-mono text-[11px] whitespace-nowrap text-ink-faint tabular-nums">{heading}</p>
       <ul className="mt-1.5 grid grid-cols-[12px_auto_1fr] items-center gap-x-2 gap-y-1">

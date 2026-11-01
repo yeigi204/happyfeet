@@ -64,7 +64,7 @@ function BarPlot({ data, series, mode, format, title, height, width }: Required<
   const maxDown = diverging ? Math.max(0, ...values[1]) : 0;
 
   const plotH = height - TOP - AXIS_BAND;
-  const ticks = niceTicks(-maxDown, maxUp, Math.max(2, Math.round(plotH / 52)));
+  const ticks = niceTicks(-maxDown, maxUp, Math.max(2, Math.round(plotH / 52)), format === "number");
   // Untere Hälfte zeigt Beträge (Kündigungen sind „4“, nicht „-4“).
   const tickLabels = ticks.map((t) => formatAxisValue(Math.abs(t), format));
   const left = Math.ceil(Math.max(...tickLabels.map((l) => l.length)) * MONO_CHAR) + 14;
@@ -74,22 +74,29 @@ function BarPlot({ data, series, mode, format, title, height, width }: Required<
   const base = y(0);
   const band = n > 0 ? plotW / n : plotW;
   const center = (i: number) => left + band * (i + 0.5);
+  // 2px Lücke zwischen Flächen – bei sehr schmalen Bändern (90 Tage auf dem Handy) anteilig kleiner,
+  // sonst schrumpfen die Balken zu Haarlinien.
+  const gap = Math.min(GAP, band * 0.3);
 
   const bars: Bar[] = [];
   if (diverging) {
-    const w = Math.max(1, Math.min(MAX_BAR, band - GAP));
+    const w = Math.max(1, Math.min(MAX_BAR, band - gap));
+    // Je 1px über/unter der Null-Linie: oben und unten berühren sich nicht.
+    const half = GAP / 2;
     data.forEach((_, i) => {
       const x0 = center(i) - w / 2;
-      bars.push({ key: series[0].key, i, x: x0, width: w, d: barPath(x0, w, base, y(values[0][i]), RADIUS), color: seriesColorVar(series[0].color) });
-      bars.push({ key: series[1].key, i, x: x0, width: w, d: barPath(x0, w, base, y(-values[1][i]), RADIUS), color: seriesColorVar(series[1].color) });
+      const upEnd = Math.min(base - half, y(values[0][i]));
+      const downEnd = Math.max(base + half, y(-values[1][i]));
+      bars.push({ key: series[0].key, i, x: x0, width: w, d: barPath(x0, w, base - half, upEnd, RADIUS), color: seriesColorVar(series[0].color) });
+      bars.push({ key: series[1].key, i, x: x0, width: w, d: barPath(x0, w, base + half, downEnd, RADIUS), color: seriesColorVar(series[1].color) });
     });
   } else {
     const k = Math.max(1, series.length);
-    const w = Math.max(1, Math.min(MAX_BAR, (band * 0.78 - (k - 1) * GAP) / k));
-    const groupW = k * w + (k - 1) * GAP;
+    const w = Math.max(1, Math.min(MAX_BAR, (band * 0.78 - (k - 1) * gap) / k));
+    const groupW = k * w + (k - 1) * gap;
     data.forEach((_, i) => {
       series.forEach((s, j) => {
-        const x0 = center(i) - groupW / 2 + j * (w + GAP);
+        const x0 = center(i) - groupW / 2 + j * (w + gap);
         bars.push({ key: s.key, i, x: x0, width: w, d: barPath(x0, w, base, y(values[j][i]), RADIUS), color: seriesColorVar(s.color) });
       });
     });
@@ -162,7 +169,9 @@ function BarPlot({ data, series, mode, format, title, height, width }: Required<
         <rect x={left} y={TOP} width={plotW} height={plotH} fill="transparent" />
       </svg>
 
-      {active !== null ? <ChartTooltip x={center(active)} width={width} top={TOP} heading={formatDayLong(dates[active])} rows={tooltipRows} /> : null}
+      {active !== null ? (
+        <ChartTooltip x={center(active)} width={width} top={TOP} heading={formatDayLong(dates[active])} rows={tooltipRows} offset={Math.max(14, band / 2 + 8)} />
+      ) : null}
       <p id={liveId} aria-live="polite" className="sr-only">
         {liveText}
       </p>

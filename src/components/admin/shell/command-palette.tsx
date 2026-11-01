@@ -39,9 +39,13 @@ export function filterCommands<T extends { label: string; keywords?: string }>(i
   return scored.sort((a, b) => a.score - b.score || a.index - b.index).map((s) => s.item);
 }
 
-/** Nur Pfade dieser App – Suchresultate kommen vom Server, trotzdem nie `javascript:` & Co. pushen. */
+/**
+ * Nur Pfade dieser App – Suchresultate kommen vom Server, trotzdem nie `javascript:` & Co. pushen.
+ * Keine Steuerzeichen/Backslashes: der URL-Parser entfernt Tabs und Zeilenumbrüche und liest „\“
+ * als „/“, aus „/\t/evil.test“ würde sonst „//evil.test“ (fremde Origin).
+ */
 export function isSafeHref(href: string): boolean {
-  return href.startsWith("/") && !href.startsWith("//") && !href.includes("\\");
+  return href.startsWith("/") && !href.startsWith("//") && !/[\\\u0000-\u001f\u007f]/.test(href);
 }
 
 type Command = {

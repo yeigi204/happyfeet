@@ -23,7 +23,7 @@ export function Segmented({ items, active, label = "Ansicht", className }: { ite
           >
             {item.label}
             {item.count !== undefined ? (
-              <span className={cn("font-mono text-[11px] tabular-nums", isActive ? "text-ink" : "text-ink-faint")}>{item.count}</span>
+              <span className={cn("font-mono text-[11px] tabular-nums", isActive ? "text-ink" : "text-ink-muted")}>{item.count}</span>
             ) : null}
           </Link>
         );

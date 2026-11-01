@@ -10,6 +10,8 @@ export type SparklineProps = {
   /** Ohne Farbe: Linie in De-Emphasis-Ton, nur der aktuelle Punkt im Akzent. */
   color?: SeriesColor;
   label: string;
+  /** Punkt am aktuellen Wert (Standard: an). In Tabellenzeilen aus – sonst wird der Akzent zum Muster. */
+  marker?: boolean;
   className?: string;
 };
 
@@ -21,7 +23,7 @@ const PAD = 3;
  * Reines SVG, server-fähig. Dehnt sich auf die Containerbreite (Höhe via className, Default 32px);
  * Linie bleibt dank non-scaling-stroke 1.5px, der Endpunkt ist HTML und damit immer rund.
  */
-export function Sparkline({ values, color, label, className }: SparklineProps) {
+export function Sparkline({ values, color, label, marker = true, className }: SparklineProps) {
   const gradientId = `spark-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const box = cn("relative block h-8 w-full", className);
   if (values.length === 0) return <span role="img" aria-label={label} className={box} />;
@@ -56,11 +58,14 @@ export function Sparkline({ values, color, label, className }: SparklineProps) {
           vectorEffect="non-scaling-stroke"
         />
       </svg>
-      <span
-        aria-hidden
-        className="absolute size-2 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-surface"
-        style={{ left: "100%", top: `${(lastY / VB_H) * 100}%`, background: dot }}
-      />
+      {marker ? (
+        <span
+          aria-hidden
+          data-marker
+          className="absolute size-2 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-surface"
+          style={{ left: "100%", top: `${(lastY / VB_H) * 100}%`, background: dot }}
+        />
+      ) : null}
     </span>
   );
 }

@@ -62,7 +62,7 @@ function AreaPlot({ data, series, stacked, format, title, height, width }: Requi
   );
   const maxY = Math.max(0, ...stacks.flatMap((s) => s.y1));
   const plotH = height - TOP - AXIS_BAND;
-  const ticks = niceTicks(0, maxY, Math.max(2, Math.round(plotH / 56)));
+  const ticks = niceTicks(0, maxY, Math.max(2, Math.round(plotH / 56)), format === "number");
   const tickLabels = ticks.map((t) => formatAxisValue(t, format));
   const left = Math.ceil(Math.max(...tickLabels.map((l) => l.length)) * MONO_CHAR) + 14;
   const y = linearScale(ticks[0], ticks[ticks.length - 1], TOP + plotH, TOP);
