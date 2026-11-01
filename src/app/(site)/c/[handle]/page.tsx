@@ -53,6 +53,7 @@ export async function generateMetadata({ params }: PageProps<"/c/[handle]">): Pr
   };
 }
 
+// Bewusst ohne loading.tsx: Mit Streaming könnte notFound() keinen echten 404-Status mehr setzen.
 export default async function CreatorProfilePage({ params, searchParams }: PageProps<"/c/[handle]">) {
   const handle = decodeHandle((await params).handle);
   const aboOk = firstParam((await searchParams).abo) === "ok";

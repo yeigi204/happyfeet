@@ -24,7 +24,12 @@ const LIMIT = 60;
 
 export default async function ExplorePage({ searchParams }: PageProps<"/explore">) {
   const raw = (await searchParams).q;
-  const query = (Array.isArray(raw) ? raw[0] : raw)?.trim().slice(0, QUERY_MAX_LENGTH) ?? "";
+  // Steuerzeichen (z. B. NUL) entfernen – sie würden sonst die Anzeige/Hydration stören.
+  const query =
+    (Array.isArray(raw) ? raw[0] : raw)
+      ?.replace(/[\u0000-\u001F\u007F]/g, "")
+      .trim()
+      .slice(0, QUERY_MAX_LENGTH) ?? "";
   const viewer = await getViewer();
   const creators = await listCreatorsForExplore(viewer, { query, limit: LIMIT });
 

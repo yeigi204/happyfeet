@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { normalizeHandle, validateHandle } from "@/lib/domain/handles";
+import { safeReturnPath } from "@/server/auth/return-path";
 import { getViewer, requireViewer } from "@/server/auth/viewer";
 import { toActionResult } from "@/server/action-result";
 import { ValidationError, type FieldErrors } from "@/server/errors";
@@ -42,8 +43,10 @@ function readValues(formData: FormData): OnboardingValues {
 
 export async function submitOnboarding(_prev: OnboardingFormState, formData: FormData): Promise<OnboardingFormState> {
   const viewer = await requireViewer();
+  // Rücksprung nur auf geprüfte lokale Pfade (kein Open Redirect).
+  const returnTo = safeReturnPath(formData.get("returnTo")?.toString()) ?? "/explore";
   if (viewer.status === "banned") redirect("/banned");
-  if (viewer.onboarded) redirect("/explore");
+  if (viewer.onboarded) redirect(returnTo);
 
   const values = readValues(formData);
   const result = await toActionResult(async () => {
@@ -62,7 +65,7 @@ export async function submitOnboarding(_prev: OnboardingFormState, formData: For
   }
 
   revalidatePath("/", "layout");
-  redirect("/explore");
+  redirect(returnTo);
 }
 
 /** Live-Prüfung im Formular (entprellt). Verbindlich bleibt die Prüfung in `completeOnboarding`. */

@@ -79,7 +79,10 @@ export const users = pgTable(
      * (Posts, Meldungen, Zahlungen, Auszahlungen), E-Mail und Geburtsdatum sind entfernt.
      */
     deletedAt: ts("deleted_at"),
-    /** SHA-256 der E-Mail eines gesperrten, gelöschten Kontos – erkennt eine Neuanmeldung mit derselben Adresse. */
+    /**
+     * SHA-256 der E-Mail eines gelöschten Kontos (nur zur Missbrauchsabwehr): Ist bzw. wird das Konto
+     * gesperrt, startet eine Neuanmeldung mit derselben bestätigten Adresse ebenfalls gesperrt.
+     */
     deletedEmailHash: text("deleted_email_hash"),
     createdAt: createdAt(),
     updatedAt: updatedAt(),

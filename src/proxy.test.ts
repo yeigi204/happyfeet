@@ -63,4 +63,16 @@ describe("proxy", () => {
   it("hat einen Matcher für Seiten und API-Routen", () => {
     expect(config.matcher).toEqual(expect.arrayContaining([expect.stringContaining("api")]));
   });
+
+  it("lehnt grosse Request-Bodies ausserhalb des Post-Uploads mit 413 ab", async () => {
+    const big = (path: string, method = "POST") =>
+      new NextRequest(`http://localhost${path}`, { method, headers: { "content-length": String(5 * 1024 * 1024) } });
+    expect((await proxy(big("/admin/settings"), event))?.status).toBe(413);
+    expect((await proxy(big("/"), event))?.status).toBe(413);
+    expect(clerk.invoked).not.toHaveBeenCalled();
+    const upload = await proxy(big("/studio/posts/new"), event);
+    expect(upload?.status).not.toBe(413);
+    const small = new NextRequest("http://localhost/admin/settings", { method: "POST", headers: { "content-length": "1200" } });
+    expect((await proxy(small, event))?.status).not.toBe(413);
+  });
 });

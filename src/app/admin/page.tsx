@@ -1,6 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 
+import { directoryFromAudit } from "@/components/admin/audit/describe";
 import { ActivityFeed } from "@/components/admin/dashboard/activity-feed";
 import { FeeMixCard } from "@/components/admin/dashboard/fee-mix-card";
 import { KpiOverview } from "@/components/admin/dashboard/kpi-overview";
@@ -16,7 +17,7 @@ import { formatDateTime, formatNumber } from "@/lib/format";
 import { requireAdmin } from "@/server/auth/viewer";
 import { getPlatformSettings } from "@/server/services/settings";
 
-import { loadAdminDashboard, loadUserDirectory } from "./_lib/data";
+import { loadAdminDashboard } from "./_lib/data";
 
 // Gleiches Segment wie das Layout mit dem Admin-Template – das Template greift hier nicht, daher absolut.
 export const metadata: Metadata = { title: { absolute: "Dashboard · Admin · happyfeet" } };
@@ -55,7 +56,9 @@ function focusFor(queues: DashboardQueues, now: Date): Focus {
 
 export default async function AdminDashboardPage() {
   const admin = await requireAdmin();
-  const [dashboard, settings, directory] = await Promise.all([loadAdminDashboard(admin), getPlatformSettings(), loadUserDirectory(admin)]);
+  const [dashboard, settings] = await Promise.all([loadAdminDashboard(admin), getPlatformSettings()]);
+  // Ziele und Creator der Aktivitäten sind vom Server bereits aufgelöst.
+  const directory = directoryFromAudit(dashboard.activity);
   const now = new Date();
   const { kpis, queues, revenueDaily, subscriptionsDaily } = dashboard;
   const focus = focusFor(queues, now);

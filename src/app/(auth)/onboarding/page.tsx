@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
+import { safeReturnPath } from "@/server/auth/return-path";
 import { requireViewer } from "@/server/auth/viewer";
 
 import { OnboardingForm } from "./onboarding-form";
@@ -17,10 +18,12 @@ function todayInZurich(now: Date): string {
   }).format(now);
 }
 
-export default async function OnboardingPage() {
+export default async function OnboardingPage({ searchParams }: PageProps<"/onboarding">) {
   const viewer = await requireViewer();
+  const raw = (await searchParams).redirect_url;
+  const returnTo = safeReturnPath(Array.isArray(raw) ? raw[0] : raw);
   if (viewer.status === "banned") redirect("/banned");
-  if (viewer.onboarded) redirect("/explore");
+  if (viewer.onboarded) redirect(returnTo ?? "/explore");
 
   return (
     <div>
@@ -34,7 +37,7 @@ export default async function OnboardingPage() {
       </p>
 
       <div className="mt-10 border-t border-line pt-8">
-        <OnboardingForm maxBirthDate={todayInZurich(new Date())} />
+        <OnboardingForm maxBirthDate={todayInZurich(new Date())} returnTo={returnTo} />
       </div>
     </div>
   );

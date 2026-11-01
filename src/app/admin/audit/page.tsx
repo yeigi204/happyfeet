@@ -2,8 +2,14 @@ import { ArrowDown, ArrowUp } from "lucide-react";
 import type { Metadata } from "next";
 
 import { AUDIT_TONE_CLASSES, AuditSummary } from "@/components/admin/audit/audit-summary";
-import { actorLabel, AUDIT_ACTIONS, auditActionOptions, describeAudit, isKnownAuditAction } from "@/components/admin/audit/describe";
-import { auditCursorParams, nextAuditCursor, parseAuditCursor } from "@/components/admin/lib/audit-cursor";
+import {
+  actorLabel,
+  AUDIT_ACTIONS,
+  auditActionOptions,
+  describeAudit,
+  directoryFromAudit,
+  isKnownAuditAction,
+} from "@/components/admin/audit/describe";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { cn } from "@/components/ui/cn";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -12,8 +18,6 @@ import { Select } from "@/components/ui/select";
 import { formatDate, formatDateTime, formatNumber, formatRelative } from "@/lib/format";
 import { requireAdmin } from "@/server/auth/viewer";
 import { listAuditLog, type AuditFeedItem } from "@/server/services/admin/audit";
-
-import { loadUserDirectory } from "../_lib/data";
 
 export const metadata: Metadata = { title: "Audit-Log" };
 
@@ -59,20 +63,15 @@ export default async function AuditPage({ searchParams }: PageProps<"/admin/audi
   const admin = await requireAdmin();
   const sp = await searchParams;
   const action = typeof sp.action === "string" && isKnownAuditAction(sp.action) ? sp.action : null;
-  const cursor = parseAuditCursor(sp.before, sp.skip);
+  // Stabiler Cursor vom Server („älter als dieser Eintrag“, auch bei gleichen Zeitstempeln); ungültig → erste Seite.
+  const cursor = typeof sp.cursor === "string" && sp.cursor.length <= 80 ? sp.cursor : null;
 
-  const [raw, directory] = await Promise.all([
-    listAuditLog(admin, {
-      // +1 zeigt, ob es ältere Einträge gibt; + skip gleicht die bereits gezeigten derselben Millisekunde aus.
-      limit: PAGE_SIZE + (cursor?.skip.length ?? 0) + 1,
-      before: cursor?.before,
-      action: action ?? undefined,
-    }),
-    loadUserDirectory(admin),
-  ]);
-  const unseen = cursor ? raw.filter((item) => !cursor.skip.includes(item.id)) : raw;
-  const items = unseen.slice(0, PAGE_SIZE);
-  const next = unseen.length > PAGE_SIZE ? nextAuditCursor(items) : null;
+  // +1 zeigt, ob es ältere Einträge gibt.
+  const raw = await listAuditLog(admin, { limit: PAGE_SIZE + 1, cursor: cursor ?? undefined, action: action ?? undefined });
+  const items = raw.slice(0, PAGE_SIZE);
+  const next = raw.length > PAGE_SIZE ? (items.at(-1)?.cursor ?? null) : null;
+  // Handles der Ziele und Creator löst der Server mit auf.
+  const directory = directoryFromAudit(items);
   const now = new Date();
   const today = formatDate(now);
   const yesterday = formatDate(new Date(now.getTime() - DAY_MS));
@@ -112,7 +111,7 @@ export default async function AuditPage({ searchParams }: PageProps<"/admin/audi
 
       {cursor ? (
         <p className="flex flex-wrap items-center gap-3 text-[13px] text-ink-muted">
-          Ältere Einträge vor {formatDateTime(cursor.before)}
+          {items[0] ? `Ältere Einträge ab ${formatDateTime(items[0].createdAt)}` : "Ältere Einträge"}
           <ButtonLink href={auditHref(filterParams)} variant="ghost" size="sm">
             <ArrowUp aria-hidden />
             Zu den neuesten
@@ -191,7 +190,7 @@ export default async function AuditPage({ searchParams }: PageProps<"/admin/audi
 
           {next ? (
             <div className="flex justify-center">
-              <ButtonLink href={auditHref({ ...filterParams, ...auditCursorParams(next) })} variant="secondary">
+              <ButtonLink href={auditHref({ ...filterParams, cursor: next })} variant="secondary">
                 <ArrowDown aria-hidden />
                 Ältere laden
               </ButtonLink>

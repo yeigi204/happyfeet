@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { actorLabel, AUDIT_ACTIONS, auditActionOptions, auditText, describeAudit, type AuditEntry } from "./describe";
+import { actorLabel, AUDIT_ACTIONS, auditActionOptions, auditText, describeAudit, directoryFromAudit, type AuditEntry } from "./describe";
 
 const NBSP = " ";
 const CREATOR = "7c193063-135e-49cd-935c-3e48aa156273";
@@ -61,5 +61,16 @@ describe("describeAudit", () => {
     expect(text(entry("something.new"))).toBe("something.new");
     expect(actorLabel(null)).toBe("System");
     expect(actorLabel(admin)).toBe("@hf_mara");
+  });
+});
+
+describe("directoryFromAudit", () => {
+  it("collects server-resolved targets and creators so handles render without a user list", () => {
+    const target = { id: "u1", handle: "lena_barfuss", displayName: "Lena" };
+    const creator = { id: CREATOR, handle: "zehenspiel", displayName: "Mira Keller" };
+    const dir = directoryFromAudit([{ target, creator: null }, { target: null, creator }, {}]);
+    expect(dir.get("u1")).toEqual({ handle: "lena_barfuss", displayName: "Lena" });
+    expect(dir.get(CREATOR)?.handle).toBe("zehenspiel");
+    expect(dir.size).toBe(2);
   });
 });

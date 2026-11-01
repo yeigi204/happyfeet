@@ -6,9 +6,9 @@ import { redirect } from "next/navigation";
 import type { ActionResult } from "@/server/action-result";
 import { toActionResult } from "@/server/action-result";
 import { requireOnboardedViewer } from "@/server/auth/viewer";
-import { ValidationError } from "@/server/errors";
+import { ConflictError, ValidationError } from "@/server/errors";
 import { getMockProvider } from "@/server/payments";
-import { completeMockCheckout } from "@/server/services/payment-events";
+import { completeMockCheckout, getCheckoutRecipient } from "@/server/services/payment-events";
 import { appBaseUrl } from "@/server/services/subscriptions";
 
 import { toSafeLocalPath } from "./safe-redirect";
@@ -16,6 +16,7 @@ import { toSafeLocalPath } from "./safe-redirect";
 export type SimulateState = ActionResult<null> | null;
 
 const EXPIRED = "Diese Testzahlung ist ungültig oder abgelaufen. Bitte starte den Checkout neu.";
+const ALREADY_ACTIVE = "Das läuft bereits – diese Testzahlung wurde nicht verbucht. Lade die Seite neu, um den aktuellen Stand zu sehen.";
 
 /**
  * „Zahlung simulieren“: verbucht die Mock-Zahlung (idempotent – ein Doppelklick ergibt genau eine
@@ -28,6 +29,8 @@ export async function simulatePaymentAction(sessionId: string, _state: SimulateS
   const result = await toActionResult(async () => {
     const session = getMockProvider().decodeSession(sessionId);
     if (!session) throw new ValidationError(EXPIRED);
+    // Zweiter Tab, nachdem im ersten bezahlt wurde: nicht „erfolgreich“ weiterleiten – die Zahlung würde ignoriert.
+    if ((await getCheckoutRecipient(viewer, sessionId)).alreadyActive) throw new ConflictError(ALREADY_ACTIVE);
     const completed = await completeMockCheckout(viewer, sessionId);
     return { successUrl: session.successUrl, ...completed };
   });

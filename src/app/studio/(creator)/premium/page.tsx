@@ -17,7 +17,7 @@ import { formatChf, formatDate, formatNumber, formatPercentBps } from "@/lib/for
 import { requireCreator } from "@/server/auth/viewer";
 import { getMyCreatorProfile } from "@/server/services/creators";
 import { getPremiumStatus } from "@/server/services/premium";
-import { getStudioStats } from "@/server/services/studio-stats";
+import { countActiveSubscribers } from "@/server/services/studio-stats";
 
 import { cancelPremiumAction, startPremiumCheckoutAction } from "./actions";
 
@@ -28,7 +28,11 @@ export default async function StudioPremiumPage({ searchParams }: PageProps<"/st
   const okParam = (await searchParams).ok;
   const justPaid = (Array.isArray(okParam) ? okParam[0] : okParam) === "1";
   const now = new Date();
-  const [premium, profile, stats] = await Promise.all([getPremiumStatus(viewer, { now }), getMyCreatorProfile(viewer), getStudioStats(viewer, { now })]);
+  const [premium, profile, subs] = await Promise.all([
+    getPremiumStatus(viewer, { now }),
+    getMyCreatorProfile(viewer),
+    countActiveSubscribers(viewer, { now }),
+  ]);
   const approved = viewer.creator.verificationStatus === "approved";
 
   const price = profile?.monthlyPriceRappen ?? 0;
@@ -36,7 +40,6 @@ export default async function StudioPremiumPage({ searchParams }: PageProps<"/st
   const withPremium = splitPayment(price, premium.premiumFeeBps);
   const gainPerSub = withPremium.creatorNetRappen - standard.creatorNetRappen;
   const breakEven = gainPerSub > 0 ? Math.ceil(premium.priceRappen / gainPerSub) : null;
-  const subs = stats.basic.activeSubscribers;
   const monthlyEffect = subs * gainPerSub - premium.priceRappen;
 
   const rows: { label: string; standard: ReactNode; premium: ReactNode }[] = [

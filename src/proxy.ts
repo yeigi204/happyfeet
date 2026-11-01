@@ -21,9 +21,26 @@ function nextWithReturnPath(request: NextRequest): NextResponse {
   return NextResponse.next({ request: { headers } });
 }
 
+/**
+ * Grosse Request-Bodies (bis 105 MB, siehe next.config.ts) sind nur für den Post-Upload nötig.
+ * Überall sonst früh mit 413 ablehnen, bevor Next den Body puffert (Speicher-DoS durch Anonyme).
+ */
+export const UPLOAD_PATHS: ReadonlySet<string> = new Set(["/studio/posts/new"]);
+export const DEFAULT_MAX_BODY_BYTES = 2 * 1024 * 1024;
+
+export function rejectOversizedBody(request: NextRequest): NextResponse | null {
+  if (request.method === "GET" || request.method === "HEAD") return null;
+  const length = Number(request.headers.get("content-length") ?? "0");
+  if (!Number.isFinite(length) || length <= DEFAULT_MAX_BODY_BYTES) return null;
+  if (UPLOAD_PATHS.has(request.nextUrl.pathname)) return null;
+  return new NextResponse("Anfrage zu gross.", { status: 413 });
+}
+
 const withClerk = clerkMiddleware((_auth, request) => nextWithReturnPath(request));
 
 export default function proxy(request: NextRequest, event: NextFetchEvent) {
+  const tooLarge = rejectOversizedBody(request);
+  if (tooLarge) return tooLarge;
   // Dev-Impersonation: Clerk komplett umgehen (wirft in Produktion, siehe dev-impersonation.ts).
   if (isDevImpersonation()) return nextWithReturnPath(request);
   return withClerk(request, event);

@@ -9,26 +9,26 @@ import { NailMark } from "@/components/site/wordmark";
 import { Avatar } from "@/components/ui/avatar";
 import { ButtonLink } from "@/components/ui/button";
 import { PremiumBadge } from "@/components/ui/premium-badge";
+import type { Viewer } from "@/lib/domain/types";
 import { formatChf, formatDateTime } from "@/lib/format";
 import { requireOnboardedViewer } from "@/server/auth/viewer";
-import { NotFoundError } from "@/server/errors";
-import { getMockProvider } from "@/server/payments";
-import { listCreatorsForExplore, type CreatorCard } from "@/server/services/creators";
-import { getPremiumStatus } from "@/server/services/premium";
-import { appBaseUrl, listMySubscriptions } from "@/server/services/subscriptions";
+import { ForbiddenError, NotFoundError, ValidationError } from "@/server/errors";
+import { getCheckoutRecipient } from "@/server/services/payment-events";
 
 import { simulatePaymentAction } from "./actions";
-import { creatorHandleFromPath, toSafeLocalPath } from "./safe-redirect";
 import { SimulateButton } from "./simulate-button";
 
 export const metadata: Metadata = { title: "Testzahlung" };
 
-function mockProviderOrNotFound() {
+/** Session prüfen und Empfänger laden; erwartbare Fehler werden zu eigenen Zuständen der Seite. */
+async function loadRecipient(viewer: Viewer, sessionId: string) {
   try {
-    return getMockProvider();
+    return { ok: true as const, recipient: await getCheckoutRecipient(viewer, sessionId) };
   } catch (error) {
     // Ist ein echter Anbieter aktiv, gibt es diese Seite nicht.
     if (error instanceof NotFoundError) notFound();
+    if (error instanceof ValidationError) return { ok: false as const, problem: "expired" as const };
+    if (error instanceof ForbiddenError) return { ok: false as const, problem: "foreign" as const };
     throw error;
   }
 }
@@ -36,9 +36,9 @@ function mockProviderOrNotFound() {
 export default async function MockCheckoutPage({ params }: PageProps<"/checkout/mock/[sessionId]">) {
   const viewer = await requireOnboardedViewer();
   const { sessionId } = await params;
-  const session = mockProviderOrNotFound().decodeSession(sessionId);
+  const loaded = await loadRecipient(viewer, sessionId);
 
-  if (!session) {
+  if (!loaded.ok && loaded.problem === "expired") {
     return (
       <CheckoutProblem title="Dieser Checkout-Link gilt nicht mehr.">
         Checkout-Links gelten eine Stunde und lassen sich nicht verändern. Es wurde nichts verbucht – starte das Abo einfach
@@ -46,7 +46,7 @@ export default async function MockCheckoutPage({ params }: PageProps<"/checkout/
       </CheckoutProblem>
     );
   }
-  if (session.payerUserId !== viewer.id) {
+  if (!loaded.ok) {
     return (
       <CheckoutProblem title="Diese Testzahlung gehört zu einem anderen Konto.">
         Melde dich mit dem Konto an, das den Checkout gestartet hat – oder starte ihn mit deinem Konto neu.
@@ -54,58 +54,45 @@ export default async function MockCheckoutPage({ params }: PageProps<"/checkout/
     );
   }
 
-  const origin = appBaseUrl();
-  const cancelHref = toSafeLocalPath(session.cancelUrl, origin) ?? "/explore";
+  const session = loaded.recipient;
   const isPremium = session.kind === "premium_plan";
-  const handle = isPremium ? null : creatorHandleFromPath(toSafeLocalPath(session.successUrl, origin));
+  const creator = session.creator;
+  const cancelHref = isPremium ? "/studio/premium" : creator ? `/c/${creator.handle}` : "/explore";
 
   // Läuft das Bezahlte schon (zweiter Tab, Zurück nach dem Bezahlen)? Dann keine zweite Zahlung anbieten –
   // sie würde nicht verbucht und nur eine falsche Erfolgsmeldung zeigen.
-  if (isPremium) {
-    if (viewer.creator && (await getPremiumStatus(viewer)).isPremium) {
-      return (
-        <CheckoutProblem
-          title="Premium läuft bereits."
-          actions={
-            <ButtonLink href="/studio/premium" variant="primary">
-              Zu Premium
+  if (session.alreadyActive) {
+    return isPremium ? (
+      <CheckoutProblem
+        title="Premium läuft bereits."
+        actions={
+          <ButtonLink href="/studio/premium" variant="primary">
+            Zu Premium
+          </ButtonLink>
+        }
+      >
+        Dein Premium-Plan ist schon aktiv. Diese Testzahlung brauchst du nicht mehr – es wurde nichts verbucht.
+      </CheckoutProblem>
+    ) : (
+      <CheckoutProblem
+        title="Dieses Abo läuft bereits."
+        actions={
+          <>
+            {creator ? (
+              <ButtonLink href={`/c/${creator.handle}`} variant="primary">
+                Zu {creator.displayName}
+              </ButtonLink>
+            ) : null}
+            <ButtonLink href="/subscriptions" variant={creator ? "secondary" : "primary"}>
+              Zu deinen Abos
             </ButtonLink>
-          }
-        >
-          Dein Premium-Plan ist schon aktiv. Diese Testzahlung brauchst du nicht mehr – es wurde nichts verbucht.
-        </CheckoutProblem>
-      );
-    }
-  } else {
-    const running = (await listMySubscriptions(viewer)).find(
-      (sub) => sub.active && (sub.id === session.referenceId || (handle !== null && sub.creator.handle === handle)),
+          </>
+        }
+      >
+        Du hast {creator ? creator.displayName : "diesen Creator"} schon abonniert. Diese Testzahlung brauchst du nicht mehr –
+        es wurde nichts verbucht.
+      </CheckoutProblem>
     );
-    if (running) {
-      return (
-        <CheckoutProblem
-          title="Dieses Abo läuft bereits."
-          actions={
-            <>
-              <ButtonLink href={`/c/${running.creator.handle}`} variant="primary">
-                Zu {running.creator.displayName}
-              </ButtonLink>
-              <ButtonLink href="/subscriptions" variant="secondary">
-                Zu deinen Abos
-              </ButtonLink>
-            </>
-          }
-        >
-          Du hast {running.creator.displayName} schon abonniert. Diese Testzahlung brauchst du nicht mehr – es wurde nichts
-          verbucht.
-        </CheckoutProblem>
-      );
-    }
-  }
-
-  let creator: CreatorCard | undefined;
-  if (handle) {
-    const matches = await listCreatorsForExplore(viewer, { query: handle, limit: 10 });
-    creator = matches.find((c) => c.handle === handle);
   }
 
   const amount = formatChf(session.amountRappen);

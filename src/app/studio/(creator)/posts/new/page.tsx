@@ -7,7 +7,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { requireCreator } from "@/server/auth/viewer";
 import { getPlatformSettings } from "@/server/services/settings";
-import { getStudioStats } from "@/server/services/studio-stats";
+import { countApprovedPosts } from "@/server/services/studio-stats";
 
 import { createPostAction } from "./actions";
 
@@ -45,8 +45,8 @@ export default async function NewPostPage() {
     );
   }
 
-  const [stats, settings] = await Promise.all([getStudioStats(viewer), getPlatformSettings()]);
-  const remaining = Math.max(0, settings.premoderationCount - stats.basic.postCount);
+  const [approvedPosts, settings] = await Promise.all([countApprovedPosts(viewer), getPlatformSettings()]);
+  const remaining = Math.max(0, settings.premoderationCount - approvedPosts);
 
   return (
     <Container className="py-8 sm:py-12">

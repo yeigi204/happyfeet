@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { GeneratePayoutsButton, MarkPaidButton } from "@/components/admin/payouts/payout-buttons";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
@@ -12,7 +13,7 @@ import { Stat } from "@/components/ui/stat";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { formatChf, formatDate, formatNumber } from "@/lib/format";
 import { requireAdmin } from "@/server/auth/viewer";
-import { listPayouts, type AdminPayoutRow } from "@/server/services/admin/payouts";
+import { getPayoutSummary, listPayoutsPage, type AdminPayoutRow } from "@/server/services/admin/payouts";
 
 export const metadata: Metadata = { title: "Auszahlungen" };
 
@@ -40,26 +41,41 @@ function periodLabel(p: AdminPayoutRow): string {
   return `${formatDate(p.periodStart)} – ${formatDate(new Date(p.periodEnd.getTime() - DAY_MS / 2))}`;
 }
 
-function sum(rows: AdminPayoutRow[]): number {
-  return rows.reduce((total, p) => total + p.amountRappen, 0);
+const PAGE_SIZE = 50;
+
+function firstParam(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+/** Link auf eine Seite der Liste (Status bleibt, Seite 1 ohne Parameter). */
+function pageHref(status: Status, page: number): string {
+  const params = new URLSearchParams();
+  if (status !== "scheduled") params.set("status", status);
+  if (page > 1) params.set("page", String(page));
+  const query = params.toString();
+  return query ? `/admin/payouts?${query}` : "/admin/payouts";
 }
 
 export default async function PayoutsPage({ searchParams }: PageProps<"/admin/payouts">) {
   const admin = await requireAdmin();
-  const raw = (await searchParams).status;
+  const query = await searchParams;
+  const raw = firstParam(query.status);
   const status: Status = raw === "paid" || raw === "failed" ? raw : "scheduled";
-  const all = await listPayouts(admin);
+  const requestedPage = Number.parseInt(firstParam(query.page) ?? "1", 10);
+  const page = Number.isSafeInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
   const now = new Date();
-  const since30d = now.getTime() - 30 * DAY_MS;
 
-  const byStatus = (s: Status) => all.filter((p) => p.status === s);
-  const rows = byStatus(status);
-  const scheduled = byStatus("scheduled");
-  const paid30d = byStatus("paid").filter((p) => p.paidAt && p.paidAt.getTime() > since30d);
-  const creatorsWaiting = new Set(scheduled.map((p) => p.creator.userId)).size;
-  const paid = byStatus("paid");
-  // Liste ist nach `period_end` sortiert – der früheste Periodenstart muss nicht am Ende stehen.
-  const paidSince = paid.length > 0 ? new Date(Math.min(...paid.map((p) => p.periodStart.getTime()))) : null;
+  // Kopfzahlen und Tab-Zähler über alle Auszahlungen; die Tabelle lädt nur die aktuelle Seite.
+  const [summary, list] = await Promise.all([
+    getPayoutSummary(admin, { now }),
+    listPayoutsPage(admin, { status, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE }, { now }),
+  ]);
+  const rows = list.items;
+  const { scheduled, paid } = summary;
+  const statusTotals: Record<Status, { count: number; totalRappen: number }> = { scheduled, paid, failed: summary.failed };
+  const pageCount = Math.max(1, Math.ceil(list.total / PAGE_SIZE));
+  const firstRow = list.offset + 1;
+  const lastRow = list.offset + rows.length;
 
   return (
     <div className="grid gap-6">
@@ -74,26 +90,40 @@ export default async function PayoutsPage({ searchParams }: PageProps<"/admin/pa
         <Stat
           className="border-b sm:border-r sm:border-b-0"
           label="Geplant"
-          value={formatChf(sum(scheduled))}
-          hint={`${formatNumber(scheduled.length)} ${scheduled.length === 1 ? "Auszahlung" : "Auszahlungen"} · ${formatNumber(creatorsWaiting)} Creator`}
+          value={formatChf(scheduled.totalRappen)}
+          hint={`${formatNumber(scheduled.count)} ${scheduled.count === 1 ? "Auszahlung" : "Auszahlungen"} · ${formatNumber(scheduled.creators)} Creator`}
         />
         <Stat
           className="border-b sm:border-r sm:border-b-0"
           label="Bezahlt · 30 T"
-          value={formatChf(sum(paid30d))}
-          hint={`${formatNumber(paid30d.length)} ${paid30d.length === 1 ? "Überweisung" : "Überweisungen"}`}
+          value={formatChf(paid.last30d.totalRappen)}
+          hint={`${formatNumber(paid.last30d.count)} ${paid.last30d.count === 1 ? "Überweisung" : "Überweisungen"}`}
         />
-        <Stat label="Bezahlt · gesamt" value={formatChf(sum(paid))} hint={paidSince ? `seit ${formatDate(paidSince)}` : "noch keine Überweisung"} />
+        <Stat
+          label="Bezahlt · gesamt"
+          value={formatChf(paid.totalRappen)}
+          hint={paid.since ? `seit ${formatDate(paid.since)}` : "noch keine Überweisung"}
+        />
       </section>
 
-      <Segmented className="justify-self-start" label="Status" active={TABS.find((t) => t.value === status)!.href} items={TABS.map((t) => ({ href: t.href, label: t.label, count: byStatus(t.value).length }))} />
+      <Segmented className="justify-self-start" label="Status" active={TABS.find((t) => t.value === status)!.href} items={TABS.map((t) => ({ href: t.href, label: t.label, count: statusTotals[t.value].count }))} />
 
-      {rows.length === 0 ? (
+      {rows.length === 0 && page === 1 ? (
         <EmptyState title={EMPTY[status].title} description={EMPTY[status].description} />
+      ) : rows.length === 0 ? (
+        <EmptyState
+          title="Diese Seite ist leer"
+          description={`Die Liste hat ${formatNumber(pageCount)} ${pageCount === 1 ? "Seite" : "Seiten"}.`}
+          action={
+            <ButtonLink href={pageHref(status, 1)} variant="secondary" size="sm">
+              Zur ersten Seite
+            </ButtonLink>
+          }
+        />
       ) : (
         <Card
           title={TABS.find((t) => t.value === status)!.label}
-          action={<span className="font-mono text-xs text-ink-faint tabular-nums">Summe {formatChf(sum(rows))}</span>}
+          action={<span className="font-mono text-xs text-ink-faint tabular-nums">Summe {formatChf(statusTotals[status].totalRappen)}</span>}
           flush
         >
           <Table>
@@ -150,6 +180,25 @@ export default async function PayoutsPage({ searchParams }: PageProps<"/admin/pa
               })}
             </TBody>
           </Table>
+          {pageCount > 1 ? (
+            <nav aria-label="Seiten" className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-4 py-3">
+              <p className="font-mono text-xs text-ink-faint tabular-nums">
+                {formatNumber(firstRow)}–{formatNumber(lastRow)} von {formatNumber(list.total)}
+              </p>
+              <div className="flex gap-2">
+                {page > 1 ? (
+                  <ButtonLink href={pageHref(status, page - 1)} variant="secondary" size="sm">
+                    Zurück
+                  </ButtonLink>
+                ) : null}
+                {page < pageCount ? (
+                  <ButtonLink href={pageHref(status, page + 1)} variant="secondary" size="sm">
+                    Weiter
+                  </ButtonLink>
+                ) : null}
+              </div>
+            </nav>
+          ) : null}
         </Card>
       )}
     </div>

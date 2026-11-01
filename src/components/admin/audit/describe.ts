@@ -53,6 +53,22 @@ export type AuditEntry = {
 
 export type UserDirectory = ReadonlyMap<string, { handle: string | null; displayName: string | null }>;
 
+type ResolvedUser = { id: string; handle: string | null; displayName: string | null } | null;
+
+/**
+ * Verzeichnis aus den vom Server bereits aufgelösten Zielen (`target`) und Creatorn (`metadata.creatorId` → `creator`)
+ * der Einträge selbst – keine zusätzliche Nutzerliste nötig.
+ */
+export function directoryFromAudit(items: readonly { target?: ResolvedUser; creator?: ResolvedUser }[]): UserDirectory {
+  const directory = new Map<string, { handle: string | null; displayName: string | null }>();
+  for (const item of items) {
+    for (const user of [item.target, item.creator]) {
+      if (user) directory.set(user.id, { handle: user.handle, displayName: user.displayName });
+    }
+  }
+  return directory;
+}
+
 type ActionMeta = { label: string; icon: LucideIcon; tone: AuditTone };
 
 export const AUDIT_ACTIONS = {

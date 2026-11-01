@@ -123,7 +123,7 @@ function HandleStatus({ availability }: { availability: Availability }) {
   }
 }
 
-export function OnboardingForm({ maxBirthDate }: { maxBirthDate: string }) {
+export function OnboardingForm({ maxBirthDate, returnTo = null }: { maxBirthDate: string; returnTo?: string | null }) {
   const [state, formAction, pending] = useActionState(submitOnboarding, initialState);
   const [handleInput, setHandleInput] = useState(state.values?.handle ?? "");
   // Server-Fehler zum Handle gilt nur, bis der Handle wieder bearbeitet wird – danach zählt die Live-Prüfung.
@@ -140,6 +140,7 @@ export function OnboardingForm({ maxBirthDate }: { maxBirthDate: string }) {
 
   return (
     <form action={formAction} noValidate className="space-y-7">
+      {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
       <FieldShell id="handle" label="Handle" error={handleError} hint={<HandleStatus availability={availability} />}>
         <div
           className={`flex items-center rounded-control border bg-surface transition-colors has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-accent ${borderFor(handleError)}`}

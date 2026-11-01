@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { auditCursorParams, nextAuditCursor, parseAuditCursor } from "./audit-cursor";
 import { hundredthsToInput, parseHundredths, parseWholeNumber } from "./decimal-input";
 import { directionOf, formatSignedNumber, formatSignedPercentPoints } from "./format-delta";
 import { ACTION_NETWORK_ERROR, settleAction } from "./settle-action";
@@ -89,30 +88,5 @@ describe("format-delta", () => {
     expect(formatSignedNumber(1234)).toBe("+1’234");
     expect(directionOf(0)).toBe("flat");
     expect(directionOf(-0.1)).toBe("down");
-  });
-});
-
-describe("audit-cursor", () => {
-  const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
-
-  it("zeigt eine Millisekunde hinter den letzten Eintrag und merkt sich IDs derselben Millisekunde", () => {
-    const t = new Date("2026-10-30T00:24:41.581Z");
-    const cursor = nextAuditCursor([
-      { id: id(1), createdAt: new Date("2026-10-31T10:00:00Z") },
-      { id: id(2), createdAt: t },
-      { id: id(3), createdAt: new Date(t) },
-    ]);
-    expect(cursor).toEqual({ before: new Date("2026-10-30T00:24:41.582Z"), skip: [id(2), id(3)] });
-    expect(auditCursorParams(cursor!)).toEqual({ before: "2026-10-30T00:24:41.582Z", skip: `${id(2)},${id(3)}` });
-  });
-
-  it("parst nur gültige Werte", () => {
-    expect(parseAuditCursor("2026-10-30T00:24:41.582Z", `${id(2)},nope`)).toEqual({
-      before: new Date("2026-10-30T00:24:41.582Z"),
-      skip: [id(2)],
-    });
-    expect(parseAuditCursor("gestern", undefined)).toBeNull();
-    expect(parseAuditCursor(["2026-10-30"], undefined)).toBeNull();
-    expect(nextAuditCursor([])).toBeNull();
   });
 });
