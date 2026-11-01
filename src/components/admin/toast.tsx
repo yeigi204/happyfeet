@@ -18,7 +18,8 @@ export function toast(input: ToastInput): void {
 }
 
 const ICONS = { success: CircleCheck, danger: OctagonAlert, neutral: Info } as const;
-const ICON_COLORS = { success: "text-success", danger: "text-danger", neutral: "text-ink-faint" } as const;
+// Invertierte Fläche (ink): Status-Icons in der Akzent-/Statusfarbe des Gegenmodus bleiben über canvas-Tönung lesbar.
+const ICON_COLORS = { success: "text-[color-mix(in_oklab,var(--color-success),var(--color-canvas)_35%)]", danger: "text-[color-mix(in_oklab,var(--color-danger),var(--color-canvas)_35%)]", neutral: "text-canvas/70" } as const;
 
 type Item = ToastInput & { id: number; tone: ToastTone };
 
@@ -58,17 +59,17 @@ export function AdminToaster() {
         return (
           <div
             key={item.id}
-            className="pointer-events-auto flex w-full animate-rise items-start gap-3 rounded-card border border-line-strong bg-surface-2 py-3 pr-2 pl-3.5 text-ink"
+            className="pointer-events-auto flex w-full animate-rise items-start gap-3 rounded-control bg-ink py-3 pr-2 pl-3.5 text-canvas shadow-lg"
           >
             <Icon aria-hidden className={cn("mt-0.5 size-4 shrink-0", ICON_COLORS[item.tone])} />
             <div className="min-w-0 flex-1">
-              <p className="text-[13.5px] leading-snug font-medium">{item.title}</p>
-              {item.description ? <p className="mt-0.5 text-xs leading-snug text-ink-muted">{item.description}</p> : null}
+              <p className="text-[13.5px] leading-snug font-semibold">{item.title}</p>
+              {item.description ? <p className="mt-0.5 text-xs leading-snug text-canvas/75">{item.description}</p> : null}
             </div>
             <button
               type="button"
               onClick={() => setItems((prev) => prev.filter((i) => i.id !== item.id))}
-              className="grid size-6 shrink-0 place-items-center rounded-control text-ink-faint hover:bg-surface hover:text-ink"
+              className="grid size-6 shrink-0 place-items-center rounded-full text-canvas/70 hover:bg-canvas/15 hover:text-canvas"
             >
               <X aria-hidden className="size-3.5" />
               <span className="sr-only">Meldung schliessen</span>

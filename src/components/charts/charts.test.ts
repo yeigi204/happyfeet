@@ -184,3 +184,34 @@ describe("Meter", () => {
     expect(markup).toMatch(/<div data-segment="true" role="img" tabindex="0" aria-label="Standard: CHF.3\.00/);
   });
 });
+
+describe("Rosé-Charts", () => {
+  const data: DatumRow[] = [
+    { date: "2026-10-30", platform: 1200, creator: 8800 },
+    { date: "2026-10-31", platform: 1500, creator: 9100 },
+    { date: "2026-11-01", platform: 1400, creator: 9900 },
+  ];
+  const series: SeriesDef[] = [
+    { key: "platform", label: "Plattform", color: "series-1" },
+    { key: "creator", label: "Creator", color: "series-2" },
+  ];
+
+  it("liest Serien- und Gitterfarben nur aus Tokens", () => {
+    const markup = html(h(AreaChart, { data, series, format: "chf", title: "Umsatz · 90 Tage", stacked: true }));
+    expect(markup).toContain("var(--color-series-1)");
+    expect(markup).toContain("var(--color-series-2)");
+    expect(markup).toContain("var(--color-line)");
+    expect(markup).not.toMatch(/#[0-9a-f]{6}\b/i);
+  });
+
+  it("setzt Achsentext in ink-muted (lesbar in Hell und Dunkel)", () => {
+    const markup = html(h(AreaChart, { data, series, format: "chf", title: "t", stacked: true }));
+    expect(markup).toContain("fill-ink-muted");
+    expect(markup).not.toContain("fill-ink-faint font-num");
+  });
+
+  it("gibt dem Chart-Titel das Karten-Titelgewicht", () => {
+    const markup = html(h(AreaChart, { data, series, format: "chf", title: "Umsatz · 90 Tage" }));
+    expect(markup).toMatch(/<h3[^>]*class="[^"]*text-\[15px\][^"]*font-bold/);
+  });
+});

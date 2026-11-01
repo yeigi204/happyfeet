@@ -128,13 +128,13 @@ export function ActionDialog({ title, description, confirmLabel, tone = "primary
       onClick={(e) => e.target === e.currentTarget && !pending && onClose()}
       className={cn(
         // Text-Ausrichtung/-Umbruch zurücksetzen: der Dialog sitzt im DOM oft in einer Tabellenzelle (erbt sonst „text-right“).
-        "m-0 mx-auto mt-[14vh] w-[min(520px,calc(100vw-32px))] max-w-none rounded-card border border-line-strong bg-surface p-0 text-left font-normal whitespace-normal text-ink outline-none",
-        "backdrop:bg-[rgb(8_6_5/0.74)] open:animate-rise",
+        "m-0 mx-auto mt-[14vh] w-[min(520px,calc(100vw-32px))] max-w-none rounded-panel border border-line bg-surface p-0 text-left font-normal whitespace-normal text-ink shadow-lg outline-none",
+        "backdrop:bg-[rgb(23_12_16/0.55)] backdrop:backdrop-blur-[2px] open:animate-rise",
       )}
     >
       <form onSubmit={submit} noValidate>
-        <div className="border-b border-line px-5 pt-5 pb-4">
-          <h2 id={titleId} className="font-display text-xl leading-tight font-bold tracking-[-0.03em]">
+        <div className="px-6 pt-6 pb-2">
+          <h2 id={titleId} className="font-display text-lg leading-tight font-extrabold tracking-[-0.025em]">
             {title}
           </h2>
           {description ? (
@@ -145,7 +145,7 @@ export function ActionDialog({ title, description, confirmLabel, tone = "primary
         </div>
 
         {hasBody ? (
-          <div className="grid gap-4 px-5 py-5">
+          <div className="grid gap-4 px-6 py-4">
             {note ? (
               <Field label={note.label} hint={note.hint} error={fieldError ?? undefined}>
                 <Textarea
@@ -164,15 +164,15 @@ export function ActionDialog({ title, description, confirmLabel, tone = "primary
               </Field>
             ) : null}
             {formError ? (
-              <p role="alert" className="flex items-start gap-2 rounded-control border border-danger/40 bg-danger/10 px-3 py-2.5 text-[13px] text-ink">
-                <OctagonAlert aria-hidden className="mt-px size-4 shrink-0 text-danger" />
+              <p role="alert" className="flex items-start gap-2 rounded-control bg-danger-soft px-3 py-2.5 text-[13px] font-medium text-danger">
+                <OctagonAlert aria-hidden className="mt-px size-4 shrink-0" />
                 {formError}
               </p>
             ) : null}
           </div>
         ) : null}
 
-        <div className={cn("flex flex-wrap items-center justify-end gap-2 px-5 py-3.5", hasBody && "border-t border-line")}>
+        <div className={cn("flex flex-wrap items-center justify-end gap-2 px-6 pt-2 pb-5", hasBody && "pt-3")}>
           {note ? (
             <span aria-hidden className="mr-auto hidden items-center gap-1 font-num text-[11px] text-ink-faint sm:flex">
               <Kbd>⌘</Kbd>

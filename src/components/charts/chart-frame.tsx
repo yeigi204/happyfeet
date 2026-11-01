@@ -49,9 +49,9 @@ export function ChartFrame({ title, unit, legend, table, children, className }: 
     <figure aria-labelledby={titleId} className={cn("min-w-0", className)}>
       <div className="mb-3 flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <h3 id={titleId} className="text-[13px] leading-5 font-semibold text-ink">
+          <h3 id={titleId} className="text-[15px] leading-5 font-bold tracking-[-0.01em] text-ink">
             {title}
-            {unit ? <span className="ml-2 font-normal text-ink-faint">{unit}</span> : null}
+            {unit ? <span className="ml-2 text-[13px] font-medium text-ink-muted">{unit}</span> : null}
           </h3>
           {legend ? <div className="mt-1.5">{legend}</div> : null}
         </div>
@@ -60,9 +60,9 @@ export function ChartFrame({ title, unit, legend, table, children, className }: 
           aria-pressed={showTable}
           onClick={() => setShowTable((v) => !v)}
           className={cn(
-            "inline-flex h-7 shrink-0 items-center gap-1.5 rounded-control border px-2 text-xs transition-colors duration-100",
-            "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
-            showTable ? "border-line-strong bg-surface-2 text-ink" : "border-line text-ink-muted hover:border-line-strong hover:text-ink",
+            "inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full px-3 text-xs font-semibold transition-colors duration-100",
+            "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus",
+            showTable ? "bg-ink text-canvas" : "bg-surface-2 text-ink-muted hover:text-ink",
           )}
         >
           <Table2 aria-hidden className="size-3.5" />
@@ -70,7 +70,7 @@ export function ChartFrame({ title, unit, legend, table, children, className }: 
         </button>
       </div>
       <div ref={ref} className="relative min-w-0">
-        {showTable ? <div className="max-h-80 overflow-y-auto rounded-control border border-line">{table}</div> : children(width)}
+        {showTable ? <div className="max-h-80 overflow-y-auto rounded-control border border-line bg-surface">{table}</div> : children(width)}
       </div>
     </figure>
   );
@@ -102,10 +102,10 @@ export function ChartTooltip({
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute z-10 min-w-44 rounded-control border border-line-strong bg-surface px-3 py-2"
+      className="pointer-events-none absolute z-10 min-w-44 rounded-control border border-line bg-surface px-3 py-2 shadow-md"
       style={{ left: `${(x / width) * 100}%`, top, transform: flip ? `translateX(calc(-100% - ${dx}px))` : `translateX(${dx}px)` }}
     >
-      <p className="font-num text-[11px] whitespace-nowrap text-ink-faint tabular-nums">{heading}</p>
+      <p className="font-num text-[11px] font-semibold whitespace-nowrap text-ink-muted tabular-nums">{heading}</p>
       <ul className="mt-1.5 grid grid-cols-[12px_auto_1fr] items-center gap-x-2 gap-y-1">
         {rows.map((r) => (
           <li key={r.key} className={cn("col-span-3 grid grid-cols-subgrid items-center", r.separated && "mt-0.5 border-t border-line pt-1.5")}>
@@ -136,7 +136,7 @@ export function YGrid({ ticks, labels, y, left, right }: { ticks: number[]; labe
             strokeWidth={1}
             shapeRendering="crispEdges"
           />
-          <text x={left - 8} y={y(t)} dy="0.32em" textAnchor="end" className="fill-ink-faint font-num text-[10.5px] tabular-nums">
+          <text x={left - 8} y={y(t)} dy="0.32em" textAnchor="end" className="fill-ink-muted font-num text-[11px] tabular-nums">
             {labels[i]}
           </text>
         </g>
@@ -155,7 +155,7 @@ export function XLabels({ indices, dates, x, y, left, right }: { indices: number
         const cx = x(i);
         const anchor = cx - half < left - 4 ? "start" : cx + half > right + 4 ? "end" : "middle";
         return (
-          <text key={i} x={cx} y={y} textAnchor={anchor} className="fill-ink-faint font-num text-[10.5px] tabular-nums">
+          <text key={i} x={cx} y={y} textAnchor={anchor} className="fill-ink-muted font-num text-[11px] tabular-nums">
             {label}
           </text>
         );
