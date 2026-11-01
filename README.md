@@ -72,7 +72,15 @@ Mit `DEV_IMPERSONATE_CLERK_ID` läuft die App **ohne Clerk** und meldet den Seed
 
 Die Dev-Impersonation wirkt **nie** in Produktion: Ist die Variable dort gesetzt, startet der Server nicht (`src/instrumentation.ts`).
 
-`/design-system` (nur Entwicklung) zeigt alle UI-Bausteine und Diagramme in beiden Welten.
+## Design: Rosé
+
+Ein Design für die ganze App (Fans, Studio, Admin): helle, warme Flächen, Beere als Akzent, Plus Jakarta Sans, weiche Karten und Pillen-Buttons – mit **Hell- und Dunkelmodus**.
+Spec: [`docs/superpowers/specs/2026-11-01-rose-design-system-design.md`](docs/superpowers/specs/2026-11-01-rose-design-system-design.md)
+
+- **Tokens** leben in `src/app/globals.css` (`@theme static`; Dunkel per `prefers-color-scheme` bzw. `data-theme="dark"`). `src/lib/design-tokens.ts` spiegelt die Werte – ein Test prüft Kontrast (≥ 4.5 : 1) und dass beide Dateien übereinstimmen. Neue Farben immer als Token, nie ad hoc.
+- **Hell / Dunkel / Auto:** Der Umschalter (Seitenleiste, Fusszeile, Admin-Kopf) speichert die Wahl im Cookie `hf_theme` (`light` | `dark`; ohne Cookie folgt die App dem System). Das Root-Layout setzt `data-theme` schon auf dem Server – kein Aufblitzen.
+- **Navigation:** angemeldet Seitenleiste ab `lg`, darunter obere Leiste + Tab-Leiste; Gäste sehen eine schlanke Kopfzeile.
+- `/design-system` (nur Entwicklung) zeigt alle Tokens, UI-Bausteine und Diagramme mit Umschalter.
 
 ## Mit echten Diensten
 

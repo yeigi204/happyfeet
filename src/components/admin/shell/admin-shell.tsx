@@ -36,7 +36,7 @@ export function AdminShell({ children, counts, quickSearch, activeHref, theme }:
       <AdminNav counts={counts} activeHref={activeHref} />
       <div className="flex min-w-0 flex-col">
         <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-line bg-canvas/92 px-4 backdrop-blur-md sm:px-6 lg:px-9">
-          <AdminBrand className="mr-2 lg:hidden" />
+          <AdminBrand className="mr-1 lg:hidden max-sm:[&>span:first-of-type]:hidden" />
           <CommandPaletteTrigger className="max-sm:hidden" />
           <div className="flex-1" />
           <CommandPaletteTrigger className="w-10 justify-center px-0 sm:hidden [&>span]:sr-only" />

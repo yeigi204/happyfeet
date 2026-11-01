@@ -10,9 +10,10 @@ const linkClass = "rounded-control text-[14.5px] font-semibold text-ink-muted tr
 export function GuestNav() {
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-canvas/92 backdrop-blur-md">
-      <Container className="flex h-16 items-center gap-5">
-        <Logo />
-        <nav aria-label="Hauptnavigation" className="flex items-center gap-5">
+      <Container className="flex h-16 items-center gap-3 sm:gap-5">
+        {/* Unter sm nur die Bildmarke – sonst reicht die Breite (390 px) nicht für Navigation + Registrieren. */}
+        <Logo className="max-sm:[&>span]:hidden" />
+        <nav aria-label="Hauptnavigation" className="flex items-center gap-4 sm:gap-5">
           <Link href="/explore" className={linkClass}>
             Entdecken
           </Link>
