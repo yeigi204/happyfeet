@@ -22,6 +22,11 @@ export type ConfirmActionButtonProps = {
   confirmLabel: string;
   pendingLabel: string;
   cancelLabel: string;
+  /**
+   * Element-ID, die nach Erfolg den Fokus bekommt, falls der Knopf mit dem Ergebnis verschwindet
+   * (gelöschter Post, gekündigtes Premium) – sonst fiele der Fokus auf `<body>`.
+   */
+  successFocusId?: string;
 };
 
 /**
@@ -40,15 +45,34 @@ export function ConfirmActionButton({
   confirmLabel,
   pendingLabel,
   cancelLabel,
+  successFocusId,
 }: ConfirmActionButtonProps) {
   const dialog = useRef<HTMLDialogElement>(null);
-  const [state, formAction, pending] = useActionState(action, null);
+  const succeeded = useRef(false);
+  const [state, formAction, pending] = useActionState(async (prev: ConfirmState, formData: FormData): Promise<ConfirmState> => {
+    const result = await action(prev, formData);
+    // Vor dem Commit merken: verschwindet die Komponente mit dem Ergebnis, läuft der Effekt unten nicht mehr.
+    succeeded.current = result?.ok === true;
+    return result;
+  }, null);
   const titleId = useId();
   const descriptionId = useId();
 
   useEffect(() => {
-    if (state?.ok) dialog.current?.close();
+    if (!state?.ok) return;
+    // Bleibt der Knopf stehen, gibt das native `close()` den Fokus an ihn zurück.
+    succeeded.current = false;
+    dialog.current?.close();
   }, [state]);
+
+  useEffect(
+    () => () => {
+      if (!succeeded.current || !successFocusId) return;
+      // Nach dem Entfernen ist der modale Dialog weg – erst dann ist der Rest der Seite wieder fokussierbar.
+      setTimeout(() => document.getElementById(successFocusId)?.focus({ preventScroll: true }), 0);
+    },
+    [successFocusId],
+  );
 
   const close = () => dialog.current?.close();
   const onBackdropClick = (event: MouseEvent<HTMLDialogElement>) => {

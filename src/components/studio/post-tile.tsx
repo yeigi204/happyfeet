@@ -113,6 +113,7 @@ export function PostTile({ post, now, deleteAction }: PostTileProps) {
             confirmLabel="Ja, löschen"
             pendingLabel="Wird gelöscht …"
             cancelLabel="Behalten"
+            successFocusId="inhalt"
           />
         </div>
       </div>

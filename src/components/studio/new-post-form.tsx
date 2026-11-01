@@ -122,7 +122,8 @@ export function NewPostForm({ action, premoderation }: NewPostFormProps) {
   const filesError = localError ?? serverError("files");
   const captionError = serverError("caption");
   const visibilityError = serverError("visibility");
-  const formError = state.status === "error" && Object.keys(state.fieldErrors).length === 0 ? state.error : null;
+  // Formweite Fehler (z. B. Upload abgebrochen) verschwinden, sobald die Auswahl oder ein Feld geändert wird.
+  const formError = state.status === "error" && Object.keys(state.fieldErrors).length === 0 && editedFields.length === 0 ? state.error : null;
   const full = items.length >= POST_LIMITS.maxImages;
   const captionRatio = caption.length / POST_LIMITS.maxCaptionLength;
 

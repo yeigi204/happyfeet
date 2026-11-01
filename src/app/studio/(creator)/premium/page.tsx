@@ -124,6 +124,7 @@ export default async function StudioPremiumPage({ searchParams }: PageProps<"/st
                     confirmLabel="Ja, kündigen"
                     pendingLabel="Wird gekündigt …"
                     cancelLabel="Premium behalten"
+                    successFocusId="inhalt"
                   />
                 ) : null}
               </div>
