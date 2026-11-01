@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 
 import { AppProviders } from "@/components/providers";
+import { themeAttribute } from "@/lib/theme";
+import { getThemePreference } from "@/server/theme";
 
 import "./globals.css";
 
@@ -29,13 +31,16 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // Explizite Wahl (Cookie) schon serverseitig setzen – kein Aufblitzen; ohne Wahl entscheidet das System.
+  const theme = themeAttribute(await getThemePreference());
   return (
     // suppressHydrationWarning: Browser-Erweiterungen (z. B. ColorZilla, Grammarly, Dark-Reader) setzen vor
     // dem Hydrieren eigene Attribute auf <html>/<body>. Gilt nur für die Attribute dieser beiden Elemente,
     // Abweichungen in Kind-Elementen meldet React weiterhin.
     <html
       lang="de-CH"
+      data-theme={theme}
       className={`${jakarta.variable} h-full antialiased`}
       suppressHydrationWarning
     >
