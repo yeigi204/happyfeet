@@ -45,27 +45,25 @@ export function KpiOverview({ kpis: k, activeSeries, today, now }: KpiOverviewPr
   const card = "rounded-card border border-line bg-surface p-5 shadow-sm";
   return (
     <section aria-label="Kennzahlen" className="grid gap-3.5 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-      {/* Hero: MRR auf Akzentfläche (wie Vorschau) */}
-      <div className="rounded-card bg-accent p-5 text-accent-ink sm:p-7">
-        <Stat
-          variant="hero"
-          size="lg"
-          className="bg-transparent p-0"
-          label="MRR · Fan-Abos"
-          value={formatChf(k.mrrRappen)}
-          delta={pctDelta(k.mrrDeltaPct)}
-          hint={k.mrrDeltaPct === null ? "noch keine Vergleichsbasis" : `vs. ${compareDate}`}
-        >
-          <Sparkline
-            values={activeSeries.map((d) => d.active)}
-            label="Aktive Abos, letzte 90 Tage"
-            className="mt-6 h-16 [&_[data-marker]]:bg-accent-ink! [&_[data-marker]]:ring-accent [&_path[stroke]]:stroke-accent-ink [&_stop]:[stop-color:var(--color-accent-ink)]"
-          />
-          <div className="mt-2 flex justify-between font-num text-[11px] text-accent-ink/80">
-            <span>{dayLabel(activeSeries[0]?.date)}</span>
-            <span>aktive Abos · heute</span>
-          </div>
-        </Stat>
+      {/* Hero: MRR auf Akzentfläche (wie Vorschau) – eine Fläche, Verlauf und Kennzahlen-Zeile als children. */}
+      <Stat
+        variant="hero"
+        size="lg"
+        className="sm:p-7"
+        label="MRR · Fan-Abos"
+        value={formatChf(k.mrrRappen)}
+        delta={pctDelta(k.mrrDeltaPct)}
+        hint={k.mrrDeltaPct === null ? "noch keine Vergleichsbasis" : `vs. ${compareDate}`}
+      >
+        <Sparkline
+          values={activeSeries.map((d) => d.active)}
+          label="Aktive Abos, letzte 90 Tage"
+          className="mt-6 h-16 [&_[data-marker]]:bg-accent-ink! [&_[data-marker]]:ring-accent [&_path[stroke]]:stroke-accent-ink [&_stop]:[stop-color:var(--color-accent-ink)]"
+        />
+        <div className="mt-2 flex justify-between font-num text-[11px] text-accent-ink/80">
+          <span>{dayLabel(activeSeries[0]?.date)}</span>
+          <span>aktive Abos · heute</span>
+        </div>
         <dl className="mt-6 grid grid-cols-3 gap-4 border-t border-accent-ink/20 pt-4">
           {[
             ["Plattform-MRR", formatChf(k.platformMrrRappen, { compact: true }), "Erwartete Provision auf die MRR plus laufende Premium-Pläne"],
@@ -78,7 +76,7 @@ export function KpiOverview({ kpis: k, activeSeries, today, now }: KpiOverviewPr
             </div>
           ))}
         </dl>
-      </div>
+      </Stat>
 
       <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3">
         <Stat

@@ -182,6 +182,14 @@ describe("AdminShell", () => {
     expect(markup).toContain("Anträge");
   });
 
+  it("zeigt die mobile Pillen-Navigation unter der oberen Leiste", () => {
+    // Zwei Navigationen: Seitenleiste (ab lg) und Pillen (darunter) – die Pillen stehen nach dem Kopf.
+    const navs = [...markup.matchAll(/aria-label="Admin-Navigation"/g)].map((m) => m.index);
+    expect(navs).toHaveLength(2);
+    expect(navs[1]).toBeGreaterThan(markup.indexOf("</header>"));
+    expect(navs[0]).toBeLessThan(markup.indexOf("<header"));
+  });
+
   it("hat Suchpille und Darstellungs-Umschalter in der oberen Leiste, aber keinen Ticker", () => {
     expect(markup).toContain("Nutzer, Creator, Befehle");
     expect(markup).toContain('aria-label="Darstellung"');

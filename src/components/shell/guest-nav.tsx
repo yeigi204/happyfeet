@@ -1,3 +1,4 @@
+import { Compass } from "lucide-react";
 import Link from "next/link";
 
 import { SignInButtonLink, SignUpButtonLink } from "@/components/auth/auth-links";
@@ -11,11 +12,12 @@ export function GuestNav() {
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-canvas/92 backdrop-blur-md">
       <Container className="flex h-16 items-center gap-3 sm:gap-5">
-        {/* Unter sm nur die Bildmarke – sonst reicht die Breite (390 px) nicht für Navigation + Registrieren. */}
+        {/* Unter sm nur Bildmarke und Entdecken-Icon – so passen Anmelden und Konto erstellen auch auf 390 px. */}
         <Logo className="max-sm:[&>span]:hidden" />
         <nav aria-label="Hauptnavigation" className="flex items-center gap-4 sm:gap-5">
-          <Link href="/explore" className={linkClass}>
-            Entdecken
+          <Link href="/explore" className={`${linkClass} inline-flex items-center max-sm:size-10 max-sm:justify-center`}>
+            <Compass aria-hidden className="size-5 sm:hidden" />
+            <span className="max-sm:sr-only">Entdecken</span>
           </Link>
           <Link href="/studio/become-creator" className={`${linkClass} hidden sm:inline`}>
             Für Creator
@@ -23,7 +25,7 @@ export function GuestNav() {
         </nav>
         <div className="flex-1" />
         <div className="flex items-center gap-2">
-          <SignInButtonLink className="max-sm:hidden" />
+          <SignInButtonLink />
           <SignUpButtonLink />
         </div>
       </Container>

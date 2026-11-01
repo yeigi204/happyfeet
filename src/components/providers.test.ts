@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { TOKENS } from "@/lib/design-tokens";
+
 import { clerkAppearance, clerkLocalization } from "./providers";
 
 function allStrings(value: unknown, out: string[] = []): string[] {
@@ -56,7 +58,28 @@ describe("Clerk-Appearance", () => {
     expect(joined).toContain("text-ink");
   });
 
-  it("hat den Rosé-Akzent nur als Fallback-Variable", () => {
-    expect(clerkAppearance.variables?.colorPrimary).toBe("#c2185b");
+  it("Clerk colors follow the theme tokens in light and dark", () => {
+    // Clerk-Variablen akzeptieren CSS-Variablen (CssColor = string) – so folgt auch jedes Clerk-Innenteil
+    // (Menüs, Modals, Codes, Hinweise) dem Hell-/Dunkelmodus, nicht nur die per `elements` gestylten.
+    expect(clerkAppearance.variables).toMatchObject({
+      colorPrimary: "var(--color-accent)",
+      colorPrimaryForeground: "var(--color-accent-ink)",
+      colorDanger: "var(--color-danger)",
+      colorBackground: "var(--color-surface)",
+      colorForeground: "var(--color-ink)",
+      colorMutedForeground: "var(--color-ink-muted)",
+      colorInput: "var(--color-surface)",
+      colorInputForeground: "var(--color-ink)",
+      colorBorder: "var(--color-line-strong)",
+      colorNeutral: "var(--color-ink)",
+    });
+    const colors = Object.entries(clerkAppearance.variables)
+      .filter(([key]) => key.startsWith("color"))
+      .map(([, value]) => String(value));
+    expect(colors.filter((value) => value.startsWith("#"))).toEqual([]);
+    for (const value of colors) {
+      const token = value.match(/^var\(--color-([a-z0-9-]+)\)$/)?.[1];
+      if (token) expect(Object.keys(TOKENS.light), value).toContain(token);
+    }
   });
 });

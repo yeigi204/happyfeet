@@ -49,9 +49,14 @@
   --radius-card: 22px;
   --radius-panel: 28px;
 
-  --shadow-sm: 0 1px 2px rgba(30, 20, 24, 0.05);
-  --shadow-md: 0 1px 2px rgba(30, 20, 24, 0.04), 0 10px 30px rgba(194, 24, 91, 0.08);
-  --shadow-lg: 0 2px 6px rgba(30, 20, 24, 0.05), 0 24px 60px rgba(120, 30, 70, 0.14);
+  /* Schatten über --elevation-*: Tailwind setzt --shadow-*-Werte direkt in die Utilities ein,
+     nur eine Variable lässt sich im Dunkelmodus überschreiben. */
+  --elevation-sm: 0 1px 2px rgba(30, 20, 24, 0.05);
+  --elevation-md: 0 1px 2px rgba(30, 20, 24, 0.04), 0 10px 30px rgba(194, 24, 91, 0.08);
+  --elevation-lg: 0 2px 6px rgba(30, 20, 24, 0.05), 0 24px 60px rgba(120, 30, 70, 0.14);
+  --shadow-sm: var(--elevation-sm);
+  --shadow-md: var(--elevation-md);
+  --shadow-lg: var(--elevation-lg);
 
   --animate-rise: rise 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
 
@@ -107,9 +112,10 @@
     --color-on-series-3: #1a1013;
     --color-on-series-4: #1a1013;
 
-    --shadow-sm: none;
-    --shadow-md: 0 0 0 1px rgba(255, 255, 255, 0.02);
-    --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.45);
+    /* Praktisch keine Schatten im Dunkeln; `0 0 #0000` statt `none`, damit die box-shadow-Liste gültig bleibt. */
+    --elevation-sm: 0 0 #0000;
+    --elevation-md: 0 0 0 1px rgba(255, 255, 255, 0.02);
+    --elevation-lg: 0 24px 60px rgba(0, 0, 0, 0.45);
 
     color-scheme: dark;
   }
@@ -148,9 +154,10 @@
   --color-on-series-3: #1a1013;
   --color-on-series-4: #1a1013;
 
-  --shadow-sm: none;
-  --shadow-md: 0 0 0 1px rgba(255, 255, 255, 0.02);
-  --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.45);
+  /* Praktisch keine Schatten im Dunkeln; `0 0 #0000` statt `none`, damit die box-shadow-Liste gültig bleibt. */
+  --elevation-sm: 0 0 #0000;
+  --elevation-md: 0 0 0 1px rgba(255, 255, 255, 0.02);
+  --elevation-lg: 0 24px 60px rgba(0, 0, 0, 0.45);
 
   color-scheme: dark;
 }

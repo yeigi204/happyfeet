@@ -77,15 +77,22 @@ export const clerkLocalization: LocalizationResource = swissSpelling({
 /**
  * Clerk im Rosé-Look. `cssLayerName: "clerk"` legt Clerks Stile in den Layer `clerk` (Reihenfolge in globals.css:
  * theme, base, clerk, components, utilities) – Token-Klassen in `elements` gewinnen damit ohne `!`.
- * Farben laufen über Token-Klassen und folgen so Hell und Dunkel; `variables` sind nur feste Fallbacks
- * (Clerk erwartet dort konkrete Farbwerte).
+ * Farben: `variables` zeigen auf die Design-Tokens (Clerk akzeptiert CSS-Variablen und leitet Abstufungen
+ * per color-mix ab) – so folgt jedes Clerk-Innenteil Hell und Dunkel. `elements` regeln Form und Details.
  */
 export const clerkAppearance = {
   cssLayerName: "clerk",
   variables: {
-    colorPrimary: "#c2185b",
-    colorPrimaryForeground: "#ffffff",
-    colorDanger: "#c62828",
+    colorPrimary: "var(--color-accent)",
+    colorPrimaryForeground: "var(--color-accent-ink)",
+    colorDanger: "var(--color-danger)",
+    colorBackground: "var(--color-surface)",
+    colorForeground: "var(--color-ink)",
+    colorMutedForeground: "var(--color-ink-muted)",
+    colorInput: "var(--color-surface)",
+    colorInputForeground: "var(--color-ink)",
+    colorBorder: "var(--color-line-strong)",
+    colorNeutral: "var(--color-ink)",
     colorShadow: "transparent",
     fontFamily: "var(--font-jakarta), ui-sans-serif, system-ui, sans-serif",
     fontFamilyButtons: "var(--font-jakarta), ui-sans-serif, system-ui, sans-serif",

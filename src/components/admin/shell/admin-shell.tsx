@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import type { ThemePreference } from "@/lib/theme";
 
-import { AdminBrand, AdminNav, type AdminCounts } from "./admin-nav";
+import { AdminBrand, AdminMobileNav, AdminSidebar, type AdminCounts } from "./admin-nav";
 import { CommandPalette, CommandPaletteTrigger, type QuickSearch } from "./command-palette";
 import { Shortcuts } from "./shortcuts";
 
@@ -33,7 +33,7 @@ export function AdminShell({ children, counts, quickSearch, activeHref, theme }:
       >
         Zum Inhalt springen
       </a>
-      <AdminNav counts={counts} activeHref={activeHref} />
+      <AdminSidebar counts={counts} activeHref={activeHref} />
       <div className="flex min-w-0 flex-col">
         <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-line bg-canvas/92 px-4 backdrop-blur-md sm:px-6 lg:px-9">
           <AdminBrand className="mr-1 lg:hidden max-sm:[&>span:first-of-type]:hidden" />
@@ -42,6 +42,7 @@ export function AdminShell({ children, counts, quickSearch, activeHref, theme }:
           <CommandPaletteTrigger className="w-10 justify-center px-0 sm:hidden [&>span]:sr-only" />
           <ThemeToggle value={theme} variant="compact" />
         </header>
+        <AdminMobileNav counts={counts} activeHref={activeHref} />
         <main id="admin-main" tabIndex={-1} className="min-w-0 flex-1 px-4 py-6 outline-none sm:px-6 lg:px-9 lg:py-8">
           {children}
         </main>
