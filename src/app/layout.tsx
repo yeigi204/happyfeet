@@ -41,8 +41,15 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="de-CH" className={`${display.variable} ${sans.variable} ${mono.variable} h-full antialiased`}>
-      <body className="min-h-full">
+    // suppressHydrationWarning: Browser-Erweiterungen (z. B. ColorZilla, Grammarly, Dark-Reader) setzen vor
+    // dem Hydrieren eigene Attribute auf <html>/<body>. Gilt nur für die Attribute dieser beiden Elemente,
+    // Abweichungen in Kind-Elementen meldet React weiterhin.
+    <html
+      lang="de-CH"
+      className={`${display.variable} ${sans.variable} ${mono.variable} h-full antialiased`}
+      suppressHydrationWarning
+    >
+      <body className="min-h-full" suppressHydrationWarning>
         <AppProviders>{children}</AppProviders>
       </body>
     </html>
