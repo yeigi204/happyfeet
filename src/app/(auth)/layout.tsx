@@ -2,6 +2,8 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { Logo } from "@/components/brand/logo";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { getThemePreference } from "@/server/theme";
 
 /**
  * Rahmen für Anmeldung, Registrierung, Onboarding und Sperrseite.
@@ -15,22 +17,21 @@ const FACTS = [
   { label: "Abos", value: "monatlich kündbar" },
 ];
 
-export default function AuthLayout({ children }: { children: ReactNode }) {
+export default async function AuthLayout({ children }: { children: ReactNode }) {
+  const theme = await getThemePreference();
   return (
     <div className="min-h-dvh bg-canvas text-ink lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-      <aside className="sticky top-0 hidden h-dvh flex-col justify-between border-r border-line bg-surface px-12 py-10 lg:flex xl:px-16">
+      <aside className="sticky top-0 hidden h-dvh flex-col justify-between border-r border-line bg-surface-2 px-12 py-10 lg:flex xl:px-16">
         <Logo />
 
         <div className="max-w-md">
-          <p className="font-num text-[11px] uppercase tracking-[0.22em] text-ink-muted">
-            Fussbilder im Abo · Schweiz
-          </p>
-          <p className="mt-8 font-display text-6xl leading-[0.92] font-semibold tracking-tight xl:text-7xl">
+          <p className="eyebrow">Fussbilder im Abo · Schweiz</p>
+          <p className="mt-8 font-display text-6xl leading-[0.95] font-extrabold tracking-[-0.045em] xl:text-7xl">
             Gepflegt.
             <br />
             Gezeigt.
             <br />
-            <span className="text-accent">Abonniert.</span>
+            <em className="font-medium text-accent-strong">Abonniert.</em>
           </p>
           <p className="mt-8 max-w-sm text-base leading-relaxed text-ink-muted">
             Creator aus der Schweiz teilen ihre schönsten Bilder. Du abonnierst direkt bei ihnen – und siehst, was
@@ -41,8 +42,8 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         <dl className="grid grid-cols-3 gap-6 border-t border-line pt-6">
           {FACTS.map((fact) => (
             <div key={fact.label}>
-              <dt className="font-num text-[11px] uppercase tracking-[0.18em] text-ink-muted">{fact.label}</dt>
-              <dd className="mt-1.5 text-sm text-ink">{fact.value}</dd>
+              <dt className="eyebrow">{fact.label}</dt>
+              <dd className="mt-1.5 text-sm font-semibold text-ink">{fact.value}</dd>
             </div>
           ))}
         </dl>
@@ -53,7 +54,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           <Logo className="lg:invisible" />
           <Link
             href="/explore"
-            className="text-sm text-ink-muted underline-offset-4 transition-colors hover:text-ink hover:underline"
+            className="text-sm font-semibold text-ink-muted underline-offset-4 transition-colors hover:text-ink hover:underline"
           >
             Creator entdecken
           </Link>
@@ -63,9 +64,9 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           <div className="w-full max-w-md">{children}</div>
         </main>
 
-        <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-line pt-5 font-num text-[11px] uppercase tracking-[0.18em] text-ink-muted">
-          <span>happyfeet</span>
-          <span>Nur für Erwachsene</span>
+        <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-5 text-xs font-semibold text-ink-muted">
+          <span>happyfeet · 18+ · Nur für Erwachsene</span>
+          <ThemeToggle value={theme} />
         </footer>
       </div>
     </div>

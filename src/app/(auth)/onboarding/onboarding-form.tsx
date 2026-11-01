@@ -66,7 +66,7 @@ function FieldShell({
 }) {
   return (
     <div>
-      <label htmlFor={id} className="block text-sm font-medium text-ink">
+      <label htmlFor={id} className="block text-[13px] font-semibold text-ink">
         {label}
       </label>
       <div className="mt-2">{children}</div>
@@ -143,7 +143,7 @@ export function OnboardingForm({ maxBirthDate, returnTo = null }: { maxBirthDate
       {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
       <FieldShell id="handle" label="Handle" error={handleError} hint={<HandleStatus availability={availability} />}>
         <div
-          className={`flex items-center rounded-control border bg-surface transition-colors has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-accent ${borderFor(handleError)}`}
+          className={`flex items-center rounded-control border bg-surface transition-[border-color,box-shadow] has-[input:focus-visible]:border-focus has-[input:focus-visible]:ring-4 has-[input:focus-visible]:ring-surface-2 ${borderFor(handleError)}`}
         >
           <span aria-hidden className="pl-3.5 font-num text-base text-ink-muted select-none">
             @
@@ -245,7 +245,7 @@ export function OnboardingForm({ maxBirthDate, returnTo = null }: { maxBirthDate
       </div>
 
       {state.error && !state.fieldErrors && (
-        <p role="alert" className="border-l-2 border-danger pl-3 text-sm text-danger">
+        <p role="alert" className="rounded-control bg-danger-soft px-3 py-2.5 text-sm font-medium text-danger">
           {state.error}
         </p>
       )}

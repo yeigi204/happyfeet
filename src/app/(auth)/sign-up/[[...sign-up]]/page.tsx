@@ -11,10 +11,10 @@ export default function SignUpPage() {
   if (impersonated) {
     return (
       <section className="border-t border-line pt-8">
-        <p className="font-num text-[11px] uppercase tracking-[0.22em] text-accent-strong">Dev-Impersonation</p>
-        <h1 className="mt-4 font-display text-4xl font-semibold tracking-tight">Registrieren ist lokal aus.</h1>
+        <p className="eyebrow text-accent-strong">Dev-Impersonation</p>
+        <h1 className="mt-4 font-display text-4xl font-extrabold tracking-[-0.035em]">Registrieren ist lokal aus.</h1>
         <p className="mt-4 leading-relaxed text-ink-muted">
-          Solange <span className="font-num text-ink">DEV_IMPERSONATE_CLERK_ID</span> gesetzt ist, gibt es kein Clerk
+          Solange <code className="font-mono text-[0.9em] text-ink">DEV_IMPERSONATE_CLERK_ID</code> gesetzt ist, gibt es kein Clerk
           und damit keine neuen Konten. Du bist als <span className="font-num text-ink">{impersonated}</span>{" "}
           angemeldet.
         </p>

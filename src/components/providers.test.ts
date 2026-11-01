@@ -40,14 +40,23 @@ describe("Clerk-Lokalisierung (de-CH)", () => {
 });
 
 describe("Clerk-Appearance", () => {
-  it("nutzt den Nagellack-Akzent", () => {
-    expect(clerkAppearance.variables?.colorPrimary).toBe("#d7352a");
+  it("legt Clerks Stile in den Layer „clerk“ (unter den Tailwind-Utilities)", () => {
+    expect(clerkAppearance.cssLayerName).toBe("clerk");
   });
 
-  it("setzt Element-Klassen mit !-Modifier, damit sie Clerks ungelayerte Styles schlagen", () => {
-    // Tailwind v4 legt Utilities in `@layer utilities`; Clerks Styles sind ungelayert und gewinnen sonst immer.
+  it("braucht dank Layer keine !-Modifier mehr", () => {
     const classes = Object.values(clerkAppearance.elements).flatMap((value) => value.split(/\s+/).filter(Boolean));
     expect(classes.length).toBeGreaterThan(0);
-    expect(classes.filter((c) => !c.endsWith("!"))).toEqual([]);
+    expect(classes.filter((c) => c.endsWith("!") || c.startsWith("!"))).toEqual([]);
+  });
+
+  it("nutzt Token-Klassen, damit Clerk Hell und Dunkel folgt", () => {
+    const joined = Object.values(clerkAppearance.elements).join(" ");
+    expect(joined).toContain("bg-surface");
+    expect(joined).toContain("text-ink");
+  });
+
+  it("hat den Rosé-Akzent nur als Fallback-Variable", () => {
+    expect(clerkAppearance.variables?.colorPrimary).toBe("#c2185b");
   });
 });

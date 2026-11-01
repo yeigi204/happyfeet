@@ -27,8 +27,8 @@ export default async function OnboardingPage({ searchParams }: PageProps<"/onboa
 
   return (
     <div>
-      <p className="font-num text-[11px] uppercase tracking-[0.22em] text-accent-strong">Letzter Schritt</p>
-      <h1 className="mt-4 font-display text-4xl font-semibold leading-[1.05] tracking-tight text-balance sm:text-5xl">
+      <p className="eyebrow text-accent-strong">Letzter Schritt</p>
+      <h1 className="mt-4 font-display text-4xl font-extrabold leading-[1.05] tracking-[-0.035em] text-balance sm:text-5xl">
         Wie sollen dich die anderen sehen?
       </h1>
       <p className="mt-4 leading-relaxed text-ink-muted">

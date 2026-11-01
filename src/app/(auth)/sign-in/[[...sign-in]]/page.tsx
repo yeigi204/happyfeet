@@ -11,12 +11,12 @@ export default function SignInPage() {
   if (impersonated) {
     return (
       <section className="border-t border-line pt-8">
-        <p className="font-num text-[11px] uppercase tracking-[0.22em] text-accent-strong">Dev-Impersonation</p>
-        <h1 className="mt-4 font-display text-4xl font-semibold tracking-tight">Du bist schon drin.</h1>
+        <p className="eyebrow text-accent-strong">Dev-Impersonation</p>
+        <h1 className="mt-4 font-display text-4xl font-extrabold tracking-[-0.035em]">Du bist schon drin.</h1>
         <p className="mt-4 leading-relaxed text-ink-muted">
           Clerk ist lokal ausgeschaltet. Du bist als <span className="font-num text-ink">{impersonated}</span>{" "}
-          angemeldet. Zum Wechseln <span className="font-num text-ink">DEV_IMPERSONATE_CLERK_ID</span> in{" "}
-          <span className="font-num text-ink">.env.local</span> ändern.
+          angemeldet. Zum Wechseln <code className="font-mono text-[0.9em] text-ink">DEV_IMPERSONATE_CLERK_ID</code> in{" "}
+          <code className="font-mono text-[0.9em] text-ink">.env.local</code> ändern.
         </p>
         <ButtonLink href="/explore" variant="primary" size="lg" className="mt-8">
           Weiter zu den Creatorn
