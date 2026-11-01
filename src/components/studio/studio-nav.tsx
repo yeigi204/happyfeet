@@ -24,7 +24,7 @@ function isActive(pathname: string, item: Item): boolean {
 }
 
 /**
- * Studio-Unternavigation: Tabs mit Akzent-Unterstrich. Auf dem Handy horizontal scrollbar – der aktive Tab
+ * Studio-Unternavigation: Pillen-Tabs (aktiv: Tinte). Auf dem Handy horizontal scrollbar – der aktive Tab
  * wird in den sichtbaren Bereich geschoben, ein Verlauf am Rand zeigt, dass es weitergeht.
  */
 export function StudioNav() {
@@ -40,10 +40,10 @@ export function StudioNav() {
   }, [pathname]);
 
   return (
-    <div className="relative -mx-4 sm:-mx-8 after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:w-10 after:bg-linear-to-l after:from-surface after:to-transparent md:after:hidden">
+    <div className="relative -mx-4 sm:-mx-8 after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:w-10 after:bg-linear-to-l after:from-canvas after:to-transparent md:after:hidden">
       <div ref={scroller} className="overflow-x-auto px-4 scrollbar-none sm:px-8">
         <nav aria-label="Studio">
-          <ul className="-ml-2.5 flex min-w-max items-stretch gap-0.5 pr-6 md:pr-0">
+          <ul className="flex min-w-max items-center gap-1.5 pr-6 md:pr-0">
             {ITEMS.map((item) => {
               const active = isActive(pathname, item);
               const Icon = item.icon;
@@ -53,16 +53,15 @@ export function StudioNav() {
                     href={item.href}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "relative inline-flex h-12 items-center gap-2 rounded-control px-2.5 text-sm font-medium whitespace-nowrap transition-colors duration-100",
+                      "inline-flex h-9 items-center gap-2 rounded-full px-3.5 text-sm font-semibold whitespace-nowrap transition-colors duration-100",
                       // Der Scroll-Container schneidet einen äusseren Fokusring oben/unten ab – deshalb innen.
                       "focus-visible:-outline-offset-2",
                       "[&_svg]:size-4 [&_svg]:shrink-0",
-                      active ? "text-ink" : "text-ink-muted hover:text-ink",
+                      active ? "bg-ink text-canvas" : "text-ink-muted hover:bg-surface-2 hover:text-ink",
                     )}
                   >
-                    <Icon aria-hidden className={active ? "text-accent" : "text-ink-faint"} />
+                    <Icon aria-hidden />
                     {item.label}
-                    {active ? <span aria-hidden className="absolute inset-x-2.5 -bottom-px h-0.5 rounded-full bg-accent" /> : null}
                   </Link>
                 </li>
               );

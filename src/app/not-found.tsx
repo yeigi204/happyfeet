@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 
 import { Container } from "@/components/site/container";
-import { SiteFooter } from "@/components/site/site-footer";
-import { SiteHeader } from "@/components/site/site-header";
+import { AppShell } from "@/components/shell/app-shell";
 import { ButtonLink } from "@/components/ui/button";
 
 export const metadata: Metadata = { title: "Seite nicht gefunden" };
@@ -10,9 +9,8 @@ export const metadata: Metadata = { title: "Seite nicht gefunden" };
 /** Globale 404 (unbekannte Adressen, `notFound()` ausserhalb eigener Grenzen, z. B. /admin für Nicht-Admins). */
 export default function NotFound() {
   return (
-    <div className="flex min-h-dvh flex-col bg-canvas text-ink">
-      <SiteHeader />
-      <main id="inhalt" className="flex-1">
+    <AppShell>
+      <div>
         <Container className="grid gap-12 py-16 sm:py-24 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-center">
           <div>
             <p className="eyebrow">Fehler 404</p>
@@ -44,8 +42,7 @@ export default function NotFound() {
             </g>
           </svg>
         </Container>
-      </main>
-      <SiteFooter />
-    </div>
+      </div>
+    </AppShell>
   );
 }

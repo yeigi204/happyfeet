@@ -1,24 +1,23 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { buttonClasses } from "@/components/ui/button";
+
 type AuthLinkProps = { className?: string; children?: ReactNode };
 
-const base =
-  "inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
-
-/** Sekundärer Link zur Anmeldung (Haarlinie, kein Schatten). */
-export function SignInButtonLink({ className = "", children = "Anmelden" }: AuthLinkProps) {
+/** Sekundärer Link zur Anmeldung (Pille mit Rahmen). */
+export function SignInButtonLink({ className, children = "Anmelden" }: AuthLinkProps) {
   return (
-    <Link href="/sign-in" className={`${base} border border-line text-ink hover:border-ink ${className}`}>
+    <Link href="/sign-in" className={buttonClasses({ variant: "ghost", size: "sm", className })}>
       {children}
     </Link>
   );
 }
 
 /** Primärer Link zur Registrierung im Akzent. */
-export function SignUpButtonLink({ className = "", children = "Konto erstellen" }: AuthLinkProps) {
+export function SignUpButtonLink({ className, children = "Konto erstellen" }: AuthLinkProps) {
   return (
-    <Link href="/sign-up" className={`${base} bg-accent text-accent-ink hover:opacity-90 ${className}`}>
+    <Link href="/sign-up" className={buttonClasses({ variant: "primary", size: "sm", className })}>
       {children}
     </Link>
   );
