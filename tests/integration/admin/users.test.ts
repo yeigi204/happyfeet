@@ -221,4 +221,18 @@ describe("quickSearch", () => {
     expect(hits[0].sublabel).toContain("@zehenspiel");
     expect(await quickSearch(f.admin, "   ")).toEqual([]);
   });
+
+  it("verträgt Steuerzeichen wie NUL in der Suche (Postgres würde den Text sonst ablehnen)", async () => {
+    const f = await fixture();
+    expect(await quickSearch(f.admin, "\u0000")).toEqual([]);
+    expect((await quickSearch(f.admin, "zehen\u0000spiel")).map((h) => h.id)).toEqual([f.nina.id]);
+  });
+});
+
+describe("searchUsers mit Steuerzeichen", () => {
+  it("bricht bei NUL nicht ab, sondern ignoriert die Steuerzeichen", async () => {
+    const f = await fixture();
+    expect((await searchUsers(f.admin, { query: "\u0000" }, { now: NOW })).total).toBe(6);
+    expect((await searchUsers(f.admin, { query: "luca\u0000" }, { now: NOW })).items.map((i) => i.id)).toEqual([f.luca.id]);
+  });
 });

@@ -12,7 +12,10 @@ import { creatorProfiles, payments, premiumSubscriptions, subscriptions, users }
 import { ForbiddenError, ValidationError } from "@/server/errors";
 import { getMockProvider, type CheckoutKind, type PaymentEvent } from "@/server/payments";
 
+import { signMediaUrls } from "@/server/storage";
+
 import { writeAudit } from "./audit";
+import { activeSubscriptionCondition, isCreatorHidden } from "./posts";
 import { isCreatorPremiumAt } from "./premium";
 import { getPlatformSettings } from "./settings";
 
@@ -275,13 +278,14 @@ async function activatePremium(tx: Tx, event: CompletedEvent, now: Date): Promis
     return ignore("Premium läuft bereits – zweite Zahlung wird weder gebucht noch verlängert", event);
   }
 
-  const settings = await getPlatformSettings(tx);
   const period = {
     status: "active" as const,
-    priceRappen: settings.premiumPriceRappen,
+    // Snapshot = tatsächlich bezahlter Betrag (der Preis kann sich seit dem Checkout-Start geändert haben).
+    priceRappen: event.amountRappen,
     currency: event.currency,
     currentPeriodStart: event.occurredAt,
     currentPeriodEnd: addBillingMonth(event.occurredAt),
+    activeSince: event.occurredAt,
     cancelAtPeriodEnd: false,
     canceledAt: null,
   };
@@ -339,6 +343,9 @@ async function cancelPremiumByProvider(tx: Tx, event: CanceledEvent, now: Date):
   const row = await lockPremiumByRef(tx, event);
   if (!row) return ignore("Premium-Abo unbekannt", event);
   if (row.status !== "active") return NOT_APPLIED;
+  // Die Premium-Ref ist pro Creator stabil: eine Kündigung von vor der laufenden Strecke (z. B. ein
+  // wieder eingespielter alter Webhook) darf ein neu gebuchtes Premium nicht beenden.
+  if (event.occurredAt < row.activeSince) return ignore("Kündigung stammt aus einer früheren Premium-Strecke", event);
   await tx
     .update(premiumSubscriptions)
     .set({ status: "canceled", cancelAtPeriodEnd: true, canceledAt: event.occurredAt })
@@ -394,15 +401,7 @@ export async function completeMockCheckout(
   sessionId: string,
   opts: { now?: Date } = {},
 ): Promise<{ kind: CheckoutKind; creatorHandle: string | null }> {
-  assertOnboarded(viewer);
-  const provider = getMockProvider();
-  const session = typeof sessionId === "string" ? provider.decodeSession(sessionId, opts.now) : null;
-  if (!session) {
-    throw new ValidationError("Diese Testzahlung ist ungültig oder abgelaufen. Bitte starte den Checkout neu.");
-  }
-  if (session.payerUserId !== viewer.id) {
-    throw new ForbiddenError("Diese Testzahlung gehört zu einem anderen Konto.");
-  }
+  const { provider, session } = ownMockSession(viewer, sessionId, opts.now);
 
   const event = provider.completedEventFor(sessionId, opts.now);
   await handlePaymentEvent(event, { now: event.occurredAt });
@@ -418,4 +417,107 @@ export async function completeMockCheckout(
     creatorHandle = row?.handle ?? null;
   }
   return { kind: session.kind, creatorHandle };
+}
+
+/** Prüft eine Mock-Checkout-Session (Signatur, Ablauf, Zahler = Viewer); sonst Validation-/ForbiddenError. */
+function ownMockSession(viewer: Viewer, sessionId: string, now: Date | undefined) {
+  assertOnboarded(viewer);
+  const provider = getMockProvider();
+  const session = typeof sessionId === "string" ? provider.decodeSession(sessionId, now) : null;
+  if (!session) {
+    throw new ValidationError("Diese Testzahlung ist ungültig oder abgelaufen. Bitte starte den Checkout neu.");
+  }
+  if (session.payerUserId !== viewer.id) {
+    throw new ForbiddenError("Diese Testzahlung gehört zu einem anderen Konto.");
+  }
+  return { provider, session };
+}
+
+export type CheckoutRecipient = {
+  kind: CheckoutKind;
+  amountRappen: number;
+  currency: "CHF";
+  description: string;
+  expiresAt: Date;
+  /** Fan-Abo: der (sichtbare) Creator; Premium oder nicht mehr sichtbarer Creator: `null`. */
+  creator: { userId: string; handle: string; displayName: string; avatarUrl: string | null; isPremium: boolean } | null;
+  /** Läuft das Bezahlte schon (z. B. zweiter Tab)? Dann keine zweite Zahlung anbieten. */
+  alreadyActive: boolean;
+};
+
+/**
+ * Daten für die Mock-Checkout-Seite: Empfänger, Betrag und ob das Abo bzw. Premium schon läuft.
+ * Prüft die Session wie `completeMockCheckout` (ungültig/abgelaufen → `ValidationError`,
+ * fremder Zahler → `ForbiddenError`, kein Mock-Provider → `NotFoundError`).
+ */
+export async function getCheckoutRecipient(
+  viewer: Viewer,
+  sessionId: string,
+  opts: { now?: Date } = {},
+): Promise<CheckoutRecipient> {
+  const { session } = ownMockSession(viewer, sessionId, opts.now);
+  const now = opts.now ?? new Date();
+  const base = {
+    kind: session.kind,
+    amountRappen: session.amountRappen,
+    currency: session.currency,
+    description: session.description,
+    expiresAt: session.expiresAt,
+  };
+
+  if (session.kind === "premium_plan") {
+    return { ...base, creator: null, alreadyActive: await isCreatorPremiumAt(viewer.id, now) };
+  }
+
+  const db = getDb();
+  const [row] = UUID_PATTERN.test(session.referenceId)
+    ? await db
+        .select({
+          creatorId: users.id,
+          handle: users.handle,
+          displayName: users.displayName,
+          avatarKey: users.avatarKey,
+          status: users.status,
+          deletedAt: users.deletedAt,
+          verificationStatus: creatorProfiles.verificationStatus,
+        })
+        .from(subscriptions)
+        .innerJoin(users, eq(users.id, subscriptions.creatorId))
+        .leftJoin(creatorProfiles, eq(creatorProfiles.userId, subscriptions.creatorId))
+        .where(and(eq(subscriptions.id, session.referenceId), eq(subscriptions.fanId, viewer.id)))
+        .limit(1)
+    : [];
+  if (!row) return { ...base, creator: null, alreadyActive: false };
+
+  const [running] = await db
+    .select({ id: subscriptions.id })
+    .from(subscriptions)
+    .where(
+      and(
+        eq(subscriptions.fanId, viewer.id),
+        eq(subscriptions.creatorId, row.creatorId),
+        activeSubscriptionCondition(now),
+      ),
+    )
+    .limit(1);
+
+  const visible = !isCreatorHidden(row.status, row.verificationStatus, row.deletedAt) && row.handle !== null;
+  if (!visible) return { ...base, creator: null, alreadyActive: running !== undefined };
+
+  const [urls, isPremium] = await Promise.all([
+    signMediaUrls(row.avatarKey ? [row.avatarKey] : []),
+    isCreatorPremiumAt(row.creatorId, now, db),
+  ]);
+  const handle = row.handle ?? "";
+  return {
+    ...base,
+    creator: {
+      userId: row.creatorId,
+      handle,
+      displayName: row.displayName ?? handle,
+      avatarUrl: row.avatarKey ? (urls.get(row.avatarKey) ?? null) : null,
+      isPremium,
+    },
+    alreadyActive: running !== undefined,
+  };
 }

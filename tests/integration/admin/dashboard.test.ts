@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getAdminDashboard } from "@/server/services/admin/dashboard";
+import { getAdminDashboard, getAdminQueueCounts } from "@/server/services/admin/dashboard";
 
 import { setupTestDb } from "../../helpers/db";
 import { createAdmin, createCreator, createPost, createUser, viewerFor } from "../../helpers/factories";
@@ -253,5 +253,27 @@ describe("getAdminDashboard", () => {
     expect(dashboard.revenueDaily.every((d) => d.platformFeeRappen === 0 && d.creatorNetRappen === 0)).toBe(true);
     expect(dashboard.queues.verifications).toEqual({ count: 0, oldestAt: null });
     expect(dashboard.topCreators).toEqual([]);
+  });
+});
+
+describe("getAdminQueueCounts", () => {
+  it("liefert dieselben Warteschlangen wie das Dashboard – ohne die übrigen Kennzahlen", async () => {
+    const { admin } = await fixture();
+
+    const counts = await getAdminQueueCounts(admin);
+
+    expect(counts).toEqual({
+      verifications: { count: 1, oldestAt: daysBefore(NOW, 2) },
+      premoderation: { count: 1, oldestAt: daysBefore(NOW, 3) },
+      reports: { count: 2, criticalCount: 1, oldestAt: daysBefore(NOW, 4) },
+      payoutsScheduled: { count: 2, totalRappen: 1200 },
+    });
+    expect(counts).toEqual((await getAdminDashboard(admin, { now: NOW })).queues);
+  });
+
+  it("ignoriert offene Bewerbungen gelöschter Konten", async () => {
+    const admin = await viewerFor(t.db, (await createAdmin(t.db)).id, NOW);
+    await createCreator(t.db, { user: { deletedAt: daysBefore(NOW, 1) }, profile: { verificationStatus: "pending" } });
+    expect((await getAdminQueueCounts(admin)).verifications).toEqual({ count: 0, oldestAt: null });
   });
 });

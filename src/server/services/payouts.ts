@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, desc, eq, inArray, isNotNull, lte, max, min, ne, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, isNull, lte, max, min, ne, sql } from "drizzle-orm";
 
 import { lastPayoutBoundary, nextPayoutDate, payoutScheduleFor } from "@/lib/domain/payouts";
 import { planOf } from "@/lib/domain/plans";
@@ -85,8 +85,10 @@ export async function generateDuePayouts(
           eq(payments.kind, "fan_subscription"),
           eq(payments.status, "succeeded"),
           isNotNull(payments.creatorId),
-          // Gesperrte Creator werden zurückgestellt; ihr Guthaben bleibt für später erhalten.
+          // Gesperrte und gelöschte Creator werden zurückgestellt; ihr Guthaben bleibt zugeordnet
+          // und für eine manuelle Klärung erhalten.
           eq(users.status, "active"),
+          isNull(users.deletedAt),
         ),
       )
       .groupBy(payments.creatorId);

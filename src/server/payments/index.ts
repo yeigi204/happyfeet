@@ -1,5 +1,6 @@
 import "server-only";
 
+import { mockPaymentsAllowed } from "@/server/config/production-check";
 import { NotFoundError } from "@/server/errors";
 
 import { MockPaymentProvider } from "./mock";
@@ -58,10 +59,12 @@ export function getPaymentProvider(name?: string): PaymentProvider {
 
 /**
  * Mock-Provider für die simulierte Checkout-Seite. Nur verfügbar, solange `mock` der aktive
- * Provider ist – sonst `NotFoundError`, damit niemand Zahlungen simulieren kann.
+ * Provider ist und (in Produktion) ausdrücklich erlaubt wurde – sonst `NotFoundError`, damit
+ * niemand Zahlungen simulieren kann. Der Serverstart prüft dasselbe (production-check.ts).
  */
 export function getMockProvider(): MockPaymentProvider {
   if (testOverride instanceof MockPaymentProvider) return testOverride;
+  if (!mockPaymentsAllowed(process.env)) throw new NotFoundError("Unbekannter Zahlungsanbieter.");
   const provider = getPaymentProvider(DEFAULT_PROVIDER);
   if (!(provider instanceof MockPaymentProvider)) throw new NotFoundError("Unbekannter Zahlungsanbieter.");
   return provider;

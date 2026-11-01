@@ -63,13 +63,21 @@ const SEARCH_MAX_LENGTH = 64;
 
 // ─── Validierung ──────────────────────────────────────────────────────────────
 
+// Länge in UTF-16-Einheiten (`.length`) wie `maxLength`/Zähler im Formular, Caption und Meldungstext –
+// zods `.max()` zählt Codepoints und würde z. B. Emoji-Bios bis zur doppelten Länge durchlassen.
 const bioSchema = z
   .string({ error: "Bitte gib eine Bio ein." })
   .transform((s) => s.replaceAll("\u0000", "").trim())
-  .pipe(z.string().max(CREATOR_BIO_MAX_LENGTH, `Deine Bio darf höchstens ${CREATOR_BIO_MAX_LENGTH} Zeichen haben.`));
+  .refine((s) => s.length <= CREATOR_BIO_MAX_LENGTH, `Deine Bio darf höchstens ${CREATOR_BIO_MAX_LENGTH} Zeichen haben.`);
 
-function priceSchema(settings: PlatformSettings) {
+/**
+ * Monatspreis im aktuellen Preisrahmen. `currentRappen` (der gespeicherte Preis) bleibt gültig, auch
+ * wenn der Admin den Rahmen inzwischen verengt hat: Bestehende Preise gelten weiter, bis der Creator
+ * sie ändert (so blockiert der immer mitgeschickte Preis z. B. nicht das Speichern der Bio).
+ */
+function priceSchema(settings: PlatformSettings, currentRappen?: number) {
   return z.number({ error: "Bitte gib einen gültigen Preis ein." }).superRefine((rappen, ctx) => {
+    if (currentRappen !== undefined && rappen === currentRappen) return;
     const result = validateMonthlyPrice(rappen, settings);
     if (!result.ok) ctx.addIssue({ code: "custom", message: result.reason });
   });
@@ -163,7 +171,10 @@ export async function applyAsCreator(
   });
 }
 
-/** Bio und/oder Monatspreis ändern (gilt für neue Abos; bestehende behalten ihren Preis-Snapshot). */
+/**
+ * Bio und/oder Monatspreis ändern (gilt für neue Abos; bestehende behalten ihren Preis-Snapshot).
+ * Ein unveränderter Preis wird nicht gegen den aktuellen Preisrahmen geprüft (Bestandsschutz).
+ */
 export async function updateCreatorProfile(
   viewer: Viewer,
   input: { bio?: string; monthlyPriceRappen?: number },
@@ -173,8 +184,16 @@ export async function updateCreatorProfile(
   const now = opts.now ?? new Date();
   const db = getDb();
   const settings = await getPlatformSettings(db);
+  const [current] = await db
+    .select({ monthlyPriceRappen: creatorProfiles.monthlyPriceRappen })
+    .from(creatorProfiles)
+    .where(eq(creatorProfiles.userId, viewer.id))
+    .limit(1);
   const patch = parseOrThrow(
-    z.object({ bio: bioSchema.optional(), monthlyPriceRappen: priceSchema(settings).optional() }),
+    z.object({
+      bio: bioSchema.optional(),
+      monthlyPriceRappen: priceSchema(settings, current?.monthlyPriceRappen).optional(),
+    }),
     input,
   );
 
@@ -213,6 +232,7 @@ function cardFields(now: Date) {
     displayName: users.displayName,
     avatarKey: users.avatarKey,
     status: users.status,
+    deletedAt: users.deletedAt,
     bio: creatorProfiles.bio,
     bannerKey: creatorProfiles.bannerKey,
     monthlyPriceRappen: creatorProfiles.monthlyPriceRappen,
@@ -276,11 +296,18 @@ export async function listCreatorsForExplore(
 ): Promise<CreatorCard[]> {
   const now = opts.now ?? new Date();
   const limit = clampLimit(input.limit, EXPLORE_DEFAULT_LIMIT, EXPLORE_MAX_LIMIT);
-  const query = (input.query ?? "").trim().replace(/^@/, "").slice(0, SEARCH_MAX_LENGTH).trim();
+  // Steuerzeichen entfernen: NUL lehnt Postgres in Text ab (sonst 500 auf /explore?q=%00).
+  const query = (input.query ?? "")
+    .replace(/[\u0000-\u001F\u007F]/g, "")
+    .trim()
+    .replace(/^@/, "")
+    .slice(0, SEARCH_MAX_LENGTH)
+    .trim();
 
   const conditions: (SQL | undefined)[] = [
     eq(creatorProfiles.verificationStatus, "approved"),
     eq(users.status, "active"),
+    isNull(users.deletedAt),
     isNotNull(users.handle),
   ];
   if (query) {
@@ -304,7 +331,7 @@ export async function listCreatorsForExplore(
 /**
  * Profilseite `/c/[handle]` (Handle ohne Gross-/Kleinschreibung, `@` erlaubt).
  * `null`, wenn unbekannt, ohne Creator-Profil, nicht freigegeben (ausser Eigentümer/Admin)
- * oder gesperrt (ausser Admin – auch der gesperrte Eigentümer bekommt `null`).
+ * oder gesperrt bzw. gelöscht (ausser Admin – auch der gesperrte Eigentümer bekommt `null`).
  */
 export async function getCreatorPage(
   viewer: Viewer | null,
@@ -327,8 +354,8 @@ export async function getCreatorPage(
 
   const isOwner = identity !== null && identity.id === row.userId;
   const isAdmin = identity !== null && identity.isAdmin;
-  if (row.status !== "active" && !isAdmin) return null;
-  if (isCreatorHidden(row.status, row.verificationStatus) && !isOwner && !isAdmin) return null;
+  if ((row.status !== "active" || row.deletedAt !== null) && !isAdmin) return null;
+  if (isCreatorHidden(row.status, row.verificationStatus, row.deletedAt) && !isOwner && !isAdmin) return null;
 
   const [subscription] =
     identity && !isOwner

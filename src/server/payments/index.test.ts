@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { NotFoundError } from "@/server/errors";
 
@@ -84,5 +84,17 @@ describe("getMockProvider", () => {
   it("wirft NotFoundError, wenn ein anderer Provider aktiv ist (Mock-Checkout dann nicht erreichbar)", () => {
     process.env.PAYMENT_PROVIDER = "segpay";
     expect(() => getMockProvider()).toThrow(NotFoundError);
+  });
+
+  it("ist in Produktion ohne ausdrückliches Opt-in nicht erreichbar (keine Gratis-Abos per simulierter Zahlung)", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("ALLOW_MOCK_PAYMENTS_IN_PRODUCTION", "");
+    try {
+      expect(() => getMockProvider()).toThrow(NotFoundError);
+      vi.stubEnv("ALLOW_MOCK_PAYMENTS_IN_PRODUCTION", "true");
+      expect(getMockProvider()).toBeInstanceOf(MockPaymentProvider);
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 });

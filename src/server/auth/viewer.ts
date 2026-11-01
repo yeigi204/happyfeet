@@ -1,7 +1,7 @@
 import "server-only";
 
 import { auth, currentUser } from "@clerk/nextjs/server";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
 
@@ -10,6 +10,7 @@ import { findViewerByClerkId, upsertUserFromClerk } from "@/server/services/user
 
 import { DEV_IMPERSONATE_COOKIE, getImpersonatedClerkId, resolveDevIdentity } from "./dev-impersonation";
 import type { CreatorViewer } from "./guards";
+import { RETURN_PATH_HEADER, withReturnPath } from "./return-path";
 
 /**
  * Der angemeldete Nutzer – pro Request einmal geladen (React `cache`).
@@ -64,10 +65,19 @@ async function readDevIdentityCookie(): Promise<string | undefined> {
   }
 }
 
-/** Angemeldet – sonst zur Anmeldung. */
+/** Aktueller Pfad der Anfrage (vom Proxy gesetzt) für den Rücksprung; `null` ausserhalb eines Requests. */
+async function currentReturnPath(): Promise<string | null> {
+  try {
+    return (await headers()).get(RETURN_PATH_HEADER);
+  } catch {
+    return null; // kein Request-Kontext
+  }
+}
+
+/** Angemeldet – sonst zur Anmeldung (mit `?redirect_url=` zurück zur aktuellen Seite). */
 export async function requireViewer(): Promise<Viewer> {
   const viewer = await getViewer();
-  if (!viewer) redirect("/sign-in");
+  if (!viewer) redirect(withReturnPath("/sign-in", await currentReturnPath()));
   return viewer;
 }
 
@@ -75,7 +85,7 @@ export async function requireViewer(): Promise<Viewer> {
 export async function requireOnboardedViewer(): Promise<Viewer> {
   const viewer = await requireViewer();
   if (viewer.status === "banned") redirect("/banned");
-  if (!viewer.onboarded) redirect("/onboarding");
+  if (!viewer.onboarded) redirect(withReturnPath("/onboarding", await currentReturnPath()));
   return viewer;
 }
 

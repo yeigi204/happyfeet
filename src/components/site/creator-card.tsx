@@ -30,7 +30,7 @@ export function CreatorCard({ creator, className }: { creator: CreatorCardData; 
         {creator.displayName}
       </h3>
       <p className="mt-0.5 truncate font-mono text-xs text-ink-faint">@{creator.handle}</p>
-      <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-ink-muted">
+      <p className="mt-3 line-clamp-3 text-sm leading-relaxed wrap-anywhere text-ink-muted">
         {creator.bio || "Hat noch keine Bio geschrieben – die Bilder sprechen für sich."}
       </p>
 

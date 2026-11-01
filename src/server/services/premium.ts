@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, desc, eq, gt, inArray } from "drizzle-orm";
+import { and, desc, eq, gt, inArray, lte } from "drizzle-orm";
 
 import { isPremiumActive } from "@/lib/domain/plans";
 import type { Viewer } from "@/lib/domain/types";
@@ -29,7 +29,10 @@ export type PremiumStatus = {
   premiumFeeBps: number;
 };
 
-/** IDs der Creator, deren Premium zum Zeitpunkt `at` läuft (aktiv oder gekündigt, Periode nicht vorbei). */
+/**
+ * IDs der Creator, deren Premium zum Zeitpunkt `at` läuft (aktiv oder gekündigt, Periode nicht vorbei,
+ * und die laufende Premium-Strecke hatte zu `at` schon begonnen – wichtig für verspätete Zahlungs-Events).
+ */
 export async function premiumCreatorIdsAt(
   creatorIds: readonly string[],
   at: Date,
@@ -49,6 +52,7 @@ export async function premiumCreatorIdsAt(
         inArray(premiumSubscriptions.creatorId, ids),
         inArray(premiumSubscriptions.status, ["active", "canceled"]),
         gt(premiumSubscriptions.currentPeriodEnd, at),
+        lte(premiumSubscriptions.activeSince, at),
       ),
     );
   return new Set(rows.filter((row) => isPremiumActive(row, at)).map((row) => row.creatorId));

@@ -98,9 +98,9 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
           }
         />
       ) : (
-        <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {creators.map((creator) => (
-            <li key={creator.userId} className="flex">
+            <li key={creator.userId} className="flex min-w-0">
               <CreatorCard creator={creator} className="w-full" />
             </li>
           ))}

@@ -22,6 +22,10 @@
   --color-accent: #d7352a;
   --color-accent-ink: #fffaf4;
   --color-accent-soft: #f8ddd5;
+  /* Akzent für kleine Schrift (Eyebrows < 18px): erreicht 4.5:1 auf canvas, surface und surface-2 */
+  --color-accent-strong: #bf2f25;
+  /* Fokus von Formular-Controls: hell = Nagellack-Rot (Marke); im Admin Tinte, damit Fokus ≠ Fehler (danger) */
+  --color-focus: #d7352a;
   --color-success: #1f7a4a;
   --color-warning: #9a5b00;
   --color-danger: #b42318;
@@ -29,7 +33,7 @@
   --color-premium-soft: #f2e5c6;
 
   --color-series-1: #d7352a;
-  --color-series-2: #00886d;
+  --color-series-2: #007f66; /* #fffaf4 darauf: 4.79:1 (Meter-Prozente) */
   --color-series-3: #bb7400;
   --color-series-4: #734dbe;
   /* Text auf einer Serienfläche (weiss oder fast schwarz je nach Luminanz) */
@@ -73,6 +77,8 @@
   --color-accent: #ec5545;
   --color-accent-ink: #140b09;
   --color-accent-soft: #3a1915;
+  --color-accent-strong: #ec5545;
+  --color-focus: #f3ede6;
   --color-success: #45b884;
   --color-warning: #e3a23b;
   --color-danger: #ff6a5c;

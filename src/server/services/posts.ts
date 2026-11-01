@@ -77,11 +77,15 @@ export function accessIdentity(viewer: Viewer | null | undefined): ViewerIdentit
 }
 
 /**
- * Ist der Creator für die Öffentlichkeit verborgen? Gesperrt oder (nicht mehr) freigegeben.
+ * Ist der Creator für die Öffentlichkeit verborgen? Gesperrt, Konto gelöscht oder (nicht mehr) freigegeben.
  * Wird als `creatorBanned` an die Zugriffsregeln gereicht: dann sehen nur Admin und Eigentümer etwas.
  */
-export function isCreatorHidden(status: UserStatus, verificationStatus: VerificationStatus | null): boolean {
-  return status !== "active" || verificationStatus !== "approved";
+export function isCreatorHidden(
+  status: UserStatus,
+  verificationStatus: VerificationStatus | null,
+  deletedAt: Date | null = null,
+): boolean {
+  return status !== "active" || deletedAt !== null || verificationStatus !== "approved";
 }
 
 /** Ganzzahliges Seitenlimit in [1, max]; fehlend oder ungültig → `fallback`. */
@@ -130,6 +134,7 @@ async function loadCreatorMeta(db: DbOrTx, creatorIds: string[], now: Date): Pro
       displayName: users.displayName,
       avatarKey: users.avatarKey,
       status: users.status,
+      deletedAt: users.deletedAt,
       verificationStatus: creatorProfiles.verificationStatus,
       isPremium: isPremiumSql(users.id, now),
     })
@@ -145,7 +150,7 @@ async function loadCreatorMeta(db: DbOrTx, creatorIds: string[], now: Date): Pro
         displayName: r.displayName,
         avatarKey: r.avatarKey,
         isPremium: Boolean(r.isPremium),
-        hidden: isCreatorHidden(r.status, r.verificationStatus),
+        hidden: isCreatorHidden(r.status, r.verificationStatus, r.deletedAt),
       },
     ]),
   );
@@ -320,6 +325,7 @@ export async function getFeed(
         eq(posts.moderationStatus, "approved"),
         isNull(posts.deletedAt),
         eq(users.status, "active"),
+        isNull(users.deletedAt),
         eq(creatorProfiles.verificationStatus, "approved"),
         cursor,
       ),

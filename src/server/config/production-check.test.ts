@@ -12,6 +12,7 @@ describe("productionConfigProblems", () => {
   it("verbietet Dev-Impersonation und lokalen Storage in Produktion", () => {
     const problems = productionConfigProblems({
       NODE_ENV: "production",
+      PAYMENT_PROVIDER: "segpay",
       DEV_IMPERSONATE_CLERK_ID: "seed_admin",
       STORAGE_DRIVER: "local",
     });
@@ -21,10 +22,26 @@ describe("productionConfigProblems", () => {
   it("erkennt Platzhalter- und zu kurze Secrets", () => {
     const problems = productionConfigProblems({
       NODE_ENV: "production",
+      PAYMENT_PROVIDER: "segpay",
       MEDIA_SIGNING_SECRET: "change-me-change-me-change-me-change-me",
       PAYMENT_WEBHOOK_SECRET: "kurz",
     });
     expect(problems).toHaveLength(2);
+  });
+
+  it("verbietet den Mock-Zahlungsanbieter in Produktion – auch als stillen Standard ohne PAYMENT_PROVIDER", () => {
+    const base = { NODE_ENV: "production", STORAGE_DRIVER: "supabase" };
+    expect(productionConfigProblems(base)).toEqual([expect.stringContaining("PAYMENT_PROVIDER")]);
+    expect(productionConfigProblems({ ...base, PAYMENT_PROVIDER: "mock" })).toEqual([
+      expect.stringContaining("PAYMENT_PROVIDER"),
+    ]);
+    expect(productionConfigProblems({ ...base, PAYMENT_PROVIDER: " mock " })).toHaveLength(1);
+  });
+
+  it("erlaubt Mock-Zahlungen in Produktion nur mit ausdrücklichem Opt-in (z. B. Staging)", () => {
+    const base = { NODE_ENV: "production", STORAGE_DRIVER: "supabase" };
+    expect(productionConfigProblems({ ...base, ALLOW_MOCK_PAYMENTS_IN_PRODUCTION: "true" })).toEqual([]);
+    expect(productionConfigProblems({ ...base, ALLOW_MOCK_PAYMENTS_IN_PRODUCTION: "1" })).toHaveLength(1);
   });
 
   it("akzeptiert eine saubere Produktionskonfiguration", () => {
@@ -32,6 +49,7 @@ describe("productionConfigProblems", () => {
       assertProductionConfig({
         NODE_ENV: "production",
         STORAGE_DRIVER: "supabase",
+        PAYMENT_PROVIDER: "segpay",
         MEDIA_SIGNING_SECRET: strong,
         PAYMENT_WEBHOOK_SECRET: strong,
       }),

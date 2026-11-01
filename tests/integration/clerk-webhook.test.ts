@@ -125,13 +125,16 @@ describe("POST /api/webhooks/clerk", () => {
     expect(row.email).toBe("bestand@example.ch");
   });
 
-  it("löscht bei user.deleted den Nutzer", async () => {
-    await createUser(t.db, { clerkId: "user_gone" });
+  it("anonymisiert bei user.deleted den Nutzer (Zeile bleibt als Nachweis, E-Mail weg)", async () => {
+    await createUser(t.db, { clerkId: "user_gone", email: "gone@example.ch" });
     const res = await POST(
       signedRequest({ type: "user.deleted", object: "event", data: { object: "user", id: "user_gone", deleted: true } }),
     );
     expect(res.status).toBe(200);
-    expect(await t.db.select().from(users).where(eq(users.clerkId, "user_gone"))).toHaveLength(0);
+    const rows = await t.db.select().from(users).where(eq(users.clerkId, "user_gone"));
+    expect(rows).toHaveLength(1);
+    expect(rows[0].email).toBeNull();
+    expect(rows[0].deletedAt).not.toBeNull();
   });
 
   it("antwortet bei signiertem, aber ungültigem Nutzer-Payload mit 400", async () => {

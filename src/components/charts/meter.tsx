@@ -34,6 +34,8 @@ export function Meter({ parts, format, title, className }: MeterProps) {
           <div
             key={p.label}
             data-segment
+            // role="img": aria-label auf einem rollenlosen <div> ist unzulässig und wird nicht zuverlässig vorgelesen.
+            role="img"
             tabIndex={0}
             aria-label={describe(p)}
             className="group relative h-full min-w-[3px] rounded-[4px] outline-offset-2"

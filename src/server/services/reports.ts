@@ -51,6 +51,7 @@ export async function reportPost(
         deletedAt: posts.deletedAt,
       },
       creatorStatus: users.status,
+      creatorDeletedAt: users.deletedAt,
       verificationStatus: creatorProfiles.verificationStatus,
     })
     .from(posts)
@@ -64,7 +65,7 @@ export async function reportPost(
     isPostListed({
       viewer: accessIdentity(viewer),
       post: row.post,
-      creatorBanned: isCreatorHidden(row.creatorStatus, row.verificationStatus),
+      creatorBanned: isCreatorHidden(row.creatorStatus, row.verificationStatus, row.creatorDeletedAt),
     });
   if (!row || !listed) throw new NotFoundError(POST_NOT_FOUND);
   if (row.post.creatorId === viewer.id) throw new ForbiddenError("Deinen eigenen Post kannst du nicht melden.");

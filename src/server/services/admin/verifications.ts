@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
 
 import { ageInYears, isAdult } from "@/lib/domain/age";
 import type { VerificationStatus, Viewer } from "@/lib/domain/types";
@@ -95,7 +95,8 @@ export async function listVerificationQueue(
     })
     .from(creatorProfiles)
     .innerJoin(users, eq(users.id, creatorProfiles.userId))
-    .where(eq(creatorProfiles.verificationStatus, status))
+    // Offene Anträge gelöschter Konten sind gegenstandslos (sie bleiben als Datensatz erhalten).
+    .where(and(eq(creatorProfiles.verificationStatus, status), status === "pending" ? isNull(users.deletedAt) : undefined))
     .orderBy(
       ...(status === "pending"
         ? [asc(creatorProfiles.appliedAt), asc(users.id)]

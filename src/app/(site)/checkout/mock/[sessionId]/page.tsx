@@ -14,7 +14,8 @@ import { requireOnboardedViewer } from "@/server/auth/viewer";
 import { NotFoundError } from "@/server/errors";
 import { getMockProvider } from "@/server/payments";
 import { listCreatorsForExplore, type CreatorCard } from "@/server/services/creators";
-import { appBaseUrl } from "@/server/services/subscriptions";
+import { getPremiumStatus } from "@/server/services/premium";
+import { appBaseUrl, listMySubscriptions } from "@/server/services/subscriptions";
 
 import { simulatePaymentAction } from "./actions";
 import { creatorHandleFromPath, toSafeLocalPath } from "./safe-redirect";
@@ -56,14 +57,55 @@ export default async function MockCheckoutPage({ params }: PageProps<"/checkout/
   const origin = appBaseUrl();
   const cancelHref = toSafeLocalPath(session.cancelUrl, origin) ?? "/explore";
   const isPremium = session.kind === "premium_plan";
+  const handle = isPremium ? null : creatorHandleFromPath(toSafeLocalPath(session.successUrl, origin));
+
+  // Läuft das Bezahlte schon (zweiter Tab, Zurück nach dem Bezahlen)? Dann keine zweite Zahlung anbieten –
+  // sie würde nicht verbucht und nur eine falsche Erfolgsmeldung zeigen.
+  if (isPremium) {
+    if (viewer.creator && (await getPremiumStatus(viewer)).isPremium) {
+      return (
+        <CheckoutProblem
+          title="Premium läuft bereits."
+          actions={
+            <ButtonLink href="/studio/premium" variant="primary">
+              Zu Premium
+            </ButtonLink>
+          }
+        >
+          Dein Premium-Plan ist schon aktiv. Diese Testzahlung brauchst du nicht mehr – es wurde nichts verbucht.
+        </CheckoutProblem>
+      );
+    }
+  } else {
+    const running = (await listMySubscriptions(viewer)).find(
+      (sub) => sub.active && (sub.id === session.referenceId || (handle !== null && sub.creator.handle === handle)),
+    );
+    if (running) {
+      return (
+        <CheckoutProblem
+          title="Dieses Abo läuft bereits."
+          actions={
+            <>
+              <ButtonLink href={`/c/${running.creator.handle}`} variant="primary">
+                Zu {running.creator.displayName}
+              </ButtonLink>
+              <ButtonLink href="/subscriptions" variant="secondary">
+                Zu deinen Abos
+              </ButtonLink>
+            </>
+          }
+        >
+          Du hast {running.creator.displayName} schon abonniert. Diese Testzahlung brauchst du nicht mehr – es wurde nichts
+          verbucht.
+        </CheckoutProblem>
+      );
+    }
+  }
 
   let creator: CreatorCard | undefined;
-  if (!isPremium) {
-    const handle = creatorHandleFromPath(toSafeLocalPath(session.successUrl, origin));
-    if (handle) {
-      const matches = await listCreatorsForExplore(viewer, { query: handle, limit: 10 });
-      creator = matches.find((c) => c.handle === handle);
-    }
+  if (handle) {
+    const matches = await listCreatorsForExplore(viewer, { query: handle, limit: 10 });
+    creator = matches.find((c) => c.handle === handle);
   }
 
   const amount = formatChf(session.amountRappen);
@@ -170,7 +212,7 @@ function ReceiptLine({ label, children }: { label: string; children: ReactNode }
   );
 }
 
-function CheckoutProblem({ title, children }: { title: string; children: ReactNode }) {
+function CheckoutProblem({ title, children, actions }: { title: string; children: ReactNode; actions?: ReactNode }) {
   return (
     <Container className="py-16 sm:py-24">
       <div className="mx-auto max-w-xl">
@@ -178,12 +220,16 @@ function CheckoutProblem({ title, children }: { title: string; children: ReactNo
         <h1 className="mt-4 font-display text-[36px] leading-[0.95] font-extrabold tracking-[-0.05em] sm:text-[48px]">{title}</h1>
         <p className="mt-5 text-[15px] leading-relaxed text-ink-muted">{children}</p>
         <div className="mt-8 flex flex-wrap gap-3">
-          <ButtonLink href="/explore" variant="primary">
-            Creator entdecken
-          </ButtonLink>
-          <ButtonLink href="/subscriptions" variant="secondary">
-            Zu deinen Abos
-          </ButtonLink>
+          {actions ?? (
+            <>
+              <ButtonLink href="/explore" variant="primary">
+                Creator entdecken
+              </ButtonLink>
+              <ButtonLink href="/subscriptions" variant="secondary">
+                Zu deinen Abos
+              </ButtonLink>
+            </>
+          )}
         </div>
       </div>
     </Container>

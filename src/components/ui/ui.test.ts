@@ -2,7 +2,7 @@ import { createElement as h } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import { Avatar } from "./avatar";
+import { Avatar, initials } from "./avatar";
 import { Badge } from "./badge";
 import { Button, ButtonLink } from "./button";
 import { Card } from "./card";
@@ -202,6 +202,19 @@ describe("Avatar", () => {
 
   it("handles a single-word handle", () => {
     expect(html(h(Avatar, { name: "@zehenspitze" }))).toContain(">Z<");
+  });
+
+  it("never splits emoji into lone surrogates (hydration-safe initials)", () => {
+    expect(initials("🦶 Zehen Fan")).toBe("ZF");
+    expect(initials("🦶🦶‍🔥 Fuss 👣")).toBe("F");
+    expect(initials("👣")).toBe("");
+    expect(initials("Ölzehe 2026")).toBe("Ö2");
+    expect(initials("𝓩ara Muster")).toBe("𝓩M");
+    expect(initials("Nina Zehnder", 1)).toBe("N");
+    const markup = html(h(Avatar, { name: "🦶 Zehen Fan" }));
+    expect(markup).toContain(">ZF<");
+    expect(/[\uD800-\uDFFF]/.test(markup.replace(/aria-label="[^"]*"/, ""))).toBe(false);
+    expect(html(h(Avatar, { name: "👣" }))).toContain(">?<");
   });
 });
 

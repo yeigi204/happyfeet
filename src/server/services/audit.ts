@@ -26,10 +26,17 @@ export type AuditAction =
   | "premium.activated"
   | "premium.canceled";
 
+/**
+ * Aktionen, für die der Aktivitäts-Feed noch keine eigene Beschriftung hat (er zeigt sie mit ihrem
+ * technischen Namen). Sobald `src/components/admin/audit/describe.ts` sie beschriftet, nach
+ * `AuditAction` verschieben.
+ */
+export type UnlabeledAuditAction = "user.deleted";
+
 export interface AuditInput {
   /** null = System */
   actorId: string | null;
-  action: AuditAction;
+  action: AuditAction | UnlabeledAuditAction;
   targetType?: "user" | "creator" | "post" | "report" | "payout" | "settings" | "subscription" | "premium";
   targetId?: string;
   metadata?: Record<string, unknown>;

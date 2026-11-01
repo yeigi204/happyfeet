@@ -6,6 +6,8 @@
  * - Provisionssätze in Basispunkten (1500 = 15 %).
  * - Alle Zeitstempel `timestamptz`.
  * - RLS ist auf allen Tabellen aktiv (Migration 0001), ohne Policies: Zugriff nur serverseitig.
+ * - Nutzer, Posts und Geldflüsse werden nie hart gelöscht (Nachweis/Buchhaltung): Fremdschlüssel auf
+ *   `users`/`posts` sind `restrict`; ein gelöschtes Konto wird anonymisiert (`users.deleted_at`).
  */
 import { sql } from "drizzle-orm";
 import {
@@ -72,6 +74,13 @@ export const users = pgTable(
     status: userStatus("status").notNull().default("active"),
     bannedReason: text("banned_reason"),
     bannedAt: ts("banned_at"),
+    /**
+     * Konto in Clerk gelöscht (`user.deleted`): Die Zeile bleibt als anonymisierter Nachweis bestehen
+     * (Posts, Meldungen, Zahlungen, Auszahlungen), E-Mail und Geburtsdatum sind entfernt.
+     */
+    deletedAt: ts("deleted_at"),
+    /** SHA-256 der E-Mail eines gesperrten, gelöschten Kontos – erkennt eine Neuanmeldung mit derselben Adresse. */
+    deletedEmailHash: text("deleted_email_hash"),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
@@ -79,6 +88,9 @@ export const users = pgTable(
     uniqueIndex("users_clerk_id_key").on(t.clerkId),
     uniqueIndex("users_handle_key").on(t.handle),
     index("users_created_at_idx").on(t.createdAt),
+    index("users_deleted_email_hash_idx")
+      .on(t.deletedEmailHash)
+      .where(sql`${t.deletedEmailHash} is not null`),
   ],
 );
 
@@ -89,7 +101,7 @@ export const creatorProfiles = pgTable(
   {
     userId: uuid("user_id")
       .primaryKey()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "restrict" }),
     bio: text("bio").notNull().default(""),
     bannerKey: text("banner_key"),
     monthlyPriceRappen: integer("monthly_price_rappen").notNull(),
@@ -116,12 +128,17 @@ export const premiumSubscriptions = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     creatorId: uuid("creator_id")
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "restrict" }),
     status: premiumStatus("status").notNull().default("active"),
     priceRappen: integer("price_rappen").notNull(),
     currency: text("currency").notNull().default("CHF"),
     currentPeriodStart: ts("current_period_start").notNull(),
     currentPeriodEnd: ts("current_period_end").notNull(),
+    /**
+     * Beginn der laufenden, ununterbrochenen Premium-Strecke (Aktivierung bzw. Reaktivierung;
+     * Verlängerungen ändern ihn nicht). Verspätete Zahlungs-Events von davor gelten nicht als Premium.
+     */
+    activeSince: ts("active_since").notNull().defaultNow(),
     cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
     provider: text("provider").notNull(),
     providerRef: text("provider_ref"),
@@ -142,10 +159,10 @@ export const subscriptions = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     fanId: uuid("fan_id")
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "restrict" }),
     creatorId: uuid("creator_id")
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "restrict" }),
     status: subscriptionStatus("status").notNull().default("pending"),
     priceRappen: integer("price_rappen").notNull(),
     currency: text("currency").notNull().default("CHF"),
@@ -180,9 +197,9 @@ export const payments = pgTable(
     premiumSubscriptionId: uuid("premium_subscription_id").references(() => premiumSubscriptions.id, {
       onDelete: "set null",
     }),
-    payerId: uuid("payer_id").references(() => users.id, { onDelete: "set null" }),
+    payerId: uuid("payer_id").references(() => users.id, { onDelete: "restrict" }),
     /** Empfänger-Creator; null bei premium_plan */
-    creatorId: uuid("creator_id").references(() => users.id, { onDelete: "set null" }),
+    creatorId: uuid("creator_id").references(() => users.id, { onDelete: "restrict" }),
     grossRappen: integer("gross_rappen").notNull(),
     /** Snapshot des gültigen Satzes (premium_plan: 10000) */
     feeBps: integer("fee_bps").notNull(),
@@ -210,7 +227,7 @@ export const payouts = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     creatorId: uuid("creator_id")
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "restrict" }),
     amountRappen: integer("amount_rappen").notNull(),
     currency: text("currency").notNull().default("CHF"),
     schedule: payoutSchedule("schedule").notNull(),
@@ -240,7 +257,7 @@ export const posts = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     creatorId: uuid("creator_id")
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "restrict" }),
     caption: text("caption").notNull().default(""),
     visibility: postVisibility("visibility").notNull().default("subscribers"),
     moderationStatus: moderationStatus("moderation_status").notNull().default("pending"),
@@ -263,7 +280,7 @@ export const postMedia = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     postId: uuid("post_id")
       .notNull()
-      .references(() => posts.id, { onDelete: "cascade" }),
+      .references(() => posts.id, { onDelete: "restrict" }),
     position: integer("position").notNull(),
     originalKey: text("original_key").notNull(),
     previewKey: text("preview_key").notNull(),
@@ -284,7 +301,7 @@ export const reports = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     postId: uuid("post_id")
       .notNull()
-      .references(() => posts.id, { onDelete: "cascade" }),
+      .references(() => posts.id, { onDelete: "restrict" }),
     reporterId: uuid("reporter_id").references(() => users.id, { onDelete: "set null" }),
     reason: reportReason("reason").notNull(),
     details: text("details").notNull().default(""),

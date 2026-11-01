@@ -1,22 +1,13 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { Wordmark } from "@/components/site/wordmark";
+
 /**
  * Rahmen für Anmeldung, Registrierung, Onboarding und Sperrseite.
  * Links ein redaktionelles Panel (ab lg), rechts der eigentliche Inhalt – hell, warm, viel Luft.
+ * Marke wie auf den öffentlichen Seiten (`Wordmark` mit Nagel).
  */
-
-function Wordmark({ className = "" }: { className?: string }) {
-  return (
-    <Link
-      href="/"
-      className={`inline-flex items-baseline font-display text-xl font-semibold tracking-tight text-ink ${className}`}
-    >
-      happyfeet
-      <span aria-hidden className="ml-0.5 inline-block size-1.5 rounded-full bg-accent" />
-    </Link>
-  );
-}
 
 const FACTS = [
   { label: "Zutritt", value: "ab 18 Jahren" },

@@ -9,11 +9,12 @@ export type EarningsPreviewProps = {
   premiumFeeBps: number;
   /** Hebt die Zeile des aktuellen Plans hervor. */
   plan: CreatorPlan;
-  outOfRange?: boolean;
+  /** Warum der Preis so nicht gespeichert würde (Rahmen, 10-Rappen-Schritte) – live, vor dem Absenden. */
+  warning?: string | null;
 };
 
 /** Live-Rechnung „Fan zahlt → Provision → du erhältst“ pro Abo und Monat. Rein, server- und client-fähig. */
-export function EarningsPreview({ priceRappen, standardFeeBps, premiumFeeBps, plan, outOfRange }: EarningsPreviewProps) {
+export function EarningsPreview({ priceRappen, standardFeeBps, premiumFeeBps, plan, warning }: EarningsPreviewProps) {
   const valid = priceRappen !== null && Number.isSafeInteger(priceRappen) && priceRappen >= 0;
   const feeBps = plan === "premium" ? premiumFeeBps : standardFeeBps;
   const split = valid ? splitPayment(priceRappen, feeBps) : null;
@@ -41,7 +42,11 @@ export function EarningsPreview({ priceRappen, standardFeeBps, premiumFeeBps, pl
         {plan === "premium"
           ? `Ohne Premium (${formatPercentBps(standardFeeBps)}): ${other ? formatChf(other.creatorNetRappen) : dash}`
           : `Mit Premium (${formatPercentBps(premiumFeeBps)}): ${other ? formatChf(other.creatorNetRappen) : dash}`}
-        {outOfRange ? <span className="mt-1 block text-warning">Dieser Preis liegt ausserhalb des erlaubten Rahmens.</span> : null}
+        {warning ? (
+          <span role="status" className="mt-1 block text-warning">
+            {warning}
+          </span>
+        ) : null}
       </p>
     </div>
   );

@@ -21,6 +21,9 @@ type Inputs = Record<SettingsField, string>;
 
 const INITIAL_STATE: SettingsFormState = { status: "idle" };
 
+/** Grenzen wie in `src/server/services/admin/settings.ts` (`premiumPriceRappen`: 100–100’000 Rappen). */
+const PREMIUM_PRICE_HINT = `${formatChf(100)} bis ${formatChf(100_000)}`;
+
 function toInputs(v: SettingsValues): Inputs {
   return {
     standardFeeBps: hundredthsToInput(v.standardFeeBps, "percent"),
@@ -135,7 +138,7 @@ export function SettingsForm({ initial, updatedAt }: SettingsFormProps) {
           </Section>
 
           <Section title="Premium-Plan" description="Was Creator monatlich für Premium zahlen – Badge, Such-Boost, Statistik, wöchentliche Auszahlung.">
-            <Field label="Preis pro Monat" hint="CHF 1.00 bis CHF 1000.00" error={errors.premiumPriceRappen?.[0]}>
+            <Field label="Preis pro Monat" hint={PREMIUM_PRICE_HINT} error={errors.premiumPriceRappen?.[0]}>
               <AdornedInput {...field("premiumPriceRappen")} prefix="CHF" inputMode="decimal" />
             </Field>
           </Section>
@@ -149,7 +152,7 @@ export function SettingsForm({ initial, updatedAt }: SettingsFormProps) {
             </Field>
           </Section>
 
-          <Section title="Vorab-Prüfung" description="So viele Posts neuer Creator prüft ihr, bevor Fans sie sehen. 0 schaltet die Prüfung ab.">
+          <Section title="Vorab-Prüfung" description="So viele Posts neuer Creator prüfst du, bevor Fans sie sehen. 0 schaltet die Prüfung ab.">
             <Field label="Anzahl Posts" hint="0 bis 50" error={errors.premoderationCount?.[0]}>
               <AdornedInput {...field("premoderationCount")} inputMode="numeric" />
             </Field>

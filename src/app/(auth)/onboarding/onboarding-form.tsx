@@ -3,6 +3,7 @@
 import { ArrowRight, Check, LoaderCircle, X } from "lucide-react";
 import { useActionState, useEffect, useState, type ReactNode } from "react";
 
+import { Button } from "@/components/ui/button";
 import { normalizeHandle, validateHandle } from "@/lib/domain/handles";
 
 import { checkHandleAvailability, submitOnboarding, type HandleCheck, type OnboardingFormState } from "./actions";
@@ -42,8 +43,9 @@ function useHandleAvailability(raw: string): Availability {
   return answer.result;
 }
 
+// Fokus: der globale 2px-Akzentrahmen (`:focus-visible` in globals.css) – nicht unterdrücken.
 const inputBase =
-  "block w-full rounded-lg border bg-surface px-3.5 py-3 text-base text-ink placeholder:text-ink-faint transition-colors focus:outline-none focus-visible:border-ink";
+  "block w-full rounded-control border bg-surface px-3.5 py-3 text-base text-ink placeholder:text-ink-faint transition-colors";
 
 function borderFor(error: string | undefined): string {
   return error ? "border-danger" : "border-line hover:border-line-strong";
@@ -124,6 +126,8 @@ function HandleStatus({ availability }: { availability: Availability }) {
 export function OnboardingForm({ maxBirthDate }: { maxBirthDate: string }) {
   const [state, formAction, pending] = useActionState(submitOnboarding, initialState);
   const [handleInput, setHandleInput] = useState(state.values?.handle ?? "");
+  // Server-Fehler zum Handle gilt nur, bis der Handle wieder bearbeitet wird – danach zählt die Live-Prüfung.
+  const [handleEditedFor, setHandleEditedFor] = useState<OnboardingFormState | null>(null);
   const availability = useHandleAvailability(handleInput);
 
   const errors = {
@@ -132,13 +136,13 @@ export function OnboardingForm({ maxBirthDate }: { maxBirthDate: string }) {
     birthDate: state.fieldErrors?.birthDate?.[0],
     confirmAdult: state.fieldErrors?.confirmAdult?.[0],
   };
-  const handleError = errors.handle;
+  const handleError = handleEditedFor === state ? undefined : errors.handle;
 
   return (
     <form action={formAction} noValidate className="space-y-7">
       <FieldShell id="handle" label="Handle" error={handleError} hint={<HandleStatus availability={availability} />}>
         <div
-          className={`flex items-center rounded-lg border bg-surface transition-colors focus-within:border-ink ${borderFor(handleError)}`}
+          className={`flex items-center rounded-control border bg-surface transition-colors has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-accent ${borderFor(handleError)}`}
         >
           <span aria-hidden className="pl-3.5 font-mono text-base text-ink-muted select-none">
             @
@@ -155,10 +159,14 @@ export function OnboardingForm({ maxBirthDate }: { maxBirthDate: string }) {
             maxLength={25}
             placeholder="dein_handle"
             defaultValue={state.values?.handle}
-            onChange={(e) => setHandleInput(e.target.value)}
+            onChange={(e) => {
+              setHandleInput(e.target.value);
+              setHandleEditedFor(state);
+            }}
             aria-invalid={handleError ? true : undefined}
             aria-describedby="handle-message"
-            className="block w-full rounded-lg bg-transparent py-3 pr-3.5 pl-1 font-mono text-base text-ink placeholder:text-ink-faint focus:outline-none"
+            // Fokusrahmen sitzt am umgebenden Feld (inkl. „@“), daher hier keiner.
+            className="block w-full rounded-control bg-transparent py-3 pr-3.5 pl-1 font-mono text-base text-ink placeholder:text-ink-faint focus-visible:outline-none"
           />
         </div>
       </FieldShell>
@@ -208,7 +216,7 @@ export function OnboardingForm({ maxBirthDate }: { maxBirthDate: string }) {
       <div>
         <label
           htmlFor="confirmAdult"
-          className={`flex cursor-pointer items-start gap-3 rounded-lg border bg-surface px-4 py-3.5 transition-colors ${borderFor(errors.confirmAdult)}`}
+          className={`flex cursor-pointer items-start gap-3 rounded-control border bg-surface px-4 py-3.5 transition-colors ${borderFor(errors.confirmAdult)}`}
         >
           <input
             id="confirmAdult"
@@ -241,11 +249,7 @@ export function OnboardingForm({ maxBirthDate }: { maxBirthDate: string }) {
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="group inline-flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-5 py-3.5 text-base font-medium text-accent-ink transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-wait disabled:opacity-70"
-      >
+      <Button type="submit" variant="primary" size="lg" disabled={pending} aria-busy={pending || undefined} className="group w-full">
         {pending ? (
           <>
             <LoaderCircle aria-hidden className="size-4 animate-spin" />
@@ -257,7 +261,7 @@ export function OnboardingForm({ maxBirthDate }: { maxBirthDate: string }) {
             <ArrowRight aria-hidden className="size-4 transition-transform group-hover:translate-x-0.5" />
           </>
         )}
-      </button>
+      </Button>
     </form>
   );
 }

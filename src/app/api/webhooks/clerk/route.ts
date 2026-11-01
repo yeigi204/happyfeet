@@ -6,7 +6,8 @@ import { deleteUserByClerkId, upsertUserFromClerk } from "@/server/services/user
 
 /**
  * Clerk-Webhook (Svix-signiert, Secret `CLERK_WEBHOOK_SIGNING_SECRET`).
- * Synchronisiert `users`: `user.created|updated` → upsert, `user.deleted` → löschen.
+ * Synchronisiert `users`: `user.created|updated` → upsert, `user.deleted` → anonymisieren (Soft-Delete:
+ * Posts, Meldungen, Zahlungen und Auszahlungen bleiben als Nachweis erhalten, siehe `deleteUserByClerkId`).
  * Alle Operationen sind idempotent, Svix-Wiederholungen sind also unkritisch.
  */
 

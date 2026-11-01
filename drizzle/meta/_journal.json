@@ -22,6 +22,20 @@
       "when": 1793501516522,
       "tag": "0002_applied_at_and_payout_uniqueness",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793509780866,
+      "tag": "0003_account_soft_delete",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793510150957,
+      "tag": "0004_premium_active_since",
+      "breakpoints": true
     }
   ]
 }

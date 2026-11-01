@@ -84,6 +84,7 @@ export async function makePremium(
       priceRappen: 1900,
       currentPeriodStart: new Date(now.getTime() - DAY),
       currentPeriodEnd: new Date(now.getTime() + (opts.days ?? 29) * DAY),
+      activeSince: new Date(now.getTime() - DAY),
       provider: "mock",
       providerRef: `prem_${randomUUID()}`,
     })

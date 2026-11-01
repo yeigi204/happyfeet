@@ -150,10 +150,6 @@ export async function getAdminDashboard(admin: Viewer, opts: { now?: Date } = {}
   const t30 = new Date(now.getTime() - WINDOW_DAYS * DAY_MS);
   const t60 = new Date(now.getTime() - 2 * WINDOW_DAYS * DAY_MS);
   const dates = Array.from({ length: SERIES_DAYS }, (_, i) => isoDay(seriesStartMs + i * DAY_MS));
-  const criticalList = sql.join(
-    CRITICAL_REASONS.map((r) => sql`${r}`),
-    sql`, `,
-  );
 
   const [
     settings,
@@ -164,7 +160,7 @@ export async function getAdminDashboard(admin: Viewer, opts: { now?: Date } = {}
     mrrGroups,
     premiumPlanMrr,
     creatorKpis,
-    queueRow,
+    queues,
     topRows,
     activity,
   ] = await Promise.all([
@@ -262,30 +258,20 @@ export async function getAdminDashboard(admin: Viewer, opts: { now?: Date } = {}
     db
       .select({
         approved: sql<number>`count(*) filter (where ${creatorProfiles.verificationStatus} = 'approved'
-          and ${users.status} = 'active')::int`,
-        pending: sql<number>`count(*) filter (where ${creatorProfiles.verificationStatus} = 'pending')::int`,
+          and ${users.status} = 'active' and ${users.deletedAt} is null)::int`,
+        pending: sql<number>`count(*) filter (where ${creatorProfiles.verificationStatus} = 'pending'
+          and ${users.deletedAt} is null)::int`,
         premium: sql<number>`count(*) filter (where ${creatorProfiles.verificationStatus} = 'approved'
-          and ${users.status} = 'active' and ${premiumNow(users.id, now)})::int`,
+          and ${users.status} = 'active' and ${users.deletedAt} is null and ${premiumNow(users.id, now)})::int`,
         fans: sql<number>`(select count(*)::int from ${users} as f
-          where f.onboarded_at is not null and f.status = 'active' and not f.is_admin
+          where f.onboarded_at is not null and f.status = 'active' and f.deleted_at is null and not f.is_admin
           and not exists (select 1 from ${creatorProfiles} as fp where fp.user_id = f.id))`,
       })
       .from(creatorProfiles)
       .innerJoin(users, eq(users.id, creatorProfiles.userId)),
 
     // Warteschlangen
-    query(db, sql`
-      select
-        (select count(*)::int from ${creatorProfiles} where verification_status = 'pending') as verifications,
-        (select min(applied_at) from ${creatorProfiles} where verification_status = 'pending') as verifications_oldest,
-        (select count(*)::int from ${posts} where moderation_status = 'pending' and deleted_at is null) as premoderation,
-        (select min(created_at) from ${posts} where moderation_status = 'pending' and deleted_at is null)
-          as premoderation_oldest,
-        (select count(*)::int from ${reports} where status = 'open') as reports,
-        (select count(*)::int from ${reports} where status = 'open' and reason in (${criticalList})) as reports_critical,
-        (select min(created_at) from ${reports} where status = 'open') as reports_oldest,
-        (select count(*)::int from ${payouts} where status = 'scheduled') as payouts,
-        (select coalesce(sum(amount_rappen), 0)::bigint from ${payouts} where status = 'scheduled') as payouts_total`),
+    loadQueues(db),
 
     // Top-Creator (30 Tage)
     query(db, sql`
@@ -308,6 +294,7 @@ export async function getAdminDashboard(admin: Viewer, opts: { now?: Date } = {}
         group by creator_id
       ) paid on paid.creator_id = ${users.id}
       where ${creatorProfiles.verificationStatus} = 'approved' and ${users.status} = 'active'
+        and ${users.deletedAt} is null
       order by gross_30d desc, active_subscribers desc, ${users.createdAt} asc, ${users.id} asc
       limit ${TOP_CREATORS}`),
 
@@ -350,7 +337,6 @@ export async function getAdminDashboard(admin: Viewer, opts: { now?: Date } = {}
   const revenue30d = num(pay.revenue_30d);
   const activeNow = num(subs.active_now);
 
-  const queue = queueRow[0] ?? {};
 
   return {
     kpis: {
@@ -375,16 +361,7 @@ export async function getAdminDashboard(admin: Viewer, opts: { now?: Date } = {}
       premiumFeesRappen: num(pay.premium_fees),
       premiumPlansRappen: num(pay.premium_plans),
     },
-    queues: {
-      verifications: { count: num(queue.verifications), oldestAt: toDate(queue.verifications_oldest) },
-      premoderation: { count: num(queue.premoderation), oldestAt: toDate(queue.premoderation_oldest) },
-      reports: {
-        count: num(queue.reports),
-        criticalCount: num(queue.reports_critical),
-        oldestAt: toDate(queue.reports_oldest),
-      },
-      payoutsScheduled: { count: num(queue.payouts), totalRappen: num(queue.payouts_total) },
-    },
+    queues,
     topCreators: topRows.map((row) => {
       const handle = typeof row.handle === "string" ? row.handle : "";
       return {
@@ -398,6 +375,46 @@ export async function getAdminDashboard(admin: Viewer, opts: { now?: Date } = {}
       };
     }),
     activity,
+  };
+}
+
+/**
+ * Nur die Warteschlangen (Verifizierungen, Vorab-Prüfung, offene/kritische Meldungen, geplante
+ * Auszahlungen) – für Navigation und Layout, ohne die teuren Kennzahlen des Dashboards.
+ */
+export async function getAdminQueueCounts(admin: Viewer): Promise<AdminDashboard["queues"]> {
+  assertAdmin(admin);
+  return loadQueues(getDb());
+}
+
+async function loadQueues(db: Db): Promise<AdminDashboard["queues"]> {
+  const criticalList = sql.join(
+    CRITICAL_REASONS.map((r) => sql`${r}`),
+    sql`, `,
+  );
+  const [queue = {}] = await query(db, sql`
+    select
+      (select count(*)::int from ${creatorProfiles} cp join ${users} u on u.id = cp.user_id
+        where cp.verification_status = 'pending' and u.deleted_at is null) as verifications,
+      (select min(cp.applied_at) from ${creatorProfiles} cp join ${users} u on u.id = cp.user_id
+        where cp.verification_status = 'pending' and u.deleted_at is null) as verifications_oldest,
+      (select count(*)::int from ${posts} where moderation_status = 'pending' and deleted_at is null) as premoderation,
+      (select min(created_at) from ${posts} where moderation_status = 'pending' and deleted_at is null)
+        as premoderation_oldest,
+      (select count(*)::int from ${reports} where status = 'open') as reports,
+      (select count(*)::int from ${reports} where status = 'open' and reason in (${criticalList})) as reports_critical,
+      (select min(created_at) from ${reports} where status = 'open') as reports_oldest,
+      (select count(*)::int from ${payouts} where status = 'scheduled') as payouts,
+      (select coalesce(sum(amount_rappen), 0)::bigint from ${payouts} where status = 'scheduled') as payouts_total`);
+  return {
+    verifications: { count: num(queue.verifications), oldestAt: toDate(queue.verifications_oldest) },
+    premoderation: { count: num(queue.premoderation), oldestAt: toDate(queue.premoderation_oldest) },
+    reports: {
+      count: num(queue.reports),
+      criticalCount: num(queue.reports_critical),
+      oldestAt: toDate(queue.reports_oldest),
+    },
+    payoutsScheduled: { count: num(queue.payouts), totalRappen: num(queue.payouts_total) },
   };
 }
 

@@ -105,10 +105,12 @@ describe("upsertUserFromClerk", () => {
 });
 
 describe("deleteUserByClerkId", () => {
-  it("löscht den Nutzer samt Creator-Profil", async () => {
-    const { user } = await createCreator(t.db, { user: { clerkId: "user_del" } });
-    await deleteUserByClerkId("user_del");
-    expect(await rowFor(user.id)).toBeUndefined();
+  it("anonymisiert den Nutzer, statt ihn samt Creator-Profil zu löschen (Details: account-deletion.test.ts)", async () => {
+    const { user } = await createCreator(t.db, { user: { clerkId: "user_del", email: "del@example.ch" } });
+    await deleteUserByClerkId("user_del", { now: NOW });
+    const row = await rowFor(user.id);
+    expect(row).toMatchObject({ email: null, birthDate: null, deletedAt: NOW });
+    expect(await findViewerByClerkId("user_del")).toBeNull();
   });
 
   it("tut nichts bei unbekannter Clerk-ID", async () => {

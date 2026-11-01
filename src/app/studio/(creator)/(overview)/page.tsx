@@ -7,6 +7,7 @@ import { AreaChart } from "@/components/charts/area-chart";
 import { BarChart } from "@/components/charts/bar-chart";
 import type { DatumRow } from "@/components/charts/types";
 import { Container } from "@/components/site/container";
+import { premoderationCopy } from "@/components/site/text";
 import { PremiumTeaser } from "@/components/studio/premium-teaser";
 import { StatCell, StatGrid } from "@/components/studio/stat-grid";
 import { ButtonLink } from "@/components/ui/button";
@@ -79,7 +80,7 @@ export default async function StudioOverviewPage() {
         </StatCell>
         <StatCell>
           <Stat
-            label="Nächste Auszahlung"
+            label="Nächster Stichtag"
             value={formatDate(basic.balance.nextPayoutDate)}
             hint={
               <Link href="/studio/payouts" className="rounded-control underline-offset-4 hover:text-ink hover:underline">
@@ -140,7 +141,7 @@ function headline(viewer: CreatorViewer, stats: StudioStats): string {
   if (viewer.creator.verificationStatus !== "approved") return `${greeting}Hier siehst du, wie es mit deinem Profil weitergeht.`;
   const subs = stats.basic.activeSubscribers;
   const subsText = subs === 1 ? "1 Fan hat" : `${formatNumber(subs)} Fans haben`;
-  return `${greeting}${subsText} gerade Zugang zu deinen Posts. Die nächste Auszahlung ist am ${formatDate(stats.basic.balance.nextPayoutDate)}.`;
+  return `${greeting}${subsText} gerade Zugang zu deinen Posts. Nächster Stichtag für dein Guthaben ist der ${formatDate(stats.basic.balance.nextPayoutDate)}.`;
 }
 
 function sum(values: number[]): number {
@@ -233,7 +234,11 @@ function NextSteps({ rejected, premoderationCount }: { rejected: boolean; premod
     },
     {
       title: "Erste Posts hochladen",
-      text: `Bis zu 10 Bilder pro Post. Deine ersten ${premoderationCount} Posts schauen wir uns vor der Veröffentlichung an.`,
+      text: `Bis zu 10 Bilder pro Post. ${premoderationCopy(premoderationCount, {
+        off: "Nach der Freigabe gehen deine Posts sofort online.",
+        one: "Deinen ersten Post schauen wir uns vor der Veröffentlichung an.",
+        many: (n) => `Deine ersten ${n} Posts schauen wir uns vor der Veröffentlichung an.`,
+      })}`,
       state: "todo",
     },
   ];

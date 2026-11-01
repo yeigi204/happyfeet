@@ -1,6 +1,7 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Clock } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 import { Container } from "@/components/site/container";
 import { StatCell, StatGrid } from "@/components/studio/stat-grid";
@@ -27,8 +28,9 @@ const SCHEDULE: Record<PayoutSchedule, { label: string; adjective: string }> = {
   monthly: { label: "Monatlich", adjective: "monatlich" },
 };
 
-const STATUS: Record<Payout["status"], { label: string; tone: "warning" | "success" | "danger" }> = {
-  scheduled: { label: "Geplant", tone: "warning" },
+// „Geplant“ ist der Normalfall, kein Warnzustand – neutral mit Uhr statt Warndreieck.
+const STATUS: Record<Payout["status"], { label: string; tone: "neutral" | "success" | "danger"; icon?: ReactNode }> = {
+  scheduled: { label: "Geplant", tone: "neutral", icon: <Clock aria-hidden className="text-ink-muted" /> },
   paid: { label: "Bezahlt", tone: "success" },
   failed: { label: "Fehlgeschlagen", tone: "danger" },
 };
@@ -57,7 +59,7 @@ export default async function StudioPayoutsPage() {
       <PageHeader
         eyebrow="Studio · Auszahlungen"
         title="Auszahlungen"
-        description={`Von jedem Abo gehen ${share} an dich. ${SCHEDULE[balance.schedule].label} fassen wir dein Guthaben zu einer Auszahlung zusammen – das nächste Mal am ${next}.`}
+        description={`Von jedem Abo gehen ${share} an dich. ${SCHEDULE[balance.schedule].label} fassen wir dein Guthaben zu einer Auszahlung zusammen – nächster Stichtag ist der ${next}.`}
       />
 
       <StatGrid label="Guthaben" className="mt-8 grid-cols-1 min-[440px]:grid-cols-2 lg:grid-cols-4">
@@ -79,7 +81,8 @@ export default async function StudioPayoutsPage() {
           <Stat label="Ausbezahlt" value={formatChf(balance.paidRappen)} hint="seit Beginn" />
         </StatCell>
         <StatCell>
-          <Stat label="Nächste Auszahlung" value={next} hint={`${days === 1 ? "morgen" : `in ${days} Tagen`} · ${SCHEDULE[balance.schedule].adjective}`} />
+          {/* Stichtag = nächste Abrechnung des verfügbaren Guthabens; bereits geplante Beträge sind schon unterwegs. */}
+          <Stat label="Nächster Stichtag" value={next} hint={`${days === 1 ? "morgen" : `in ${days} Tagen`} · ${SCHEDULE[balance.schedule].adjective}`} />
         </StatCell>
       </StatGrid>
 
@@ -118,7 +121,9 @@ export default async function StudioPayoutsPage() {
                       <TD className="font-mono text-[12.5px] text-ink-muted tabular-nums">{periodLabel(payout)}</TD>
                       <TD className="text-ink-muted max-sm:hidden">{SCHEDULE[payout.schedule].label}</TD>
                       <TD>
-                        <Badge tone={STATUS[payout.status].tone}>{STATUS[payout.status].label}</Badge>
+                        <Badge tone={STATUS[payout.status].tone} icon={STATUS[payout.status].icon}>
+                          {STATUS[payout.status].label}
+                        </Badge>
                       </TD>
                       <TD numeric className="font-medium">
                         {formatChf(payout.amountRappen)}

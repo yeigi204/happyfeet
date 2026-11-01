@@ -1,17 +1,12 @@
 import Link from "next/link";
 
+import { legalLinks } from "./contact";
 import { Container } from "./container";
 import { Wordmark } from "./wordmark";
 
-const LEGAL = [
-  { href: "#", label: "Impressum" },
-  { href: "#", label: "AGB" },
-  { href: "#", label: "Datenschutz" },
-];
-
 const linkClass = "rounded-control text-ink-muted underline-offset-4 transition-colors hover:text-ink hover:underline";
 
-/** Fusszeile der öffentlichen Seiten. Rechtstexte folgen vor dem Launch (Platzhalter-Links). */
+/** Fusszeile der öffentlichen Seiten. Rechtstexte erscheinen, sobald ihre URLs konfiguriert sind (`NEXT_PUBLIC_LEGAL_*`). */
 export function SiteFooter() {
   return (
     <footer className="mt-24 border-t border-line bg-surface">
@@ -30,7 +25,7 @@ export function SiteFooter() {
           <Link href="/studio/become-creator" className={linkClass}>
             Creator werden
           </Link>
-          {LEGAL.map((item) => (
+          {legalLinks().map((item) => (
             <a key={item.label} href={item.href} className={linkClass}>
               {item.label}
             </a>

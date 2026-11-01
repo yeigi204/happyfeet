@@ -1,6 +1,8 @@
 import "server-only";
 
-import { and, eq, inArray, isNull, sql } from "drizzle-orm";
+import { createHash } from "node:crypto";
+
+import { and, desc, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { ageInYears, isAdult } from "@/lib/domain/age";
@@ -11,8 +13,11 @@ import { assertActive } from "@/server/auth/guards";
 import { getDb } from "@/server/db/client";
 import { creatorProfiles, premiumSubscriptions, users, type User } from "@/server/db/schema";
 import { ConflictError, ValidationError, zodFieldErrors } from "@/server/errors";
+import { cancelAtProviders, stopBillingForUser } from "@/server/services/account-billing";
+import { writeAudit } from "@/server/services/audit";
 
 const OLDEST_PLAUSIBLE_AGE_YEARS = 120;
+const REREGISTRATION_NOTE = "Neuanmeldung nach Sperre";
 
 /**
  * Steuerzeichen (NUL bricht das DB-Update, Zeilenumbrüche das Layout) und Bidi-Steuerzeichen
@@ -29,36 +34,148 @@ export class HandleTakenError extends ConflictError {
 
 // ─── Clerk-Synchronisation ────────────────────────────────────────────────────
 
+/** SHA-256 der normalisierten E-Mail (für die Wiedererkennung gesperrter, gelöschter Konten). */
+function emailHash(email: string): string {
+  return createHash("sha256").update(email.trim().toLowerCase()).digest("hex");
+}
+
 /**
  * Legt den Nutzer zur Clerk-ID an oder aktualisiert seine E-Mail (idempotent, race-sicher).
  * Profil, Onboarding, Admin-Recht und Sperre werden dabei nie angefasst; eine fehlende E-Mail
- * (`null`) überschreibt keine bekannte.
+ * (`null`) überschreibt keine bekannte. Ein gelöschtes Konto bleibt anonym (verspätete
+ * `user.updated`-Events setzen keine E-Mail zurück).
+ * Taucht dabei (neu) eine E-Mail auf, die zu einem gesperrten, gelöschten Konto gehörte, startet das
+ * Konto gesperrt – eine Sperre lässt sich nicht durch Löschen und Neuanmelden umgehen.
  * `imageUrl` wird bewusst nicht übernommen: Avatare laufen über den eigenen Storage (`avatar_key`).
  */
-export async function upsertUserFromClerk(data: {
-  clerkId: string;
-  email: string | null;
-  imageUrl?: string | null;
-}): Promise<User> {
-  const [row] = await getDb()
+export async function upsertUserFromClerk(
+  data: { clerkId: string; email: string | null; imageUrl?: string | null },
+  opts: { now?: Date } = {},
+): Promise<User> {
+  const now = opts.now ?? new Date();
+  const db = getDb();
+  const [before] = await db
+    .select({ email: users.email })
+    .from(users)
+    .where(eq(users.clerkId, data.clerkId))
+    .limit(1);
+
+  const [row] = await db
     .insert(users)
     .values({ clerkId: data.clerkId, email: data.email })
     .onConflictDoUpdate({
       target: users.clerkId,
-      set: { email: sql`coalesce(excluded.email, ${users.email})`, updatedAt: new Date() },
+      set: {
+        email: sql`case when ${users.deletedAt} is null then coalesce(excluded.email, ${users.email}) end`,
+        updatedAt: now,
+      },
     })
     .returning();
+
+  // Nur bei neuer Zeile oder geänderter E-Mail prüfen – sonst würde eine vom Admin aufgehobene
+  // Sperre beim nächsten `user.updated` wieder gesetzt.
+  const emailIsNew = !before || before.email?.toLowerCase() !== row.email?.toLowerCase();
+  if (emailIsNew && row.email && row.status === "active" && row.deletedAt === null) {
+    return (await carryOverBan(row, row.email, now)) ?? row;
+  }
   return row;
 }
 
-/** Entfernt den Nutzer (Clerk `user.deleted`). Abhängige Daten folgen den FK-Regeln des Schemas. */
-export async function deleteUserByClerkId(clerkId: string): Promise<void> {
-  await getDb().delete(users).where(eq(users.clerkId, clerkId));
+/** Sperrt `user`, wenn ein gesperrtes, gelöschtes Konto dieselbe E-Mail hatte. `null`, wenn nicht. */
+async function carryOverBan(user: User, email: string, now: Date): Promise<User | null> {
+  const db = getDb();
+  const [previous] = await db
+    .select({ id: users.id, reason: users.bannedReason })
+    .from(users)
+    .where(
+      and(eq(users.deletedEmailHash, emailHash(email)), eq(users.status, "banned"), isNotNull(users.deletedAt)),
+    )
+    .orderBy(desc(users.bannedAt))
+    .limit(1);
+  if (!previous) return null;
+
+  const reason = previous.reason ? `${previous.reason} (${REREGISTRATION_NOTE})` : REREGISTRATION_NOTE;
+  return db.transaction(async (tx) => {
+    const [banned] = await tx
+      .update(users)
+      .set({ status: "banned", bannedReason: reason, bannedAt: now, updatedAt: now })
+      .where(and(eq(users.id, user.id), eq(users.status, "active")))
+      .returning();
+    if (!banned) return null;
+    await writeAudit(
+      {
+        actorId: null,
+        action: "user.banned",
+        targetType: "user",
+        targetId: user.id,
+        metadata: { reason, handle: banned.handle, source: "reregistration", previousUserId: previous.id },
+      },
+      tx,
+    );
+    return banned;
+  });
+}
+
+/**
+ * Clerk `user.deleted`: anonymisiert das Konto statt es zu löschen. Posts, Medien, Meldungen,
+ * Zahlungen und Auszahlungen bleiben als Nachweis bzw. Buchhaltung dem Nutzer zugeordnet; E-Mail
+ * und Geburtsdatum werden entfernt (von der E-Mail bleibt nur ein Hash, damit eine Sperre eine
+ * Neuanmeldung überlebt), Handle und Anzeigename bleiben als öffentliches Pseudonym reserviert.
+ * Laufende Abos (als Fan und Creator) und Premium werden zum Periodenende gekündigt. Ein gelöschter
+ * Creator ist öffentlich unsichtbar; ein gelöschter Nutzer bekommt keinen Viewer mehr.
+ * Idempotent (Svix-Wiederholungen); eine unbekannte Clerk-ID ist kein Fehler.
+ */
+export async function deleteUserByClerkId(clerkId: string, opts: { now?: Date } = {}): Promise<void> {
+  const now = opts.now ?? new Date();
+  const toCancelAtProvider = await getDb().transaction(async (tx) => {
+    const [target] = await tx
+      .select({
+        id: users.id,
+        email: users.email,
+        status: users.status,
+        handle: users.handle,
+        deletedAt: users.deletedAt,
+      })
+      .from(users)
+      .where(eq(users.clerkId, clerkId))
+      .limit(1)
+      .for("update");
+    if (!target || target.deletedAt) return [];
+
+    await tx
+      .update(users)
+      .set({
+        email: null,
+        birthDate: null,
+        deletedAt: now,
+        deletedEmailHash: target.email ? emailHash(target.email) : null,
+        updatedAt: now,
+      })
+      .where(eq(users.id, target.id));
+    const stopped = await stopBillingForUser(tx, target.id, now);
+    await writeAudit(
+      {
+        actorId: null,
+        action: "user.deleted",
+        targetType: "user",
+        targetId: target.id,
+        metadata: {
+          handle: target.handle,
+          wasBanned: target.status === "banned",
+          canceledSubscriptions: stopped.canceledSubscriptions,
+          canceledPremium: stopped.canceledPremium,
+        },
+      },
+      tx,
+    );
+    return stopped.refs;
+  });
+  await cancelAtProviders(toCancelAtProvider, "users");
 }
 
 // ─── Viewer ───────────────────────────────────────────────────────────────────
 
-/** Baut den Viewer zur Clerk-ID aus der DB (ohne Clerk-Aufruf). `null`, wenn der Nutzer unbekannt ist. */
+/** Baut den Viewer zur Clerk-ID aus der DB (ohne Clerk-Aufruf). `null`, wenn der Nutzer unbekannt oder gelöscht ist. */
 export async function findViewerByClerkId(clerkId: string, opts: { now?: Date } = {}): Promise<Viewer | null> {
   const now = opts.now ?? new Date();
   const db = getDb();
@@ -69,7 +186,8 @@ export async function findViewerByClerkId(clerkId: string, opts: { now?: Date } 
     .leftJoin(creatorProfiles, eq(creatorProfiles.userId, users.id))
     .where(eq(users.clerkId, clerkId))
     .limit(1);
-  if (!row) return null;
+  // Gelöschte Konten können nicht mehr handeln (Clerk beendet ihre Sessions ohnehin).
+  if (!row || row.user.deletedAt) return null;
   const { user, profile } = row;
 
   let isPremium = false;

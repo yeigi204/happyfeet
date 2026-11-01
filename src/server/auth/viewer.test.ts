@@ -13,6 +13,19 @@ const clerk = vi.hoisted(() => ({
 
 vi.mock("@clerk/nextjs/server", () => clerk);
 
+/** Request-Header, wie der Proxy sie setzt; `null` = kein Request-Kontext (headers() wirft). */
+const request = vi.hoisted(() => ({ headers: null as Headers | null }));
+
+vi.mock("next/headers", () => ({
+  headers: vi.fn(async () => {
+    if (!request.headers) throw new Error("kein Request-Kontext");
+    return request.headers;
+  }),
+  cookies: vi.fn(async () => {
+    throw new Error("kein Request-Kontext");
+  }),
+}));
+
 vi.mock("next/navigation", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/navigation")>()),
   redirect: vi.fn((url: string) => {
@@ -33,6 +46,7 @@ function signedInAs(clerkId: string | null) {
 }
 
 beforeEach(() => {
+  request.headers = null;
   vi.stubEnv("DEV_IMPERSONATE_CLERK_ID", "");
   clerk.auth.mockReset();
   clerk.currentUser.mockReset();
@@ -116,6 +130,25 @@ describe("require*", () => {
   it("requireViewer leitet Abgemeldete zu /sign-in", async () => {
     signedInAs(null);
     await expect(requireViewer()).rejects.toThrow("REDIRECT:/sign-in");
+  });
+
+  it("requireViewer gibt den aktuellen Pfad (vom Proxy) als redirect_url mit", async () => {
+    signedInAs(null);
+    request.headers = new Headers({ "x-hf-return-path": "/studio/become-creator" });
+    await expect(requireViewer()).rejects.toThrow("REDIRECT:/sign-in?redirect_url=%2Fstudio%2Fbecome-creator");
+  });
+
+  it("requireViewer übernimmt keinen fremden Rücksprung (Open Redirect)", async () => {
+    signedInAs(null);
+    request.headers = new Headers({ "x-hf-return-path": "//evil.example/x" });
+    await expect(requireViewer()).rejects.toThrow(/^REDIRECT:\/sign-in$/);
+  });
+
+  it("requireOnboardedViewer gibt den Rücksprung auch ans Onboarding weiter", async () => {
+    await createUser(t.db, { clerkId: "user_new2", handle: null, onboardedAt: null });
+    signedInAs("user_new2");
+    request.headers = new Headers({ "x-hf-return-path": "/c/zehenspiel" });
+    await expect(requireOnboardedViewer()).rejects.toThrow("REDIRECT:/onboarding?redirect_url=%2Fc%2Fzehenspiel");
   });
 
   it("requireOnboardedViewer leitet gesperrte Nutzer zu /banned", async () => {

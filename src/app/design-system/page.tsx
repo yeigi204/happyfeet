@@ -252,7 +252,7 @@ export default function DesignSystemPage() {
           <TypeSpecimen />
         </Section>
 
-        <Section id="bedienelemente" n={3} title="Bedienelemente" lead="Ein Akzent pro Ansicht. Fokus ist immer sichtbar: 2px Nagellack-Rot.">
+        <Section id="bedienelemente" n={3} title="Bedienelemente" lead="Ein Akzent pro Ansicht. Fokus ist immer sichtbar: 2px Nagellack-Rot – Formularfelder im Admin in Tinte, damit Fokus nie wie ein Fehler aussieht.">
           <Controls />
         </Section>
 
@@ -473,6 +473,8 @@ const SWATCHES: { group: string; tokens: [name: string, light: string, admin: st
     tokens: [
       ["accent", "#d7352a", "#ec5545"],
       ["accent-soft", "#f8ddd5", "#3a1915"],
+      ["accent-strong", "#bf2f25", "#ec5545"],
+      ["focus", "#d7352a", "#f3ede6"],
       ["success", "#1f7a4a", "#45b884"],
       ["warning", "#9a5b00", "#e3a23b"],
       ["danger", "#b42318", "#ff6a5c"],
@@ -483,7 +485,7 @@ const SWATCHES: { group: string; tokens: [name: string, light: string, admin: st
     group: "Serien · validiert",
     tokens: [
       ["series-1", "#d7352a", "#ec5545"],
-      ["series-2", "#00886d", "#00ab8e"],
+      ["series-2", "#007f66", "#00ab8e"],
       ["series-3", "#bb7400", "#c38300"],
       ["series-4", "#734dbe", "#8e71d6"],
     ],

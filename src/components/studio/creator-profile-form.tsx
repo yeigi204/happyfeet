@@ -8,6 +8,7 @@ import { cn } from "@/components/ui/cn";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { validateMonthlyPrice } from "@/lib/domain/pricing";
 import type { CreatorPlan } from "@/lib/domain/types";
 import { formatChf, formatNumber } from "@/lib/format";
 
@@ -50,7 +51,9 @@ export function CreatorProfileForm({ action, defaults, rules, plan, submitLabel,
   const errorFor = (field: ProfileField) => (state.status === "error" && !editedFields.includes(field) ? state.fieldErrors[field] : undefined);
 
   const priceRappen = parseChfInput(price);
-  const outOfRange = priceRappen !== null && (priceRappen < rules.minPriceRappen || priceRappen > rules.maxPriceRappen);
+  // Gleiche Regel wie der Service (Rahmen und 10-Rappen-Schritte) – Hinweis schon beim Tippen, nicht erst nach dem Absenden.
+  const priceCheck = priceRappen !== null ? validateMonthlyPrice(priceRappen, rules) : null;
+  const priceWarning = priceCheck && !priceCheck.ok ? priceCheck.reason : null;
   const saved = state.status === "saved" && state.values.bio === bio && state.values.price === price;
   const formError = state.status === "error" && Object.keys(state.fieldErrors).length === 0 ? state.error : null;
   const bioNearLimit = bio.length > rules.bioMaxLength * 0.9;
@@ -108,7 +111,7 @@ export function CreatorProfileForm({ action, defaults, rules, plan, submitLabel,
           standardFeeBps={rules.standardFeeBps}
           premiumFeeBps={rules.premiumFeeBps}
           plan={plan}
-          outOfRange={outOfRange}
+          warning={priceWarning}
         />
       </div>
 

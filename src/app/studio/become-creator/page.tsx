@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { Container } from "@/components/site/container";
+import { premoderationCopy } from "@/components/site/text";
 import { CreatorProfileForm } from "@/components/studio/creator-profile-form";
 import { rappenToChfInput } from "@/components/studio/price";
 import { splitPayment } from "@/lib/domain/fees";
@@ -44,7 +45,11 @@ export default async function BecomeCreatorPage() {
     {
       icon: Images,
       title: "Du postest, Fans abonnieren",
-      text: `Bis zu 10 Bilder pro Post, öffentlich oder nur für Abonnenten. Deine ersten ${settings.premoderationCount} Posts prüfen wir vorab, danach gehen sie sofort online.`,
+      text: `Bis zu 10 Bilder pro Post, öffentlich oder nur für Abonnenten. ${premoderationCopy(settings.premoderationCount, {
+        off: "Nach der Freigabe gehen deine Posts sofort online.",
+        one: "Deinen ersten Post prüfen wir vorab, danach gehen deine Posts sofort online.",
+        many: (n) => `Deine ersten ${n} Posts prüfen wir vorab, danach gehen sie sofort online.`,
+      })}`,
     },
     {
       icon: Percent,

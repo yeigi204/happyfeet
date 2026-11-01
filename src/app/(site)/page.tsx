@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { Meter } from "@/components/charts/meter";
 import { Container } from "@/components/site/container";
 import { CreatorCard } from "@/components/site/creator-card";
+import { premoderationCopy } from "@/components/site/text";
 import { ToeGallery } from "@/components/site/toe-gallery";
 import { ButtonLink } from "@/components/ui/button";
 import { splitPayment } from "@/lib/domain/fees";
@@ -157,7 +158,11 @@ export default async function LandingPage() {
                 },
                 {
                   title: "Posten",
-                  text: `Ein bis zehn Bilder pro Post, öffentlich oder nur für Abonnenten. Die ersten ${settings.premoderationCount} Posts schauen wir uns vorab an.`,
+                  text: `Ein bis zehn Bilder pro Post, öffentlich oder nur für Abonnenten. ${premoderationCopy(settings.premoderationCount, {
+                    off: "Nach der Freigabe gehen deine Posts sofort online.",
+                    one: "Den ersten Post schauen wir uns vorab an.",
+                    many: (n) => `Die ersten ${n} Posts schauen wir uns vorab an.`,
+                  })}`,
                 },
                 {
                   title: "Verdienen",
@@ -254,9 +259,9 @@ export default async function LandingPage() {
                 <ArrowRight aria-hidden className="size-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
             </div>
-            <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {creators.map((creator) => (
-                <li key={creator.userId} className="flex">
+                <li key={creator.userId} className="flex min-w-0">
                   <CreatorCard creator={creator} className="w-full" />
                 </li>
               ))}
@@ -334,7 +339,7 @@ function Side({
 }) {
   return (
     <div className="flex flex-col bg-canvas p-6 sm:p-10">
-      <p className="flex items-center gap-2 font-mono text-[11px] tracking-[0.12em] text-accent uppercase">
+      <p className="flex items-center gap-2 font-mono text-[11px] tracking-[0.12em] text-accent-strong uppercase">
         <span aria-hidden className="size-1.5 rounded-full bg-accent" />
         {kicker}
       </p>

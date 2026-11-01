@@ -5,7 +5,8 @@ import { addBillingMonth } from "@/lib/domain/subscriptions";
 import { auditLog, payments, platformSettings, subscriptions, users } from "@/server/db/schema";
 import { ForbiddenError, NotFoundError, ValidationError } from "@/server/errors";
 import { setPaymentProviderForTesting, type PaymentEvent } from "@/server/payments";
-import { completeMockCheckout, handlePaymentEvent } from "@/server/services/payment-events";
+import { completeMockCheckout, getCheckoutRecipient, handlePaymentEvent } from "@/server/services/payment-events";
+import { startPremiumCheckout } from "@/server/services/premium";
 import { startSubscriptionCheckout } from "@/server/services/subscriptions";
 
 import { setupTestDb } from "../helpers/db";
@@ -284,5 +285,62 @@ describe("completeMockCheckout", () => {
       setPaymentProviderForTesting(mock.provider);
     }
     expect(await t.db.select().from(payments)).toHaveLength(0);
+  });
+});
+
+describe("getCheckoutRecipient", () => {
+  it("Fan-Abo: Creator mit Handle, Name und Betrag aus der Session – und ob das Abo schon läuft", async () => {
+    const { fan, creatorId } = await setup({ price: 1290 });
+    await t.db.update(users).set({ displayName: "Mia" }).where(eq(users.id, creatorId));
+    const sessionId = await checkout(fan, creatorId);
+
+    const recipient = await getCheckoutRecipient(fan, sessionId, { now: NOW });
+    expect(recipient).toMatchObject({
+      kind: "fan_subscription",
+      amountRappen: 1290,
+      currency: "CHF",
+      alreadyActive: false,
+      creator: { userId: creatorId, handle: "mia_soles", displayName: "Mia", isPremium: false, avatarUrl: null },
+    });
+    expect(recipient.expiresAt).toBeInstanceOf(Date);
+    expect(recipient.description).toContain("mia_soles");
+
+    await completeMockCheckout(fan, sessionId, { now: NOW });
+    expect((await getCheckoutRecipient(fan, sessionId, { now: NOW })).alreadyActive).toBe(true);
+  });
+
+  it("Premium: Empfänger ist die Plattform (creator = null)", async () => {
+    const { user } = await createCreator(t.db, { user: { handle: "nora_toes" } });
+    const creator = await viewerFor(t.db, user.id, NOW);
+    const { redirectUrl } = await startPremiumCheckout(creator, { now: NOW });
+    const sessionId = sessionIdFrom(redirectUrl);
+
+    expect(await getCheckoutRecipient(creator, sessionId, { now: NOW })).toMatchObject({
+      kind: "premium_plan",
+      amountRappen: 1900,
+      creator: null,
+      alreadyActive: false,
+    });
+    await completeMockCheckout(creator, sessionId, { now: NOW });
+    expect((await getCheckoutRecipient(await viewerFor(t.db, user.id, NOW), sessionId, { now: NOW })).alreadyActive).toBe(true);
+  });
+
+  it("fremde, manipulierte oder abgelaufene Sessions werden wie beim Bezahlen abgewiesen", async () => {
+    const { fan, creatorId } = await setup();
+    const sessionId = await checkout(fan, creatorId);
+    const other = await viewerFor(t.db, (await createUser(t.db)).id, NOW);
+
+    await expect(getCheckoutRecipient(other, sessionId, { now: NOW })).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(getCheckoutRecipient(fan, `${sessionId}x`, { now: NOW })).rejects.toBeInstanceOf(ValidationError);
+    await expect(
+      getCheckoutRecipient(fan, sessionId, { now: new Date(NOW.getTime() + 2 * 60 * 60 * 1000) }),
+    ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it("ein inzwischen gesperrter Creator wird nicht mehr als Empfänger gezeigt", async () => {
+    const { fan, creatorId } = await setup();
+    const sessionId = await checkout(fan, creatorId);
+    await t.db.update(users).set({ status: "banned" }).where(eq(users.id, creatorId));
+    expect((await getCheckoutRecipient(fan, sessionId, { now: NOW })).creator).toBeNull();
   });
 });

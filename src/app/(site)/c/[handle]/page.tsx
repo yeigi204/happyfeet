@@ -118,7 +118,7 @@ export default async function CreatorProfilePage({ params, searchParams }: PageP
 
       <Banner url={creator.bannerUrl} name={creator.displayName} />
 
-      <div className="grid gap-x-12 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid grid-cols-1 gap-x-12 lg:grid-cols-[minmax(0,1fr)_340px]">
         {/* Profilkopf */}
         <section aria-labelledby="creator-name" className="lg:col-start-1">
           <ProfileAvatar name={creator.displayName} src={creator.avatarUrl} className="relative -mt-12 -ml-1 sm:-mt-16" />
@@ -135,7 +135,7 @@ export default async function CreatorProfilePage({ params, searchParams }: PageP
               {creator.isPremium ? <PremiumBadge /> : null}
             </div>
             {creator.bio ? (
-              <p className="mt-5 max-w-[60ch] text-base leading-relaxed whitespace-pre-line wrap-break-word text-ink-muted">{creator.bio}</p>
+              <p className="mt-5 max-w-[60ch] text-base leading-relaxed whitespace-pre-line wrap-anywhere text-ink-muted">{creator.bio}</p>
             ) : null}
             <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-3 border-t border-line pt-4">
               <ProfileFact label="Abonnenten" value={formatNumber(creator.subscriberCount)} />
@@ -191,9 +191,9 @@ export default async function CreatorProfilePage({ params, searchParams }: PageP
               }
             />
           ) : (
-            <ul className="mt-6 grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+            <ul className="mt-6 grid grid-cols-1 items-start gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
               {posts.map((post) => (
-                <li key={post.id}>
+                <li key={post.id} className="min-w-0">
                   <PostCard
                     post={post}
                     variant="profile"
@@ -336,7 +336,7 @@ function AboPanel({
 
   return (
     <div className="rounded-card border border-line bg-surface p-5">
-      <Stat label={`Abo bei ${creator.displayName}`} value={formatChf(creator.monthlyPriceRappen)} hint="pro Monat" />
+      <Stat label={<span className="wrap-anywhere">Abo bei {creator.displayName}</span>} value={formatChf(creator.monthlyPriceRappen)} hint="pro Monat" />
       <ul className="mt-5 grid gap-2.5 border-t border-line pt-4 text-sm text-ink">
         {[
           creator.postCount > 0

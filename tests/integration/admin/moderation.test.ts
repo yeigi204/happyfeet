@@ -123,12 +123,13 @@ describe("listModerationQueue", () => {
     expect(pendingPosts[1].creator).toMatchObject({ handle: "lena_barfuss", isPremium: false, approvedPostCount: 1 });
   });
 
-  it("liefert offene Meldungen: kritische zuerst, dann älteste", async () => {
+  it("liefert offene Meldungen: die schwersten zuerst (kritisch, hoch, normal), dann älteste", async () => {
     const f = await fixture();
 
     const { openReports } = await listModerationQueue(f.admin, { now: NOW });
 
-    expect(openReports.map((r) => r.id)).toEqual([f.criticalOld.id, f.criticalNew.id, f.spamOld.id, f.secondOnA.id]);
+    // secondOnA (not_own_content = hoch) steht vor dem älteren spamOld (normal).
+    expect(openReports.map((r) => r.id)).toEqual([f.criticalOld.id, f.criticalNew.id, f.secondOnA.id, f.spamOld.id]);
     const critical = openReports[1];
     expect(critical).toMatchObject({
       reason: "possible_minor",
@@ -140,8 +141,8 @@ describe("listModerationQueue", () => {
     });
     expect(critical.post.media[0].url).toContain("-original.webp");
     expect(openReports[0].reporter).toBeNull();
-    expect(openReports[2]).toMatchObject({ severity: "normal", openReportsOnPost: 2 });
-    expect(openReports[3]).toMatchObject({ severity: "high", openReportsOnPost: 2 });
+    expect(openReports[2]).toMatchObject({ severity: "high", openReportsOnPost: 2 });
+    expect(openReports[3]).toMatchObject({ severity: "normal", openReportsOnPost: 2 });
   });
 });
 

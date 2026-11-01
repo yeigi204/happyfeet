@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Flag, X } from "lucide-react";
-import { useActionState, useRef, type MouseEvent } from "react";
+import { startTransition, useActionState, useRef, useState, type FormEvent, type MouseEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
@@ -25,6 +25,15 @@ const REASONS = Object.entries(REPORT_REASONS) as [ReportReason, (typeof REPORT_
 export function ReportDialog({ postId, action, creatorName }: { postId: string; action: ReportAction; creatorName: string }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [state, formAction, pending] = useActionState(action, null);
+  // Kontrolliert und per `onSubmit` statt `<form action>`: React setzt Formulare nach einer Action zurück (das
+  // Select fiele auf „Bitte wählen …“) – nach einem Fehler sollen Grund und Text stehen bleiben.
+  const [reason, setReason] = useState("");
+  const [details, setDetails] = useState("");
+  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    startTransition(() => formAction(formData));
+  };
   const done = state?.ok === true;
   const titleId = `report-title-${postId}`;
 
@@ -80,10 +89,10 @@ export function ReportDialog({ postId, action, creatorName }: { postId: string; 
             </Button>
           </div>
         ) : (
-          <form action={formAction} className="grid gap-4 px-5 py-5">
+          <form onSubmit={onSubmit} className="grid gap-4 px-5 py-5">
             <input type="hidden" name="postId" value={postId} />
             <Field label="Grund" error={state && !state.ok ? state.fieldErrors?.reason?.[0] : undefined}>
-              <Select name="reason" required defaultValue="">
+              <Select name="reason" required value={reason} onChange={(event) => setReason(event.target.value)}>
                 <option value="" disabled>
                   Bitte wählen …
                 </option>
@@ -99,7 +108,13 @@ export function ReportDialog({ postId, action, creatorName }: { postId: string; 
               hint="Hilft uns bei der Prüfung, z. B. woher du das Bild kennst."
               error={state && !state.ok ? state.fieldErrors?.details?.[0] : undefined}
             >
-              <Textarea name="details" rows={3} maxLength={DETAILS_MAX_LENGTH} />
+              <Textarea
+                name="details"
+                rows={3}
+                maxLength={DETAILS_MAX_LENGTH}
+                value={details}
+                onChange={(event) => setDetails(event.target.value)}
+              />
             </Field>
 
             {state && !state.ok && !state.fieldErrors?.reason && !state.fieldErrors?.details ? (

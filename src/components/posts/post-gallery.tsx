@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef, useState, type KeyboardEvent } from "react";
 
 import { cn } from "@/components/ui/cn";
+import { SignedImg } from "@/components/ui/signed-img";
 
 /** Ein Bild, wie es die Galerie braucht (Teilmenge von `MediaView`). */
 export type GalleryImage = { id: string; url: string; width: number; height: number };
@@ -16,7 +17,8 @@ function frameRatio(first: GalleryImage | undefined): number {
 
 /**
  * Bilder eines freigeschalteten Posts: wischbar (Scroll-Snap), mit Pfeil-Buttons, Zähler und Pfeiltasten.
- * Signierte URLs → bewusst `<img>` (kein next/image), mit Breite/Höhe gegen Layout-Sprünge.
+ * Signierte URLs → bewusst `<img>` (kein next/image), mit Breite/Höhe gegen Layout-Sprünge; abgelaufene Signaturen
+ * erneuert `SignedImg`. `role="group"` statt Landmark: Der Feed hätte sonst Dutzende gleichnamige Regionen.
  */
 export function PostGallery({ images, label }: { images: GalleryImage[]; label: string }) {
   const scroller = useRef<HTMLDivElement>(null);
@@ -51,7 +53,7 @@ export function PostGallery({ images, label }: { images: GalleryImage[]; label: 
 
   return (
     <div
-      role="region"
+      role="group"
       aria-roledescription="Bildergalerie"
       aria-label={count > 1 ? `${label} – ${count} Bilder` : label}
       className="group/gallery relative overflow-hidden rounded-card bg-surface-2"
@@ -70,7 +72,7 @@ export function PostGallery({ images, label }: { images: GalleryImage[]; label: 
           const fits = Math.abs(own - ratio) / ratio < 0.08;
           return (
             <div key={image.id} className="relative h-full w-full shrink-0 snap-center" aria-hidden={count > 1 && i !== index ? true : undefined}>
-              <img
+              <SignedImg
                 src={image.url}
                 alt={count > 1 ? `${label}, Bild ${i + 1} von ${count}` : label}
                 width={image.width}

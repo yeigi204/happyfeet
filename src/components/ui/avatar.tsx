@@ -13,14 +13,18 @@ const SIZES: Record<AvatarSize, string> = {
 // Warme Token-Flächen statt zufälliger Farben – deterministisch pro Name.
 const FILLS = ["bg-surface-2", "bg-accent-soft", "bg-premium-soft"] as const;
 
-function initials(name: string): string {
-  const parts = name
+/**
+ * Initialen aus bis zu `max` Namensteilen. Nur Teile, die mit Buchstabe oder Ziffer beginnen, und immer ganze
+ * Codepoints – `p[0]` wäre bei Emoji ein einzelnes Surrogat (Ersatzzeichen „�“ und Hydration-Fehler).
+ * Ohne passenden Teil: leerer String (Aufrufer zeigen „?“).
+ */
+export function initials(name: string, max = 2): string {
+  return name
     .replace(/^@/, "")
     .split(/[\s._-]+/)
-    .filter(Boolean);
-  return parts
-    .slice(0, 2)
-    .map((p) => p[0]!.toUpperCase())
+    .filter((part) => /^[\p{L}\p{N}]/u.test(part))
+    .slice(0, max)
+    .map((part) => String.fromCodePoint(part.codePointAt(0)!).toUpperCase())
     .join("");
 }
 

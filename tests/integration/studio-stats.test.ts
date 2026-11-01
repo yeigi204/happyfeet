@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { ForbiddenError } from "@/server/errors";
 import { getCreatorBalance } from "@/server/services/payouts";
-import { getStudioStats } from "@/server/services/studio-stats";
+import { countActiveSubscribers, countApprovedPosts, getStudioStats } from "@/server/services/studio-stats";
 
 import { setupTestDb } from "../helpers/db";
 import {
@@ -166,8 +166,44 @@ describe("getStudioStats", () => {
     );
   });
 
+  it("'diesen Monat' ist der Zürcher Kalendermonat (am 1.12. um 00:45 Zürich zählt der November nicht mehr)", async () => {
+    const { user: creator } = await createCreator(t.db);
+    await insertFanPayment(t.db, { creatorId: creator.id, createdAt: d("2026-11-05T10:00:00Z") });
+    await insertFanPayment(t.db, { creatorId: creator.id, createdAt: d("2026-11-30T22:59:00Z") }); // 30.11. 23:59 Zürich
+    await insertFanPayment(t.db, { creatorId: creator.id, createdAt: d("2026-11-30T23:30:00Z") }); // 1.12. 00:30 Zürich
+    const viewer = await viewerFor(t.db, creator.id, NOW);
+
+    const december = await getStudioStats(viewer, { now: d("2026-11-30T23:45:00Z") });
+    expect(december.basic).toMatchObject({ grossThisMonthRappen: 990, netThisMonthRappen: 841 });
+
+    const november = await getStudioStats(viewer, { now: d("2026-11-30T22:59:30Z") });
+    expect(november.basic).toMatchObject({ grossThisMonthRappen: 1980, netThisMonthRappen: 1682 });
+
+    // Sommerzeit: 1.7. 00:30 Zürich = 30.6. 22:30 UTC gehört zum Juli
+    await insertFanPayment(t.db, { creatorId: creator.id, createdAt: d("2027-06-30T22:30:00Z") });
+    const july = await getStudioStats(viewer, { now: d("2027-06-30T23:00:00Z") });
+    expect(july.basic.grossThisMonthRappen).toBe(990);
+  });
+
   it("nur für Creator", async () => {
     const fan = await viewerFor(t.db, (await createUser(t.db)).id, NOW);
     await expect(getStudioStats(fan, { now: NOW })).rejects.toBeInstanceOf(ForbiddenError);
+  });
+});
+
+describe("countApprovedPosts / countActiveSubscribers", () => {
+  it("liefern dieselben Zahlen wie die Basis-Statistik – ohne den Rest zu berechnen", async () => {
+    const { viewer } = await premiumFixture();
+    const stats = await getStudioStats(viewer, { now: NOW });
+
+    expect(await countApprovedPosts(viewer)).toBe(stats.basic.postCount);
+    expect(await countActiveSubscribers(viewer, { now: NOW })).toBe(stats.basic.activeSubscribers);
+    expect(await countActiveSubscribers(viewer, { now: d("2026-12-05T00:00:00Z") })).toBe(0);
+  });
+
+  it("nur für Creator", async () => {
+    const fan = await viewerFor(t.db, (await createUser(t.db)).id, NOW);
+    await expect(countApprovedPosts(fan)).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(countActiveSubscribers(fan)).rejects.toBeInstanceOf(ForbiddenError);
   });
 });

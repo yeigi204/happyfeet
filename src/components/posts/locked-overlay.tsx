@@ -1,6 +1,8 @@
 import { Images, LockKeyhole } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { SignedImg } from "@/components/ui/signed-img";
+
 import type { GalleryImage } from "./post-gallery";
 
 /**
@@ -13,7 +15,7 @@ export function LockedOverlay({ preview, imageCount, action }: { preview: Galler
   return (
     <div className="relative isolate overflow-hidden rounded-card bg-surface-2" style={{ aspectRatio: String(ratio) }}>
       {preview ? (
-        <img
+        <SignedImg
           src={preview.url}
           alt="Verpixelte Vorschau – nur für Abonnenten sichtbar"
           width={preview.width}

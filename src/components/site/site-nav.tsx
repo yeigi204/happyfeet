@@ -3,7 +3,7 @@
 import { ArrowUpRight, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useId, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
 import { cn } from "@/components/ui/cn";
 
@@ -23,11 +23,15 @@ export function SiteNav({ items, menuFooter }: { items: SiteNavItem[]; menuFoote
   // Das Menü gehört zu dem Pfad, auf dem es geöffnet wurde – nach einer Navigation ist es automatisch zu.
   const [openFor, setOpenFor] = useState<string | null>(null);
   const open = openFor === pathname;
+  const toggleRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpenFor(null);
+      if (event.key !== "Escape") return;
+      setOpenFor(null);
+      // Das Panel wird `hidden` – ohne das fiele der Fokus auf <body> zurück.
+      toggleRef.current?.focus();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -57,6 +61,7 @@ export function SiteNav({ items, menuFooter }: { items: SiteNavItem[]; menuFoote
 
       {items.length > 0 || menuFooter ? (
         <button
+          ref={toggleRef}
           type="button"
           aria-expanded={open}
           aria-controls={panelId}

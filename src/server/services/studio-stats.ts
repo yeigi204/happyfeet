@@ -3,6 +3,7 @@ import "server-only";
 import { and, count, eq, gt, gte, inArray, isNotNull, isNull, lt, min, sql, type SQL } from "drizzle-orm";
 import type { PgColumn } from "drizzle-orm/pg-core";
 
+import { zurichMonthBounds } from "@/lib/domain/calendar";
 import { PLAN_FEATURES, planOf } from "@/lib/domain/plans";
 import type { CreatorPlan, Viewer } from "@/lib/domain/types";
 import { assertCreator } from "@/server/auth/guards";
@@ -14,7 +15,8 @@ import { isCreatorPremiumAt } from "./premium";
 
 /**
  * Statistik fürs Creator-Studio. Basis für alle Creator; die erweiterte Statistik
- * (MRR, Churn, 90-Tage-Reihe) nur mit Premium. Tage sind UTC-Kalendertage (YYYY-MM-DD).
+ * (MRR, Churn, 90-Tage-Reihe) nur mit Premium. „Diesen Monat“ ist der Zürcher Kalendermonat;
+ * die Tagesreihe nutzt UTC-Kalendertage (YYYY-MM-DD).
  */
 
 export type StudioDailyPoint = { date: string; netRappen: number; newSubs: number; canceledSubs: number };
@@ -54,6 +56,35 @@ const startOfUtcDay = (date: Date) =>
 const fanEarnings = (creatorId: string) =>
   and(eq(payments.creatorId, creatorId), eq(payments.kind, "fan_subscription"), eq(payments.status, "succeeded"));
 
+/** Abos mit laufendem Zugriff (`active|canceled`, Periode läuft noch). */
+function activeSubscribersOf(creatorId: string, now: Date): SQL {
+  return and(
+    eq(subscriptions.creatorId, creatorId),
+    inArray(subscriptions.status, ["active", "canceled"]),
+    gt(subscriptions.currentPeriodEnd, now),
+  )!;
+}
+
+/** Nur die Zahl der Abonnenten mit laufendem Zugriff (wie `basic.activeSubscribers`) – für Seiten ohne Statistik. */
+export async function countActiveSubscribers(viewer: Viewer, opts: { now?: Date } = {}): Promise<number> {
+  assertCreator(viewer);
+  const [row] = await getDb()
+    .select({ n: count() })
+    .from(subscriptions)
+    .where(activeSubscribersOf(viewer.id, opts.now ?? new Date()));
+  return Number(row?.n ?? 0);
+}
+
+/** Nur die Zahl der freigegebenen, nicht gelöschten eigenen Posts (wie `basic.postCount`). */
+export async function countApprovedPosts(viewer: Viewer): Promise<number> {
+  assertCreator(viewer);
+  const [row] = await getDb()
+    .select({ n: count() })
+    .from(posts)
+    .where(and(eq(posts.creatorId, viewer.id), eq(posts.moderationStatus, "approved"), isNull(posts.deletedAt)));
+  return Number(row?.n ?? 0);
+}
+
 export async function getStudioStats(viewer: Viewer, opts: { now?: Date } = {}): Promise<StudioStats> {
   assertCreator(viewer);
   const now = opts.now ?? new Date();
@@ -61,19 +92,10 @@ export async function getStudioStats(viewer: Viewer, opts: { now?: Date } = {}):
   const creatorId = viewer.id;
 
   const plan = planOf(await isCreatorPremiumAt(creatorId, now, db));
-  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-  const nextMonthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+  // „Diesen Monat“ = Zürcher Kalendermonat (die UI zeigt Daten in Schweizer Ortszeit).
+  const { start: monthStart, end: nextMonthStart } = zurichMonthBounds(now);
 
-  const [subscribers] = await db
-    .select({ n: count() })
-    .from(subscriptions)
-    .where(
-      and(
-        eq(subscriptions.creatorId, creatorId),
-        inArray(subscriptions.status, ["active", "canceled"]),
-        gt(subscriptions.currentPeriodEnd, now),
-      ),
-    );
+  const [subscribers] = await db.select({ n: count() }).from(subscriptions).where(activeSubscribersOf(creatorId, now));
   const [month] = await db
     .select({ gross: sumOf(payments.grossRappen), net: sumOf(payments.creatorNetRappen) })
     .from(payments)

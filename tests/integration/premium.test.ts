@@ -6,6 +6,7 @@ import { auditLog, payments, platformSettings, premiumSubscriptions } from "@/se
 import { ConflictError, ForbiddenError } from "@/server/errors";
 import { completeMockCheckout, handlePaymentEvent } from "@/server/services/payment-events";
 import { cancelPremium, getPremiumStatus, startPremiumCheckout } from "@/server/services/premium";
+import { startSubscriptionCheckout } from "@/server/services/subscriptions";
 
 import { setupTestDb } from "../helpers/db";
 import { createCreator, createUser, viewerFor } from "../helpers/factories";
@@ -201,6 +202,59 @@ describe("Premium-Abschluss", () => {
   });
 });
 
+describe("Gebühren- und Preis-Snapshots bei verspäteten Events", () => {
+  async function pendingFanCheckout(creatorId: string, at: Date) {
+    const fan = await viewerFor(t.db, (await createUser(t.db)).id, at);
+    const { redirectUrl } = await startSubscriptionCheckout(fan, { creatorId }, { now: at });
+    return sessionIdFrom(redirectUrl);
+  }
+
+  it("eine Fan-Zahlung vor dem Premium-Kauf wird auch bei verspätetem Webhook mit dem Standard-Satz gebucht", async () => {
+    const creator = await approvedCreator();
+    const paidAt = new Date(NOW.getTime() - 60 * 60 * 1000);
+    mock.clock.now = paidAt;
+    const event = mock.provider.completedEventFor(await pendingFanCheckout(creator.id, paidAt), paidAt);
+
+    mock.clock.now = NOW;
+    await buyPremium(creator, NOW); // Creator bucht Premium, bevor der Webhook der Fan-Zahlung ankommt
+    expect(await handlePaymentEvent(event, { now: new Date(NOW.getTime() + 30 * 60 * 1000) })).toEqual({ applied: true });
+
+    const [fanPayment] = await t.db.select().from(payments).where(eq(payments.kind, "fan_subscription"));
+    expect(fanPayment).toMatchObject({ feeBps: 1500, platformFeeRappen: 149, creatorPlan: "standard" });
+  });
+
+  it("eine verspätete Fan-Zahlung aus einer früheren, inzwischen verlängerten Premium-Periode bleibt bei 5 %", async () => {
+    const creator = await approvedCreator();
+    await buyPremium(creator, NOW);
+    const paidAt = new Date(NOW.getTime() + 10 * DAY);
+    mock.clock.now = paidAt;
+    const event = mock.provider.completedEventFor(await pendingFanCheckout(creator.id, paidAt), paidAt);
+
+    const end = addBillingMonth(NOW);
+    expect(await handlePaymentEvent(await premiumRenewalEvent(t.db, mock.provider, creator.id, 1900, end))).toEqual({
+      applied: true,
+    });
+    expect(await handlePaymentEvent(event, { now: new Date(end.getTime() + DAY) })).toEqual({ applied: true });
+
+    const [fanPayment] = await t.db.select().from(payments).where(eq(payments.kind, "fan_subscription"));
+    expect(fanPayment).toMatchObject({ feeBps: 500, creatorPlan: "premium" });
+  });
+
+  it("der Premium-Preis-Snapshot ist der bezahlte Betrag, nicht der inzwischen geänderte Preis", async () => {
+    const creator = await approvedCreator();
+    const { redirectUrl } = await startPremiumCheckout(creator, { now: NOW });
+    await t.db.update(platformSettings).set({ premiumPriceRappen: 2500 }).where(eq(platformSettings.id, 1));
+
+    await completeMockCheckout(creator, sessionIdFrom(redirectUrl), { now: NOW });
+
+    const [row] = await t.db.select().from(premiumSubscriptions);
+    expect(row.priceRappen).toBe(1900);
+    expect((await getPremiumStatus(creator, { now: NOW })).priceRappen).toBe(1900);
+    const [payment] = await t.db.select().from(payments);
+    expect(payment.grossRappen).toBe(1900);
+  });
+});
+
 describe("cancelPremium", () => {
   it("kündigt zum Periodenende: Premium bleibt bis dahin aktiv, danach Standard", async () => {
     const creator = await approvedCreator();
@@ -256,5 +310,31 @@ describe("cancelPremium", () => {
     const entries = await t.db.select().from(auditLog).where(eq(auditLog.action, "premium.canceled"));
     expect(entries).toHaveLength(1);
     expect(entries[0].actorId).toBeNull();
+  });
+
+  it("eine wieder eingespielte alte Anbieter-Kündigung beendet ein später neu gebuchtes Premium nicht", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const creator = await approvedCreator();
+    await buyPremium(creator, NOW);
+    const cancel = {
+      type: "subscription.canceled" as const,
+      provider: "mock",
+      eventId: "mockevt_premium_cancel_old",
+      kind: "premium_plan" as const,
+      providerSubscriptionRef: `mocksub_${creator.id}`,
+      occurredAt: new Date(NOW.getTime() + 2 * DAY),
+    };
+    expect(await handlePaymentEvent(cancel)).toEqual({ applied: true });
+
+    const later = new Date(addBillingMonth(NOW).getTime() + 10 * DAY);
+    mock.clock.now = later;
+    await buyPremium(creator, later);
+    expect((await t.db.select().from(premiumSubscriptions))[0]).toMatchObject({ status: "active" });
+
+    // Replay desselben (signierten) Bodys Wochen später
+    expect(await handlePaymentEvent(cancel, { now: new Date(later.getTime() + DAY) })).toEqual({ applied: false });
+    const [row] = await t.db.select().from(premiumSubscriptions);
+    expect(row).toMatchObject({ status: "active", cancelAtPeriodEnd: false, canceledAt: null });
+    warn.mockRestore();
   });
 });

@@ -65,6 +65,7 @@ export async function startSubscriptionCheckout(
     .select({
       handle: users.handle,
       status: users.status,
+      deletedAt: users.deletedAt,
       verificationStatus: creatorProfiles.verificationStatus,
       priceRappen: creatorProfiles.monthlyPriceRappen,
     })
@@ -72,7 +73,13 @@ export async function startSubscriptionCheckout(
     .innerJoin(creatorProfiles, eq(creatorProfiles.userId, users.id))
     .where(eq(users.id, creatorId))
     .limit(1);
-  if (!creator || creator.status !== "active" || creator.verificationStatus !== "approved" || !creator.handle) {
+  if (
+    !creator ||
+    creator.status !== "active" ||
+    creator.deletedAt !== null ||
+    creator.verificationStatus !== "approved" ||
+    !creator.handle
+  ) {
     throw new NotFoundError(CREATOR_NOT_FOUND);
   }
   const handle = creator.handle;
@@ -219,6 +226,7 @@ export async function listMySubscriptions(viewer: Viewer, opts: { now?: Date } =
         eq(subscriptions.fanId, viewer.id),
         inArray(subscriptions.status, ["active", "canceled", "expired"]),
         eq(users.status, "active"),
+        isNull(users.deletedAt),
       ),
     )
     .orderBy(desc(subscriptions.currentPeriodEnd), desc(subscriptions.createdAt));

@@ -2,6 +2,8 @@ import { SignOutButton } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
+import { supportEmail, supportMailto } from "@/components/site/contact";
+import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/format";
 import { isDevImpersonation } from "@/server/auth/dev-impersonation";
 import { getViewer } from "@/server/auth/viewer";
@@ -14,10 +16,11 @@ export default async function BannedPage() {
   if (!viewer) redirect("/sign-in");
   const ban = await getBanDetails(viewer);
   if (!ban) redirect("/explore");
+  const email = supportEmail();
 
   return (
     <section>
-      <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">Konto gesperrt</p>
+      <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent-strong">Konto gesperrt</p>
       <h1 className="mt-4 font-display text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl">
         Dein Konto ist gesperrt.
       </h1>
@@ -45,18 +48,28 @@ export default async function BannedPage() {
       </dl>
 
       <p className="mt-8 text-sm leading-relaxed text-ink-muted">
-        Du hältst das für einen Irrtum? Wende dich an unseren Support und nenne deinen Handle – wir schauen uns die
-        Sperre noch einmal an.
+        Du hältst das für einen Irrtum?{" "}
+        {email ? (
+          <>
+            Schreib uns an{" "}
+            <a
+              href={supportMailto(email, `Sperre prüfen${viewer.handle ? ` – @${viewer.handle}` : ""}`)}
+              className="font-medium text-ink underline underline-offset-4 hover:text-accent"
+            >
+              {email}
+            </a>{" "}
+            und nenne deinen Handle – wir schauen uns die Sperre noch einmal an.
+          </>
+        ) : (
+          <>Wende dich an unseren Support und nenne deinen Handle – wir schauen uns die Sperre noch einmal an.</>
+        )}
       </p>
 
       {!isDevImpersonation() && (
         <SignOutButton redirectUrl="/">
-          <button
-            type="button"
-            className="mt-8 inline-flex items-center rounded-lg border border-line bg-surface px-5 py-3 text-sm font-medium text-ink transition-colors hover:border-ink"
-          >
+          <Button variant="secondary" size="lg" className="mt-8">
             Abmelden
-          </button>
+          </Button>
         </SignOutButton>
       )}
     </section>

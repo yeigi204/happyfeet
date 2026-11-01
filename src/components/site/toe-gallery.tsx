@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { initials } from "@/components/ui/avatar";
 import { cn } from "@/components/ui/cn";
 import type { CreatorCard } from "@/server/services/creators";
 
@@ -64,7 +65,7 @@ export function ToeGallery({ creators, className }: { creators: CreatorCard[]; c
               />
             ) : (
               <span className="grid size-full place-items-center font-display text-xl font-bold text-ink">
-                {creator.displayName.slice(0, 1).toUpperCase()}
+                {initials(creator.displayName, 1) || "?"}
                 <span className="sr-only">{creator.displayName}</span>
               </span>
             )}

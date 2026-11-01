@@ -8,7 +8,7 @@ import { assertAdmin } from "@/server/auth/guards";
 import { getDb } from "@/server/db/client";
 import { creatorProfiles, premiumSubscriptions, subscriptions, users } from "@/server/db/schema";
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "@/server/errors";
-import { getPaymentProvider } from "@/server/payments";
+import { cancelAtProviders, stopBillingForUser } from "@/server/services/account-billing";
 import { writeAudit } from "@/server/services/audit";
 
 export type AdminUserRow = {
@@ -18,6 +18,8 @@ export type AdminUserRow = {
   email: string | null;
   createdAt: Date;
   status: UserStatus;
+  /** Konto in Clerk gelöscht (anonymisiert, Daten bleiben als Nachweis); sonst `null`. */
+  deletedAt: Date | null;
   isAdmin: boolean;
   creator: { verificationStatus: VerificationStatus; isPremium: boolean; activeSubscribers: number } | null;
   /** Abos dieses Nutzers als Fan mit laufendem Zugriff. */
@@ -41,9 +43,12 @@ function escapeLike(value: string): string {
   return value.replace(/[\\%_]/g, (c) => `\\${c}`);
 }
 
+/** Steuerzeichen (u. a. NUL, das Postgres in Text ablehnt) haben in einer Suche nichts verloren. */
+const CONTROL_CHARS = /[\u0000-\u001F\u007F]/g;
+
 function normalizeQuery(query: unknown): string {
   if (typeof query !== "string") return "";
-  return query.trim().replace(/^@/, "").slice(0, QUERY_MAX_LENGTH).trim();
+  return query.replace(CONTROL_CHARS, "").trim().replace(/^@/, "").slice(0, QUERY_MAX_LENGTH).trim();
 }
 
 function matchCondition(query: string): SQL | undefined {
@@ -113,6 +118,7 @@ export async function searchUsers(
       email: users.email,
       createdAt: users.createdAt,
       status: users.status,
+      deletedAt: users.deletedAt,
       isAdmin: users.isAdmin,
       verificationStatus: creatorProfiles.verificationStatus,
       isPremium,
@@ -141,6 +147,7 @@ export async function searchUsers(
       email: row.email,
       createdAt: row.createdAt,
       status: row.status,
+      deletedAt: row.deletedAt,
       isAdmin: row.isAdmin,
       creator: row.verificationStatus
         ? {
@@ -181,23 +188,8 @@ export async function banUser(admin: Viewer, userId: string, reason: string, opt
       .set({ status: "banned", bannedReason: parsedReason, bannedAt: now, updatedAt: now })
       .where(eq(users.id, userId));
 
-    // Keine weiteren Abbuchungen: laufende Abos (als Fan UND als Creator) zum Periodenende kündigen,
-    // offene Checkouts verfallen lassen, Premium-Plan kündigen. Erstattungen sind ein manueller Prozess.
-    const involvesUser = or(eq(subscriptions.fanId, userId), eq(subscriptions.creatorId, userId));
-    const canceledSubs = await tx
-      .update(subscriptions)
-      .set({ status: "canceled", cancelAtPeriodEnd: true, canceledAt: now })
-      .where(and(involvesUser, eq(subscriptions.status, "active")))
-      .returning({ provider: subscriptions.provider, providerRef: subscriptions.providerRef });
-    await tx
-      .update(subscriptions)
-      .set({ status: "expired" })
-      .where(and(involvesUser, eq(subscriptions.status, "pending")));
-    const canceledPremium = await tx
-      .update(premiumSubscriptions)
-      .set({ status: "canceled", cancelAtPeriodEnd: true, canceledAt: now })
-      .where(and(eq(premiumSubscriptions.creatorId, userId), eq(premiumSubscriptions.status, "active")))
-      .returning({ provider: premiumSubscriptions.provider, providerRef: premiumSubscriptions.providerRef });
+    // Keine weiteren Abbuchungen (Abos als Fan und Creator, offene Checkouts, Premium).
+    const stopped = await stopBillingForUser(tx, userId, now);
 
     await writeAudit(
       {
@@ -208,24 +200,17 @@ export async function banUser(admin: Viewer, userId: string, reason: string, opt
         metadata: {
           reason: parsedReason,
           handle: target.handle,
-          canceledSubscriptions: canceledSubs.length,
-          canceledPremium: canceledPremium.length > 0,
+          canceledSubscriptions: stopped.canceledSubscriptions,
+          canceledPremium: stopped.canceledPremium,
         },
       },
       tx,
     );
-    return [...canceledSubs, ...canceledPremium];
+    return stopped.refs;
   });
 
-  // Erst nach dem Commit beim Provider kündigen (best effort – die DB ist die Quelle der Wahrheit).
-  for (const { provider, providerRef } of toCancelAtProvider) {
-    if (!providerRef) continue;
-    try {
-      await getPaymentProvider(provider).cancelSubscription(providerRef);
-    } catch (error) {
-      console.error(`[admin] Kündigung beim Provider fehlgeschlagen (${provider}:${providerRef})`, error);
-    }
-  }
+  // Erst nach dem Commit beim Provider kündigen.
+  await cancelAtProviders(toCancelAtProvider, "admin");
 }
 
 /** Hebt eine Sperre auf. */
@@ -282,6 +267,7 @@ export async function quickSearch(
       displayName: users.displayName,
       email: users.email,
       status: users.status,
+      deletedAt: users.deletedAt,
       isAdmin: users.isAdmin,
     })
     .from(users)
@@ -302,6 +288,7 @@ export async function quickSearch(
       row.email,
       row.isAdmin ? "Admin" : null,
       row.status === "banned" ? "gesperrt" : null,
+      row.deletedAt ? "gelöscht" : null,
     ].filter((part): part is string => Boolean(part));
     return {
       id: row.id,

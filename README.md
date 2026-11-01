@@ -99,9 +99,10 @@ Die Dev-Impersonation wirkt **nie** in Produktion: Ist die Variable dort gesetzt
 - [ ] **Zahlungsanbieter** anbinden (z. B. CCBill, Segpay – Stripe/PayPal erlauben solche Inhalte i. d. R. nicht): neuen `PaymentProvider` in `src/server/payments/` implementieren, Webhook `/api/webhooks/payments/<provider>`, `PAYMENT_PROVIDER` umstellen. Rückerstattungen/Abgleich für nicht verbuchte Zahlungen (z. B. Doppel-Checkout) definieren.
 - [ ] **Ausweisprüfung** (KYC) über einen Anbieter (z. B. Veriff, Didit) statt rein manueller Freigabe.
 - [ ] **Auszahlungen** automatisieren: `generateDuePayouts` per Cron auslösen und echte Überweisungen anbinden.
-- [ ] **Rechtliches:** AGB, Datenschutzerklärung (revDSG), Impressum, Altersnachweis für Fans prüfen lassen, MWST.
+- [ ] **Rechtliches:** AGB, Datenschutzerklärung (revDSG), Impressum, Altersnachweis für Fans prüfen lassen, MWST. URLs in `NEXT_PUBLIC_LEGAL_*` setzen (sonst fehlen die Links in der Fusszeile) und `NEXT_PUBLIC_SUPPORT_EMAIL` für die Sperrseite.
 - [ ] **Anbieter-AGB** von Clerk, Supabase und Hosting bzgl. Adult-/Fetisch-Inhalten prüfen.
 - [ ] **Uploads:** Bei Hosting mit kleinem Request-Limit (z. B. Vercel ~4.5 MB) auf signierte Direkt-Uploads umstellen.
 - [ ] **Clerk-Texte:** Die deutsche Clerk-Lokalisierung siezt; bei Bedarf weitere Texte auf Du anpassen.
+- [ ] **Content-Security-Policy** für Skripte (mit Nonces, Clerk-Domains erlauben) ergänzen – `next.config.ts` setzt bisher nur Anti-Framing, Referrer-Policy, nosniff und HSTS.
 - [ ] **Secrets** zufällig erzeugen (≥ 32 Zeichen) – Platzhalter verhindern den Serverstart in Produktion.
 - [ ] Automatische Bilderkennung (Hash-Abgleich) als zusätzliche Moderationsstufe.

@@ -6,12 +6,18 @@ const POST_ID = "6c1f2a9e-4b3d-4f5a-9c2e-1d7b8a0e3f41";
 const UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
 
 describe("mediaKeys", () => {
-  it("legt Original und Vorschau mit gemeinsamer Zufalls-ID im Post-Ordner ab", () => {
+  it("legt Original und Vorschau mit je eigener Zufalls-ID im Post-Ordner ab", () => {
     const { originalKey, previewKey } = mediaKeys(POST_ID, 2);
 
     expect(originalKey).toMatch(new RegExp(`^posts/${POST_ID}/2-${UUID}-original\\.webp$`));
-    const id = originalKey.slice(`posts/${POST_ID}/2-`.length, -"-original.webp".length);
-    expect(previewKey).toBe(`posts/${POST_ID}/2-${id}-preview.webp`);
+    expect(previewKey).toMatch(new RegExp(`^posts/${POST_ID}/2-${UUID}-preview\\.webp$`));
+  });
+
+  it("aus dem Vorschau-Key (steckt in jeder gesperrten Vorschau-URL) lässt sich der Original-Key nicht ableiten", () => {
+    const { originalKey, previewKey } = mediaKeys(POST_ID, 0);
+    expect(previewKey.replace("-preview.webp", "-original.webp")).not.toBe(originalKey);
+    const idOf = (key: string) => key.slice(`posts/${POST_ID}/0-`.length).replace(/-(original|preview)\.webp$/, "");
+    expect(idOf(previewKey)).not.toBe(idOf(originalKey));
   });
 
   it("erzeugt bei jedem Aufruf eine neue Zufalls-ID (Keys nicht erratbar)", () => {

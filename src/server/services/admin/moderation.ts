@@ -43,9 +43,15 @@ const POST_NOT_FOUND = "Dieser Post existiert nicht.";
 const REPORT_NOT_FOUND = "Diese Meldung existiert nicht.";
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-const CRITICAL_REASONS = (Object.keys(REPORT_REASONS) as ReportReason[]).filter(
-  (reason) => REPORT_REASONS[reason].severity === "critical",
-);
+const SEVERITY_RANK = { critical: 0, high: 1, normal: 2 } as const;
+
+/** Sortierschlüssel der Meldung nach Schwere (kritisch = 0, hoch = 1, normal = 2), aus `REPORT_REASONS`. */
+const severityRank = sql`(case ${reports.reason} ${sql.join(
+  (Object.keys(REPORT_REASONS) as ReportReason[]).map(
+    (reason) => sql`when ${reason} then ${sql.raw(String(SEVERITY_RANK[REPORT_REASONS[reason].severity]))}`,
+  ),
+  sql` `,
+)} else ${sql.raw(String(SEVERITY_RANK.normal))} end)`;
 
 function parseNote(note: unknown, required: boolean): string | null {
   const value = typeof note === "string" ? note.replaceAll("\u0000", "").trim() : "";
@@ -138,7 +144,7 @@ async function loadModerationPosts(postIds: string[], now: Date): Promise<Map<st
 
 /**
  * Moderations-Queue: wartende Posts (Vorab-Prüfung, älteste zuerst) und offene Meldungen
- * (kritische zuerst, dann älteste). Medien sind signierte Original-URLs.
+ * (die schwersten zuerst – kritisch, hoch, normal –, dann älteste). Medien sind signierte Original-URLs.
  */
 export async function listModerationQueue(
   admin: Viewer,
@@ -155,10 +161,6 @@ export async function listModerationQueue(
     .orderBy(asc(posts.createdAt), asc(posts.id))
     .limit(QUEUE_LIMIT);
 
-  const isCritical = sql`(${reports.reason} in (${sql.join(
-    CRITICAL_REASONS.map((r) => sql`${r}`),
-    sql`, `,
-  )}))`;
   const openReportRows = await db
     .select({
       id: reports.id,
@@ -173,7 +175,7 @@ export async function listModerationQueue(
     .from(reports)
     .leftJoin(users, eq(users.id, reports.reporterId))
     .where(eq(reports.status, "open"))
-    .orderBy(sql`${isCritical} desc`, asc(reports.createdAt), asc(reports.id))
+    .orderBy(asc(severityRank), asc(reports.createdAt), asc(reports.id))
     .limit(QUEUE_LIMIT);
 
   const postIds = [...new Set([...pending.map((p) => p.id), ...openReportRows.map((r) => r.postId)])];

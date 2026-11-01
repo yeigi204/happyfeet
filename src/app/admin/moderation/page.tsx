@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { ModerationTriage } from "@/components/admin/moderation/triage";
 import type { TriageItem, TriageMode, TriagePost } from "@/components/admin/moderation/types";
+import { premoderationCopy } from "@/components/site/text";
 import { ButtonLink } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
@@ -62,7 +63,15 @@ export default async function ModerationPage({ searchParams }: PageProps<"/admin
       ? critical > 0
         ? `${formatNumber(critical)} ${critical === 1 ? "kritische Meldung steht" : "kritische Meldungen stehen"} oben – mögliche Minderjährige und fehlendes Einverständnis zuerst.`
         : "Fan-Meldungen, die schwersten zuerst, dann die ältesten. Verwerfen, erledigen oder den Post entfernen."
-      : `Die ersten ${formatNumber(settings.premoderationCount)} Posts neuer Creator prüfst du, bevor Fans sie sehen – ältester zuerst.`;
+      : premoderationCopy(
+          settings.premoderationCount,
+          {
+            off: "Die Vorab-Prüfung ist ausgeschaltet – hier stehen nur noch früher eingereichte Posts, ältester zuerst.",
+            one: "Den ersten Post neuer Creator prüfst du, bevor Fans ihn sehen – ältester zuerst.",
+            many: (n) => `Die ersten ${n} Posts neuer Creator prüfst du, bevor Fans sie sehen – ältester zuerst.`,
+          },
+          formatNumber,
+        );
 
   const empty =
     mode === "reports" ? (

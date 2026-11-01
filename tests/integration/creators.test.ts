@@ -148,6 +148,31 @@ describe("applyAsCreator", () => {
 });
 
 describe("updateCreatorProfile", () => {
+  it("ein bestehender Preis ausserhalb eines inzwischen engeren Preisrahmens blockiert das Speichern der Bio nicht", async () => {
+    const { user } = await createCreator(t.db, { profile: { monthlyPriceRappen: 990 } });
+    const viewer = await viewerFor(t.db, user.id, NOW);
+    await t.db.update(platformSettings).set({ minPriceRappen: 1500 }).where(eq(platformSettings.id, 1));
+
+    // Das Studio-Formular schickt den (unveränderten) Preis immer mit.
+    const updated = await updateCreatorProfile(viewer, { bio: "Neue Bio", monthlyPriceRappen: 990 }, { now: NOW });
+    expect(updated).toMatchObject({ bio: "Neue Bio", monthlyPriceRappen: 990 });
+
+    // Ein geänderter Preis muss in den aktuellen Rahmen passen.
+    await expect(updateCreatorProfile(viewer, { monthlyPriceRappen: 1000 }, { now: NOW })).rejects.toBeInstanceOf(
+      ValidationError,
+    );
+  });
+
+  it("zählt die Bio-Länge wie das Formular (UTF-16-Einheiten, wie Caption und Meldungstext)", async () => {
+    const { user } = await createCreator(t.db);
+    const viewer = await viewerFor(t.db, user.id, NOW);
+    const emoji = "\u{1F9B6}"; // 2 UTF-16-Einheiten
+    await expect(updateCreatorProfile(viewer, { bio: emoji.repeat(600) }, { now: NOW })).rejects.toBeInstanceOf(
+      ValidationError,
+    );
+    expect((await updateCreatorProfile(viewer, { bio: emoji.repeat(500) }, { now: NOW })).bio).toBe(emoji.repeat(500));
+  });
+
   it("ändert Bio und Preis (auch einzeln)", async () => {
     const { user } = await createCreator(t.db);
     const viewer = await viewerFor(t.db, user.id, NOW);
@@ -192,6 +217,14 @@ describe("getMyCreatorProfile", () => {
 // ─── Explore ──────────────────────────────────────────────────────────────────
 
 describe("listCreatorsForExplore", () => {
+  it("verträgt Steuerzeichen wie NUL in der Suche (öffentlich erreichbar über /explore?q=%00)", async () => {
+    const { user } = await createCreator(t.db, { user: { handle: "zehenspiel" } });
+    expect((await listCreatorsForExplore(null, { query: "\u0000" }, { now: NOW })).map((c) => c.userId)).toEqual([user.id]);
+    expect((await listCreatorsForExplore(null, { query: "zehen\u0000" }, { now: NOW })).map((c) => c.userId)).toEqual([
+      user.id,
+    ]);
+  });
+
   it("zeigt nur freigegebene, aktive Creator", async () => {
     const { user: approved } = await createCreator(t.db);
     await createCreator(t.db, { profile: { verificationStatus: "pending" } });

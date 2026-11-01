@@ -682,6 +682,7 @@ function buildData(settings: { standardFeeBps: number; premiumFeeBps: number; pr
       priceRappen: settings.premiumPriceRappen,
       currentPeriodStart: currentStart,
       currentPeriodEnd: currentEnd,
+      activeSince: start,
       cancelAtPeriodEnd: canceledAt !== null,
       provider: "mock",
       providerRef: `mocksub_${creator.user.id}`,

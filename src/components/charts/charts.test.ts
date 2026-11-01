@@ -178,4 +178,9 @@ describe("Meter", () => {
     expect(markup).toContain("Pläne");
     expect(markup).toContain("CHF 4.00");
   });
+
+  it("gives each focusable segment a role so its aria-label is announced", () => {
+    const markup = html(h(Meter, { title: "Mix", format: "chf", parts: [{ label: "Standard", value: 300, color: "series-1" }] }));
+    expect(markup).toMatch(/<div data-segment="true" role="img" tabindex="0" aria-label="Standard: CHF.3\.00/);
+  });
 });

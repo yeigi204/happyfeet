@@ -7,6 +7,17 @@ const PLACEHOLDER_MARKERS = ["change-me", "dev-only", "changeme"];
 
 const SECRET_VARS = ["MEDIA_SIGNING_SECRET", "PAYMENT_WEBHOOK_SECRET"] as const;
 
+/**
+ * Simulierte Zahlungen (Mock-Provider) in Produktion nur mit diesem ausdrücklichen Opt-in (z. B. Staging).
+ * Sonst schaltet „Zahlung simulieren“ Abos und Premium gratis frei, und Schein-Umsätze würden ausbezahlt.
+ */
+export const ALLOW_MOCK_PAYMENTS_ENV = "ALLOW_MOCK_PAYMENTS_IN_PRODUCTION";
+
+/** Ist der Mock-Zahlungsanbieter in dieser Umgebung erlaubt? Ausserhalb von Produktion immer. */
+export function mockPaymentsAllowed(env: Record<string, string | undefined>): boolean {
+  return env.NODE_ENV !== "production" || env[ALLOW_MOCK_PAYMENTS_ENV] === "true";
+}
+
 export function productionConfigProblems(env: Record<string, string | undefined>): string[] {
   if (env.NODE_ENV !== "production") return [];
   const problems: string[] = [];
@@ -16,6 +27,13 @@ export function productionConfigProblems(env: Record<string, string | undefined>
   }
   if (env.STORAGE_DRIVER === "local") {
     problems.push("STORAGE_DRIVER=local ist nur für die Entwicklung gedacht – in Produktion 'supabase' verwenden.");
+  }
+  // Ohne PAYMENT_PROVIDER greift der Standard `mock` (src/server/payments/index.ts).
+  const paymentProvider = env.PAYMENT_PROVIDER?.trim() || "mock";
+  if (paymentProvider === "mock" && !mockPaymentsAllowed(env)) {
+    problems.push(
+      `PAYMENT_PROVIDER ist 'mock' (auch der Standard, wenn nicht gesetzt): simulierte Zahlungen schalten Abos gratis frei – echten Provider setzen oder nur für Staging ${ALLOW_MOCK_PAYMENTS_ENV}=true.`,
+    );
   }
   for (const name of SECRET_VARS) {
     const value = env[name];

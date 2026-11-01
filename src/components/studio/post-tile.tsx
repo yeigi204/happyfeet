@@ -2,6 +2,7 @@ import { Globe, Images, Lock, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/components/ui/cn";
+import { SignedImg } from "@/components/ui/signed-img";
 import type { ModerationStatus } from "@/lib/domain/types";
 import { formatDateTime, formatRelative } from "@/lib/format";
 import type { PostView } from "@/server/services/posts";
@@ -43,7 +44,7 @@ export function PostTile({ post, now, deleteAction }: PostTileProps) {
     >
       <div className="relative aspect-[4/5] self-start overflow-hidden sm:self-stretch rounded-[calc(var(--radius-card)-2px)] bg-surface-2 sm:rounded-b-none sm:rounded-t-[calc(var(--radius-card)-1px)]">
         {cover ? (
-          <img
+          <SignedImg
             src={cover.url}
             width={cover.width}
             height={cover.height}

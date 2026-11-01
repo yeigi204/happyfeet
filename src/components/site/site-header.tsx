@@ -11,15 +11,18 @@ import { Wordmark } from "./wordmark";
 function navItemsFor(viewer: Viewer | null): SiteNavItem[] {
   const items: SiteNavItem[] = [{ href: "/explore", label: "Entdecken" }];
   if (!viewer) return items;
+  // Gesperrte erreichen Feed, Abos und Studio ohnehin nicht – statt toter Links der Weg zur Sperr-Info.
+  if (viewer.status !== "active") return [...items, { href: "/banned", label: "Sperre" }];
   items.push({ href: "/feed", label: "Feed" }, { href: "/subscriptions", label: "Abos" }, { href: "/studio", label: "Studio" });
-  if (viewer.isAdmin && viewer.status === "active") items.push({ href: "/admin", label: "Admin" });
+  if (viewer.isAdmin) items.push({ href: "/admin", label: "Admin" });
   return items;
 }
 
 /**
  * Kopfzeile für die öffentlichen Seiten, den Fan-Bereich und das Studio (async Server Component).
  * Liest den Viewer selbst: Gäste sehen „Entdecken“ plus Anmelden/Registrieren, Angemeldete zusätzlich
- * Feed, Abos und Studio (Admins auch Admin) sowie ihr Konto-Menü. Klebt oben (`sticky`, `z-40`).
+ * Feed, Abos und Studio (Admins auch Admin) sowie ihr Konto-Menü; Gesperrte nur „Entdecken“ und „Sperre“.
+ * Klebt oben (`sticky`, `z-40`).
  */
 export async function SiteHeader({ className }: { className?: string } = {}) {
   const viewer = await getViewer();

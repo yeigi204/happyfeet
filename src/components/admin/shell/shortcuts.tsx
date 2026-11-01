@@ -122,7 +122,7 @@ export function Shortcuts() {
         "backdrop:bg-[rgb(8_6_5/0.74)] open:animate-rise",
       )}
     >
-      <div className="flex items-baseline justify-between border-b border-line px-5 py-4">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-line px-5 py-4">
         <h2 id="admin-shortcuts-title" className="font-display text-xl font-bold tracking-[-0.03em]">
           Tastaturkürzel
         </h2>

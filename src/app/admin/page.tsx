@@ -18,7 +18,8 @@ import { getPlatformSettings } from "@/server/services/settings";
 
 import { loadAdminDashboard, loadUserDirectory } from "./_lib/data";
 
-export const metadata: Metadata = { title: "Dashboard" };
+// Gleiches Segment wie das Layout mit dem Admin-Template – das Template greift hier nicht, daher absolut.
+export const metadata: Metadata = { title: { absolute: "Dashboard · Admin · happyfeet" } };
 
 type Focus = { lead: string; cta?: { href: string; label: string } };
 

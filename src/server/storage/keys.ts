@@ -8,7 +8,9 @@ const ID_SEGMENT = /^[a-zA-Z0-9_-]+$/;
 
 /**
  * Erzeugt die Storage-Keys für ein Bild eines Posts.
- * Die Zufalls-ID macht Keys nicht erratbar und verhindert Kollisionen bei erneutem Upload.
+ * Die Zufalls-IDs machen Keys nicht erratbar und verhindern Kollisionen bei erneutem Upload.
+ * Original und Vorschau bekommen je eine eigene ID: Der Vorschau-Key steckt in jeder gesperrten
+ * Vorschau-URL und darf nichts über den Ort des Originals verraten.
  */
 export function mediaKeys(postId: string, position: number): { originalKey: string; previewKey: string } {
   if (!ID_SEGMENT.test(postId)) {
@@ -17,8 +19,11 @@ export function mediaKeys(postId: string, position: number): { originalKey: stri
   if (!Number.isInteger(position) || position < 0) {
     throw new RangeError(`Ungültige Bildposition: ${position}`);
   }
-  const base = `posts/${postId}/${position}-${randomUUID()}`;
-  return { originalKey: `${base}-original.webp`, previewKey: `${base}-preview.webp` };
+  const dir = `posts/${postId}/${position}`;
+  return {
+    originalKey: `${dir}-${randomUUID()}-original.webp`,
+    previewKey: `${dir}-${randomUUID()}-preview.webp`,
+  };
 }
 
 /**

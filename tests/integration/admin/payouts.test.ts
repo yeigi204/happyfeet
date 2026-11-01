@@ -5,7 +5,13 @@ import { auditLog, payouts, users } from "@/server/db/schema";
 import type { Viewer } from "@/lib/domain/types";
 import { AuthError, ForbiddenError, ValidationError } from "@/server/errors";
 import * as adminPayouts from "@/server/services/admin/payouts";
-import { generateDuePayouts, listPayouts, markPayoutPaid } from "@/server/services/admin/payouts";
+import {
+  generateDuePayouts,
+  getPayoutSummary,
+  listPayouts,
+  listPayoutsPage,
+  markPayoutPaid,
+} from "@/server/services/admin/payouts";
 import * as payoutService from "@/server/services/payouts";
 
 import { setupTestDb } from "../../helpers/db";
@@ -85,6 +91,66 @@ describe("listPayouts", () => {
   });
 });
 
+describe("listPayoutsPage / getPayoutSummary", () => {
+  async function manyPayouts(count: number) {
+    const { user: creator } = await createCreator(t.db, { user: { handle: "viel_geld" } });
+    for (let i = 0; i < count; i++) {
+      const end = new Date(Date.UTC(2026, 10, 1) - i * 7 * 24 * 60 * 60 * 1000);
+      await t.db.insert(payouts).values({
+        creatorId: creator.id,
+        amountRappen: 100 + i,
+        schedule: "weekly",
+        periodStart: new Date(end.getTime() - 7 * 24 * 60 * 60 * 1000),
+        periodEnd: end,
+        status: i % 3 === 0 ? "paid" : "scheduled",
+        paidAt: i % 3 === 0 ? new Date(NOW.getTime() - i * 24 * 60 * 60 * 1000) : null,
+      });
+    }
+    return creator;
+  }
+
+  it("blättert mit limit/offset (Standard 50, neueste Periode zuerst) und liefert die Gesamtzahl", async () => {
+    await manyPayouts(55);
+    const admin = await viewerFor(t.db, (await createAdmin(t.db)).id, NOW);
+
+    const first = await listPayoutsPage(admin, {}, { now: NOW });
+    expect(first.total).toBe(55);
+    expect(first.items).toHaveLength(50);
+    expect(first).toMatchObject({ limit: 50, offset: 0 });
+    const second = await listPayoutsPage(admin, { offset: 50 }, { now: NOW });
+    expect(second.items).toHaveLength(5);
+    const all = [...first.items, ...second.items];
+    expect(new Set(all.map((p) => p.id)).size).toBe(55);
+    expect(all.map((p) => p.periodEnd.getTime())).toEqual([...all.map((p) => p.periodEnd.getTime())].sort((a, b) => b - a));
+
+    const scheduled = await listPayoutsPage(admin, { status: "scheduled", limit: 10 }, { now: NOW });
+    expect(scheduled.total).toBe(36);
+    expect(scheduled.items).toHaveLength(10);
+    expect(scheduled.items.every((p) => p.status === "scheduled")).toBe(true);
+    await expect(listPayoutsPage(admin, { limit: 0 })).resolves.toMatchObject({ limit: 50 });
+    await expect(listPayoutsPage(admin, { status: "bogus" as unknown as "paid" })).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it("fasst alle Auszahlungen für Kopfzahlen und Tabs zusammen (unabhängig von der Seite)", async () => {
+    const { admin, std, prem } = await fixture();
+    const [stdPayout] = await t.db.select().from(payouts).where(eq(payouts.creatorId, std.id));
+    await markPayoutPaid(admin, stdPayout.id, { now: NOW });
+
+    const summary = await getPayoutSummary(admin, { now: NOW });
+    expect(summary).toEqual({
+      scheduled: { count: 1, totalRappen: 940, creators: 1 },
+      paid: {
+        count: 1,
+        totalRappen: 841,
+        since: stdPayout.periodStart,
+        last30d: { count: 1, totalRappen: 841 },
+      },
+      failed: { count: 0, totalRappen: 0 },
+    });
+    void prem;
+  });
+});
+
 describe("Admin-Autorisierung", () => {
   it("Nicht-Admins (auch gesperrte Admins) werden abgewiesen", async () => {
     const { admin } = await fixture();
@@ -97,6 +163,8 @@ describe("Admin-Autorisierung", () => {
 
     for (const viewer of [fan, creator, bannedAdmin]) {
       await expect(listPayouts(viewer)).rejects.toBeInstanceOf(ForbiddenError);
+      await expect(listPayoutsPage(viewer)).rejects.toBeInstanceOf(ForbiddenError);
+      await expect(getPayoutSummary(viewer)).rejects.toBeInstanceOf(ForbiddenError);
       await expect(generateDuePayouts(viewer, { now: NOW })).rejects.toBeInstanceOf(ForbiddenError);
       await expect(markPayoutPaid(viewer, payout.id, { now: NOW })).rejects.toBeInstanceOf(ForbiddenError);
     }

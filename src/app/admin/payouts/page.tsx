@@ -57,6 +57,9 @@ export default async function PayoutsPage({ searchParams }: PageProps<"/admin/pa
   const scheduled = byStatus("scheduled");
   const paid30d = byStatus("paid").filter((p) => p.paidAt && p.paidAt.getTime() > since30d);
   const creatorsWaiting = new Set(scheduled.map((p) => p.creator.userId)).size;
+  const paid = byStatus("paid");
+  // Liste ist nach `period_end` sortiert – der früheste Periodenstart muss nicht am Ende stehen.
+  const paidSince = paid.length > 0 ? new Date(Math.min(...paid.map((p) => p.periodStart.getTime()))) : null;
 
   return (
     <div className="grid gap-6">
@@ -80,7 +83,7 @@ export default async function PayoutsPage({ searchParams }: PageProps<"/admin/pa
           value={formatChf(sum(paid30d))}
           hint={`${formatNumber(paid30d.length)} ${paid30d.length === 1 ? "Überweisung" : "Überweisungen"}`}
         />
-        <Stat label="Bezahlt · gesamt" value={formatChf(sum(byStatus("paid")))} hint={`seit ${all.length > 0 ? formatDate(all[all.length - 1].periodStart) : "–"}`} />
+        <Stat label="Bezahlt · gesamt" value={formatChf(sum(paid))} hint={paidSince ? `seit ${formatDate(paidSince)}` : "noch keine Überweisung"} />
       </section>
 
       <Segmented className="justify-self-start" label="Status" active={TABS.find((t) => t.value === status)!.href} items={TABS.map((t) => ({ href: t.href, label: t.label, count: byStatus(t.value).length }))} />

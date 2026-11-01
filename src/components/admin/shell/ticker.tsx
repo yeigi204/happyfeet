@@ -14,12 +14,21 @@ function Glyph({ direction }: { direction: "up" | "down" | "flat" }) {
 }
 
 /**
- * Kennzahlen-Leiste („Tape“) oben im Admin. Statisch – keine Laufschrift; auf schmalen
- * Bildschirmen horizontal scrollbar. Richtung immer mit Glyphe + Screenreader-Text.
+ * Kennzahlen-Leiste („Tape“) oben im Admin. Statisch – keine Laufschrift; reicht der Platz nicht, horizontal
+ * scrollbar (auch per Tastatur: fokussierbar). Richtung immer mit Glyphe + Screenreader-Text.
  */
 export function Ticker({ items, className }: { items: TickerItem[]; className?: string }) {
   return (
-    <div role="region" aria-label="Kennzahlen" className={cn("relative flex min-w-0 overflow-x-auto scrollbar-none [mask-image:linear-gradient(to_right,#000_calc(100%-48px),transparent)]", className)}>
+    // tabIndex: scrollbare Region muss per Tastatur erreichbar sein (Pfeiltasten scrollen), Fokusrahmen innen.
+    <div
+      role="region"
+      aria-label="Kennzahlen"
+      tabIndex={0}
+      className={cn(
+        "relative flex min-w-0 overflow-x-auto scrollbar-none [mask-image:linear-gradient(to_right,#000_calc(100%-48px),transparent)] focus-visible:outline-offset-[-2px] focus-visible:[mask-image:none]",
+        className,
+      )}
+    >
       <dl className="flex items-stretch pr-12">
         {items.map((item) => {
           const dir = item.direction ?? "flat";

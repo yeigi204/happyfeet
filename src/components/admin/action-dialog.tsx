@@ -61,7 +61,9 @@ export function ActionDialog({ title, description, confirmLabel, tone = "primary
     const dialog = dialogRef.current;
     if (!dialog) return;
     if (!dialog.open) dialog.showModal();
-    (dialog.querySelector("textarea") ?? dialog.querySelector<HTMLButtonElement>("button[type=submit]"))?.focus();
+    // Mit Notizfeld dorthin; reine Bestätigungen (oft unumkehrbar, z. B. „Als bezahlt markieren“) starten auf
+    // „Abbrechen“ – ein doppeltes Enter darf nichts auslösen.
+    (dialog.querySelector("textarea") ?? dialog.querySelector<HTMLButtonElement>("button[data-dialog-cancel]"))?.focus();
     // Kein `close()` im Cleanup: das Entfernen aus dem DOM beendet den Modal-Zustand ohnehin, und ein
     // `close`-Event aus dem StrictMode-Probelauf würde den eben geöffneten Dialog sofort wieder schliessen.
   }, []);
@@ -113,6 +115,8 @@ export function ActionDialog({ title, description, confirmLabel, tone = "primary
     }
   };
 
+  const hasBody = Boolean(note || formError);
+
   return (
     <dialog
       ref={dialogRef}
@@ -140,40 +144,42 @@ export function ActionDialog({ title, description, confirmLabel, tone = "primary
           ) : null}
         </div>
 
-        <div className="grid gap-4 px-5 py-5">
-          {note ? (
-            <Field label={note.label} hint={note.hint} error={fieldError ?? undefined}>
-              <Textarea
-                name={note.field ?? "note"}
-                rows={3}
-                value={value}
-                maxLength={note.maxLength ?? 1000}
-                required={note.required}
-                placeholder={note.placeholder}
-                onChange={(e) => {
-                  setValue(e.target.value);
-                  if (fieldError) setFieldError(null);
-                }}
-                onKeyDown={onTextareaKeyDown}
-              />
-            </Field>
-          ) : null}
-          {formError ? (
-            <p role="alert" className="flex items-start gap-2 rounded-control border border-danger/40 bg-danger/10 px-3 py-2.5 text-[13px] text-ink">
-              <OctagonAlert aria-hidden className="mt-px size-4 shrink-0 text-danger" />
-              {formError}
-            </p>
-          ) : null}
-        </div>
+        {hasBody ? (
+          <div className="grid gap-4 px-5 py-5">
+            {note ? (
+              <Field label={note.label} hint={note.hint} error={fieldError ?? undefined}>
+                <Textarea
+                  name={note.field ?? "note"}
+                  rows={3}
+                  value={value}
+                  maxLength={note.maxLength ?? 1000}
+                  required={note.required}
+                  placeholder={note.placeholder}
+                  onChange={(e) => {
+                    setValue(e.target.value);
+                    if (fieldError) setFieldError(null);
+                  }}
+                  onKeyDown={onTextareaKeyDown}
+                />
+              </Field>
+            ) : null}
+            {formError ? (
+              <p role="alert" className="flex items-start gap-2 rounded-control border border-danger/40 bg-danger/10 px-3 py-2.5 text-[13px] text-ink">
+                <OctagonAlert aria-hidden className="mt-px size-4 shrink-0 text-danger" />
+                {formError}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
 
-        <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line px-5 py-3.5">
+        <div className={cn("flex flex-wrap items-center justify-end gap-2 px-5 py-3.5", hasBody && "border-t border-line")}>
           {note ? (
             <span aria-hidden className="mr-auto hidden items-center gap-1 font-mono text-[11px] text-ink-faint sm:flex">
               <Kbd>⌘</Kbd>
               <Kbd>↵</Kbd> senden
             </span>
           ) : null}
-          <Button variant="ghost" size="sm" onClick={onClose} disabled={pending}>
+          <Button variant="ghost" size="sm" onClick={onClose} disabled={pending} data-dialog-cancel>
             Abbrechen
           </Button>
           <Button type="submit" variant={tone === "danger" ? "danger" : "primary"} size="sm" disabled={pending}>
