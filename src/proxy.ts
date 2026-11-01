@@ -1,24 +1,17 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { clerkMiddleware } from "@clerk/nextjs/server";
 import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 
 import { isDevImpersonation } from "@/server/auth/dev-impersonation";
 
 /**
- * Optimistische Weiterleitung für angemeldete Bereiche. Die eigentliche Autorisierung
- * (gesperrt, onboardet, Creator, Admin) passiert serverseitig in `src/server/auth/viewer.ts` und den Services.
+ * Stellt Clerk die Session für jede Anfrage bereit – mehr nicht.
+ *
+ * Bewusst KEINE pfadbasierten Schutzregeln (Clerk hat `createRouteMatcher` abgekündigt): Pfad-Matching
+ * kann vom tatsächlichen Next.js-Routing abweichen. Geschützt wird an der Ressource selbst –
+ * Layouts/Pages rufen `requireViewer()`/`requireOnboardedViewer()`/`requireCreator()`/`requireAdmin()`
+ * aus `src/server/auth/viewer.ts`, Services prüfen zusätzlich mit den Guards.
  */
-const isProtectedRoute = createRouteMatcher([
-  "/studio(.*)",
-  "/admin(.*)",
-  "/feed(.*)",
-  "/subscriptions(.*)",
-  "/onboarding(.*)",
-  "/checkout(.*)",
-]);
-
-const withClerk = clerkMiddleware(async (auth, request) => {
-  if (isProtectedRoute(request)) await auth.protect();
-});
+const withClerk = clerkMiddleware();
 
 export default function proxy(request: NextRequest, event: NextFetchEvent) {
   // Dev-Impersonation: Clerk komplett umgehen (wirft in Produktion, siehe dev-impersonation.ts).

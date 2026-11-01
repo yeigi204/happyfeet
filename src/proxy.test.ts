@@ -11,10 +11,10 @@ vi.mock("@clerk/nextjs/server", async (importOriginal) => {
   type Handler = (auth: unknown, req: NextRequest, event: NextFetchEvent) => unknown;
   return {
     ...actual,
-    // Echter Route-Matcher, aber eine Middleware-Attrappe, die nur den Handler mit `auth.protect` aufruft.
-    clerkMiddleware: (handler: Handler) => async (req: NextRequest, event: NextFetchEvent) => {
+    // Middleware-Attrappe: ruft einen optionalen Handler mit `auth.protect` auf.
+    clerkMiddleware: (handler?: Handler) => async (req: NextRequest, event: NextFetchEvent) => {
       clerk.invoked(req.nextUrl.pathname);
-      await handler(Object.assign(() => ({}), { protect: clerk.protect }), req, event);
+      await handler?.(Object.assign(() => ({}), { protect: clerk.protect }), req, event);
       return new Response(null, { headers: { "x-test": "clerk" } });
     },
   };
@@ -36,21 +36,13 @@ afterEach(() => {
 });
 
 describe("proxy", () => {
-  it.each(["/studio", "/studio/posts/neu", "/admin", "/admin/users", "/feed", "/subscriptions", "/onboarding", "/checkout/abc"])(
-    "schützt %s mit auth.protect()",
+  it.each(["/", "/explore", "/c/anna", "/studio", "/admin/users", "/feed", "/checkout/abc", "/api/webhooks/clerk"])(
+    "stellt Clerk für %s bereit, schützt aber nicht pfadbasiert (Schutz an der Ressource)",
     async (path) => {
-      await proxy(request(path), event);
-      expect(clerk.invoked).toHaveBeenCalledWith(path);
-      expect(clerk.protect).toHaveBeenCalledTimes(1);
-    },
-  );
-
-  it.each(["/", "/explore", "/c/anna", "/sign-in", "/sign-up/verify", "/banned", "/api/webhooks/clerk", "/api/media/x"])(
-    "lässt %s öffentlich (Clerk läuft, aber ohne protect)",
-    async (path) => {
-      await proxy(request(path), event);
+      const res = await proxy(request(path), event);
       expect(clerk.invoked).toHaveBeenCalledWith(path);
       expect(clerk.protect).not.toHaveBeenCalled();
+      expect(res?.headers.get("x-test")).toBe("clerk");
     },
   );
 
