@@ -52,7 +52,7 @@ export default async function StudioSettingsPage() {
             {currentPrice !== null ? (
               <p className="mt-3 flex items-baseline justify-between gap-3 border-b border-line pb-3">
                 <span className="text-sm text-ink-muted">Aktuell gespeichert</span>
-                <span className="font-mono text-[15px] font-medium text-ink tabular-nums">{formatChf(currentPrice)}</span>
+                <span className="font-num text-[15px] font-medium text-ink tabular-nums">{formatChf(currentPrice)}</span>
               </p>
             ) : null}
             <p className="mt-3 text-sm leading-relaxed text-ink-muted">
@@ -66,7 +66,7 @@ export default async function StudioSettingsPage() {
             >
               <span>
                 <span className="block text-[13px] font-semibold text-ink">Dein Profil</span>
-                <span className="mt-1 block font-mono text-xs text-ink-faint">happyfeet · /c/{viewer.handle}</span>
+                <span className="mt-1 block font-num text-xs text-ink-faint">happyfeet · /c/{viewer.handle}</span>
               </span>
               <ArrowUpRight aria-hidden className="size-5 text-ink-faint transition-colors group-hover:text-accent" />
             </Link>

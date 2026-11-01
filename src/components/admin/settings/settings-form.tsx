@@ -54,13 +54,13 @@ function AdornedInput({ prefix, suffix, className, ...props }: ComponentProps<ty
   return (
     <div className="relative">
       {prefix ? (
-        <span aria-hidden className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 font-mono text-xs text-ink-faint">
+        <span aria-hidden className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 font-num text-xs text-ink-faint">
           {prefix}
         </span>
       ) : null}
-      <Input {...props} className={cn("font-mono", prefix && "pl-12", suffix && "pr-9", className)} />
+      <Input {...props} className={cn("font-num", prefix && "pl-12", suffix && "pr-9", className)} />
       {suffix ? (
-        <span aria-hidden className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 font-mono text-xs text-ink-faint">
+        <span aria-hidden className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 font-num text-xs text-ink-faint">
           {suffix}
         </span>
       ) : null}
@@ -200,13 +200,13 @@ function SplitBar({ label, net, fee, gross }: { label: string; net: number; fee:
     <div>
       <div className="flex items-baseline justify-between gap-3 text-[13px]">
         <span className="font-medium text-ink">{label}</span>
-        <span className="font-mono text-ink tabular-nums">{formatChf(net)}</span>
+        <span className="font-num text-ink tabular-nums">{formatChf(net)}</span>
       </div>
       <div aria-hidden className="mt-2 flex h-2.5 gap-0.5">
         <span className="rounded-[3px] bg-series-2" style={{ flexGrow: netShare, flexBasis: 0 }} />
         <span className="min-w-[3px] rounded-[3px] bg-series-1" style={{ flexGrow: 1 - netShare, flexBasis: 0 }} />
       </div>
-      <p className="mt-1.5 font-mono text-[11px] text-ink-faint tabular-nums">Plattform {formatChf(fee)}</p>
+      <p className="mt-1.5 font-num text-[11px] text-ink-faint tabular-nums">Plattform {formatChf(fee)}</p>
     </div>
   );
 }
@@ -239,8 +239,8 @@ function ExampleCalculation({
     body = (
       <div className="grid gap-5">
         <p className="text-[15px] leading-relaxed text-ink">
-          Bei <b className="font-mono font-medium">{formatChf(gross)}</b> erhält ein Standard-Creator{" "}
-          <b className="font-mono font-medium">{formatChf(standard.creatorNetRappen)}</b>, Premium <b className="font-mono font-medium">{formatChf(premium.creatorNetRappen)}</b>.
+          Bei <b className="font-num font-medium">{formatChf(gross)}</b> erhält ein Standard-Creator{" "}
+          <b className="font-num font-medium">{formatChf(standard.creatorNetRappen)}</b>, Premium <b className="font-num font-medium">{formatChf(premium.creatorNetRappen)}</b>.
         </p>
         <div className="grid gap-4">
           <SplitBar label={`Standard · ${formatPercentBps(values.standardFeeBps)}`} net={standard.creatorNetRappen} fee={standard.platformFeeRappen} gross={gross} />
@@ -279,7 +279,7 @@ function ExampleCalculation({
   }
 
   return (
-    <Card title="Rechenbeispiel" action={<span className="font-mono text-xs text-ink-faint">live</span>} className="xl:sticky xl:top-[68px]">
+    <Card title="Rechenbeispiel" action={<span className="font-num text-xs text-ink-faint">live</span>} className="xl:sticky xl:top-[68px]">
       <div className="grid gap-5">
         <Field label="Abo-Preis pro Monat" hint="Nur zum Rechnen – wird nicht gespeichert.">
           <AdornedInput value={examplePrice} onChange={(e) => onExamplePriceChange(e.target.value)} prefix="CHF" inputMode="decimal" autoComplete="off" />

@@ -144,7 +144,7 @@ export default async function UsersPage({ searchParams }: PageProps<"/admin/user
         <Card
           title={query.q ? `Treffer für «${query.q}»` : filterLabel === "Alle" ? "Alle Konten" : filterLabel}
           action={
-            <span className="font-mono text-xs text-ink-faint tabular-nums">
+            <span className="font-num text-xs text-ink-faint tabular-nums">
               {formatNumber(from)}–{formatNumber(to)} von {formatNumber(total)}
             </span>
           }
@@ -182,7 +182,7 @@ export default async function UsersPage({ searchParams }: PageProps<"/admin/user
                             <span className="max-w-[16rem] truncate">{name}</span>
                             {isSelf ? <Badge className="h-[18px] px-1 text-[10.5px]">Du</Badge> : null}
                           </span>
-                          <span className="flex max-w-[22rem] gap-2 truncate font-mono text-[11px] text-ink-faint">
+                          <span className="flex max-w-[22rem] gap-2 truncate font-num text-[11px] text-ink-faint">
                             {u.handle ? <span>@{u.handle}</span> : <span>noch kein Handle</span>}
                             {u.email ? <span className="hidden truncate sm:inline">{u.email}</span> : null}
                           </span>
@@ -206,7 +206,7 @@ export default async function UsersPage({ searchParams }: PageProps<"/admin/user
                     <TD numeric className="hidden md:table-cell">
                       {u.creator ? formatNumber(u.creator.activeSubscribers) : <span className="text-ink-faint">–</span>}
                     </TD>
-                    <TD className="hidden font-mono text-[13px] text-ink-muted tabular-nums lg:table-cell">{formatDate(u.createdAt)}</TD>
+                    <TD className="hidden font-num text-[13px] text-ink-muted tabular-nums lg:table-cell">{formatDate(u.createdAt)}</TD>
                     <TD className="text-right">
                       <UserRowActions userId={u.id} label={displayLabel(u)} banned={u.status === "banned"} />
                     </TD>
@@ -217,7 +217,7 @@ export default async function UsersPage({ searchParams }: PageProps<"/admin/user
           </Table>
           {lastPage > 1 ? (
             <nav aria-label="Seiten" className="flex items-center justify-between gap-3 border-t border-line px-4 py-3">
-              <span className="font-mono text-xs text-ink-faint tabular-nums">
+              <span className="font-num text-xs text-ink-faint tabular-nums">
                 Seite {formatNumber(query.page)} von {formatNumber(lastPage)}
               </span>
               <span className="flex gap-2">

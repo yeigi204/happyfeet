@@ -1,51 +1,59 @@
+/* Layer-Reihenfolge: Clerk-Stile (cssLayerName "clerk") liegen unter den Tailwind-Utilities. */
+@layer theme, base, clerk, components, utilities;
+
 @import "tailwindcss";
 
 /*
- * happyfeet – Design-Tokens
- * Zwei Welten, eine Marke:
- *   hell (Default, :root)  „Puder & Creme“       – Öffentlich & Studio
- *   .theme-admin           „Pediküre-Salon trifft Trading-Terminal“
- * Beide Welten nutzen dieselben Variablennamen, damit jede Komponente in beiden funktioniert.
- * Serienfarben sind auf der jeweiligen Fläche validiert (dataviz-Validator: alle Checks PASS) –
- * Reihenfolge nie ändern. Status-Farben (success/warning/danger) nur mit Icon + Label, nie als Serie.
+ * happyfeet – Design-System „Rosé“
+ * Ein Design für alle Bereiche, in Hell und Dunkel.
+ *   Hell:   Werte unten in `@theme static` (Tailwind schreibt sie auf :root).
+ *   Dunkel: `@media (prefers-color-scheme: dark)` (Modus „Auto“) und `:root[data-theme="dark"]` (explizite Wahl).
+ *           `:root[data-theme="light"]` erzwingt Hell trotz dunklem System.
+ * Quelle der Werte: src/lib/design-tokens.ts (ein Test hält beide synchron).
+ * Serienfarben sind validiert (dataviz) – Reihenfolge nie ändern. Status-Farben nur mit Icon + Label.
  */
 
 @theme static {
-  --color-canvas: #f7f1ea;
-  --color-surface: #fffaf4;
-  --color-surface-2: #f1e7dc;
-  --color-line: #e6d9cb;
-  --color-line-strong: #cfbdab;
-  --color-ink: #1d1714;
-  --color-ink-muted: #62544a;
-  --color-ink-faint: #786960;
-  --color-accent: #d7352a;
-  --color-accent-ink: #fffaf4;
-  --color-accent-soft: #f8ddd5;
-  /* Akzent für kleine Schrift (Eyebrows < 18px): erreicht 4.5:1 auf canvas, surface und surface-2 */
-  --color-accent-strong: #bf2f25;
-  /* Fokus von Formular-Controls: hell = Nagellack-Rot (Marke); im Admin Tinte, damit Fokus ≠ Fehler (danger) */
-  --color-focus: #d7352a;
-  --color-success: #1f7a4a;
-  --color-warning: #9a5b00;
-  --color-danger: #b42318;
-  --color-premium: #87621a;
-  --color-premium-soft: #f2e5c6;
+  --color-canvas: #fffbfa;
+  --color-surface: #ffffff;
+  --color-surface-2: #fbf1f0;
+  --color-line: #f1e3e1;
+  --color-line-strong: #e6d2cf;
+  --color-ink: #1e1418;
+  --color-ink-muted: #7a6670;
+  --color-ink-faint: #826d77;
+  --color-accent: #c2185b;
+  --color-accent-ink: #ffffff;
+  --color-accent-soft: #fce4ec;
+  --color-accent-strong: #ad1452;
+  --color-focus: #1e1418;
+  --color-success: #1a7d4c;
+  --color-success-soft: #e3f4ea;
+  --color-warning: #985b00;
+  --color-warning-soft: #fdf0dc;
+  --color-danger: #c62828;
+  --color-danger-soft: #fde7e7;
+  --color-premium: #ad1452;
+  --color-premium-soft: #fce4ec;
 
-  --color-series-1: #d7352a;
-  --color-series-2: #007f66; /* #fffaf4 darauf: 4.79:1 (Meter-Prozente) */
-  --color-series-3: #bb7400;
-  --color-series-4: #734dbe;
-  /* Text auf einer Serienfläche (weiss oder fast schwarz je nach Luminanz) */
-  --color-on-series-1: #fffaf4;
-  --color-on-series-2: #fffaf4;
-  --color-on-series-3: #1d1714;
-  --color-on-series-4: #fffaf4;
+  --color-series-1: #ae1967;
+  --color-series-2: #1f74bf;
+  --color-series-3: #c37f00;
+  --color-series-4: #6d41a9;
+  --color-on-series-1: #ffffff;
+  --color-on-series-2: #ffffff;
+  --color-on-series-3: #1a1013;
+  --color-on-series-4: #ffffff;
 
-  --radius-control: 6px;
-  --radius-card: 8px;
+  --radius-control: 14px;
+  --radius-card: 22px;
+  --radius-panel: 28px;
 
-  --animate-rise: rise 140ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --shadow-sm: 0 1px 2px rgba(30, 20, 24, 0.05);
+  --shadow-md: 0 1px 2px rgba(30, 20, 24, 0.04), 0 10px 30px rgba(194, 24, 91, 0.08);
+  --shadow-lg: 0 2px 6px rgba(30, 20, 24, 0.05), 0 24px 60px rgba(120, 30, 70, 0.14);
+
+  --animate-rise: rise 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
 
   @keyframes rise {
     from {
@@ -60,46 +68,95 @@
 }
 
 @theme inline {
-  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
-  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-display: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 }
 
-.theme-admin {
-  --color-canvas: #0f0d0c;
-  --color-surface: #171412;
-  --color-surface-2: #1f1b18;
-  --color-line: #2c2622;
-  --color-line-strong: #3d3530;
-  --color-ink: #f3ede6;
-  --color-ink-muted: #b2a59a;
-  --color-ink-faint: #93877c;
-  --color-accent: #ec5545;
-  --color-accent-ink: #140b09;
-  --color-accent-soft: #3a1915;
-  --color-accent-strong: #ec5545;
-  --color-focus: #f3ede6;
-  --color-success: #45b884;
-  --color-warning: #e3a23b;
-  --color-danger: #ff6a5c;
-  --color-premium: #dbb56d;
-  --color-premium-soft: #2d2416;
+/* Dunkel – Modus „Auto“ (Systemeinstellung), sofern nicht explizit Hell gewählt ist. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-canvas: #171113;
+    --color-surface: #20181b;
+    --color-surface-2: #2a2024;
+    --color-line: #33282c;
+    --color-line-strong: #44363b;
+    --color-ink: #f7eef1;
+    --color-ink-muted: #b39ca6;
+    --color-ink-faint: #9a858e;
+    --color-accent: #f06a9c;
+    --color-accent-ink: #1a1013;
+    --color-accent-soft: #3b1a27;
+    --color-accent-strong: #f58bb2;
+    --color-focus: #f7eef1;
+    --color-success: #4cc38a;
+    --color-success-soft: #16301f;
+    --color-warning: #e7a94a;
+    --color-warning-soft: #33250f;
+    --color-danger: #ff7b7b;
+    --color-danger-soft: #3a1717;
+    --color-premium: #f58bb2;
+    --color-premium-soft: #3b1a27;
 
-  --color-series-1: #ec5545;
-  --color-series-2: #00ab8e;
-  --color-series-3: #c38300;
-  --color-series-4: #8e71d6;
-  --color-on-series-1: #140b09;
-  --color-on-series-2: #140b09;
-  --color-on-series-3: #140b09;
-  --color-on-series-4: #140b09;
+    --color-series-1: #dc5b92;
+    --color-series-2: #4790d8;
+    --color-series-3: #c38824;
+    --color-series-4: #9470cd;
+    --color-on-series-1: #1a1013;
+    --color-on-series-2: #1a1013;
+    --color-on-series-3: #1a1013;
+    --color-on-series-4: #1a1013;
 
-  --radius-control: 4px;
-  --radius-card: 6px;
+    --shadow-sm: none;
+    --shadow-md: 0 0 0 1px rgba(255, 255, 255, 0.02);
+    --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.45);
+
+    color-scheme: dark;
+  }
+}
+
+/* Dunkel – explizite Wahl (gewinnt in beide Richtungen gegen die Systemeinstellung). */
+:root[data-theme="dark"] {
+  --color-canvas: #171113;
+  --color-surface: #20181b;
+  --color-surface-2: #2a2024;
+  --color-line: #33282c;
+  --color-line-strong: #44363b;
+  --color-ink: #f7eef1;
+  --color-ink-muted: #b39ca6;
+  --color-ink-faint: #9a858e;
+  --color-accent: #f06a9c;
+  --color-accent-ink: #1a1013;
+  --color-accent-soft: #3b1a27;
+  --color-accent-strong: #f58bb2;
+  --color-focus: #f7eef1;
+  --color-success: #4cc38a;
+  --color-success-soft: #16301f;
+  --color-warning: #e7a94a;
+  --color-warning-soft: #33250f;
+  --color-danger: #ff7b7b;
+  --color-danger-soft: #3a1717;
+  --color-premium: #f58bb2;
+  --color-premium-soft: #3b1a27;
+
+  --color-series-1: #dc5b92;
+  --color-series-2: #4790d8;
+  --color-series-3: #c38824;
+  --color-series-4: #9470cd;
+  --color-on-series-1: #1a1013;
+  --color-on-series-2: #1a1013;
+  --color-on-series-3: #1a1013;
+  --color-on-series-4: #1a1013;
+
+  --shadow-sm: none;
+  --shadow-md: 0 0 0 1px rgba(255, 255, 255, 0.02);
+  --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.45);
 
   color-scheme: dark;
-  background-color: var(--color-canvas);
-  color: var(--color-ink);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
 }
 
 @layer base {
@@ -113,6 +170,7 @@
     color: var(--color-ink);
     font-family: var(--font-sans);
     text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
   }
 
   ::selection {
@@ -121,7 +179,7 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-accent);
+    outline: 2px solid var(--color-focus);
     outline-offset: 2px;
   }
 
@@ -136,14 +194,21 @@
   }
 }
 
-/* Mono-Beschriftung über Abschnitten/Kennzahlen: „UMSATZ · 90 T“ */
+/* Zahlen, Beträge, Zähler: dieselbe Schrift, gleich breite Ziffern. */
+@utility font-num {
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Kleine Überschrift über Abschnitten/Kennzahlen: „UMSATZ · 90 TAGE“ */
 @utility eyebrow {
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  line-height: 1;
-  letter-spacing: 0.09em;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--color-ink-faint);
+  color: var(--color-ink-muted);
 }
 
 @utility scrollbar-none {

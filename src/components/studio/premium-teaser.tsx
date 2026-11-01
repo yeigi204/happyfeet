@@ -36,7 +36,7 @@ export function PremiumTeaser({ priceRappen, standardFeeBps, premiumFeeBps, prem
       <div className="p-5 sm:p-7">
         <div className="flex items-center gap-2">
           <PremiumBadge />
-          <span className="font-mono text-xs text-ink-faint">{formatChf(premiumPriceRappen)} pro Monat</span>
+          <span className="font-num text-xs text-ink-faint">{formatChf(premiumPriceRappen)} pro Monat</span>
         </div>
         <h2 id="premium-teaser-title" className="mt-4 font-display text-[28px] leading-[0.95] font-bold tracking-[-0.04em] text-ink sm:text-[34px]">
           Hier stünde dein 90-Tage-Verlauf.
@@ -89,7 +89,7 @@ function TeaserChart() {
           ))}
         </svg>
       </div>
-      <span className="absolute top-5 right-5 inline-flex items-center gap-1.5 rounded-full border border-line-strong bg-surface px-2.5 py-1 font-mono text-[10.5px] tracking-[0.08em] text-ink-muted uppercase">
+      <span className="absolute top-5 right-5 inline-flex items-center gap-1.5 rounded-full border border-line-strong bg-surface px-2.5 py-1 font-num text-[10.5px] tracking-[0.08em] text-ink-muted uppercase">
         Vorschau
       </span>
     </div>

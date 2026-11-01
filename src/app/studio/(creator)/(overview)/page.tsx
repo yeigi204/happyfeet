@@ -199,7 +199,7 @@ function AdvancedStats({ advanced }: { advanced: NonNullable<StudioStats["advanc
             format="number"
             title="Neue Abos vs. Kündigungen · 30 Tage"
           />
-          <p className="mt-3 border-t border-line pt-3 font-mono text-xs text-ink-muted tabular-nums">
+          <p className="mt-3 border-t border-line pt-3 font-num text-xs text-ink-muted tabular-nums">
             {formatNumber(new30)} neu · {formatNumber(canceled30)} gekündigt · Saldo {new30 - canceled30 > 0 ? "+" : ""}
             {formatNumber(new30 - canceled30)}
           </p>
@@ -285,7 +285,7 @@ function NextSteps({ rejected, premoderationCount }: { rejected: boolean; premod
 }
 
 function StepMarker({ state, index }: { state: "done" | "current" | "todo" | "blocked"; index: number }) {
-  const base = "relative z-10 grid size-7 place-items-center rounded-full border font-mono text-[11px] font-medium";
+  const base = "relative z-10 grid size-7 place-items-center rounded-full border font-num text-[11px] font-medium";
   if (state === "done") {
     return (
       <span aria-hidden className={cn(base, "border-success/40 bg-success/10 text-success")}>

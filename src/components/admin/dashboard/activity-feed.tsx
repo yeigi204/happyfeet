@@ -41,7 +41,7 @@ export function ActivityFeed({ items, directory, now }: { items: ActivityItem[];
                   <span className="sr-only">{d.label}: </span>
                   <AuditSummary segments={d.summary} className="block text-[13px] leading-snug" />
                   {d.detail ? <span className="mt-0.5 line-clamp-1 block text-xs text-ink-faint">«{d.detail}»</span> : null}
-                  <span className="mt-0.5 block font-mono text-[11px] text-ink-faint">
+                  <span className="mt-0.5 block font-num text-[11px] text-ink-faint">
                     <time dateTime={item.createdAt.toISOString()} title={formatDateTime(item.createdAt)}>
                       {formatRelative(item.createdAt, now)}
                     </time>

@@ -142,7 +142,7 @@ export default async function MockCheckoutPage({ params }: PageProps<"/checkout/
                     <span className="truncate">{creator.displayName}</span>
                     {creator.isPremium ? <PremiumBadge compact /> : null}
                   </p>
-                  <p className="font-mono text-[12px] text-ink-faint">@{creator.handle}</p>
+                  <p className="font-num text-[12px] text-ink-faint">@{creator.handle}</p>
                 </div>
               </>
             ) : (
@@ -155,13 +155,13 @@ export default async function MockCheckoutPage({ params }: PageProps<"/checkout/
             <ReceiptLine label="Laufzeit">1 Monat, verlängert sich automatisch</ReceiptLine>
             <ReceiptLine label="Zahlungsart">Simuliert (Mock)</ReceiptLine>
             <ReceiptLine label="Link gültig bis">
-              <span className="font-mono tabular-nums">{formatDateTime(session.expiresAt)}</span>
+              <span className="font-num tabular-nums">{formatDateTime(session.expiresAt)}</span>
             </ReceiptLine>
           </dl>
 
           <div className="flex items-end justify-between gap-4 border-t border-line px-5 py-5 sm:px-6">
             <p className="eyebrow pb-1.5">Total heute</p>
-            <p className="font-mono text-[34px] leading-none font-medium tracking-[-0.04em] text-ink tabular-nums">
+            <p className="font-num text-[34px] leading-none font-medium tracking-[-0.04em] text-ink tabular-nums">
               <span className="mr-1.5 align-top font-sans text-[13px] font-medium tracking-normal text-ink-faint">
                 {session.currency}
               </span>

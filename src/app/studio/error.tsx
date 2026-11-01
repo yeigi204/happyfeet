@@ -33,7 +33,7 @@ export default function StudioError({ error, retry }: { error: unknown; retry: (
             Zur Übersicht
           </ButtonLink>
         </div>
-        {digest ? <p className="mt-8 font-mono text-[11px] text-ink-faint">Fehler-ID: {digest}</p> : null}
+        {digest ? <p className="mt-8 font-num text-[11px] text-ink-faint">Fehler-ID: {digest}</p> : null}
       </div>
     </Container>
   );

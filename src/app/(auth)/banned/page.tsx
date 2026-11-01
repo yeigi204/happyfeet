@@ -20,7 +20,7 @@ export default async function BannedPage() {
 
   return (
     <section>
-      <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent-strong">Konto gesperrt</p>
+      <p className="font-num text-[11px] uppercase tracking-[0.22em] text-accent-strong">Konto gesperrt</p>
       <h1 className="mt-4 font-display text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl">
         Dein Konto ist gesperrt.
       </h1>
@@ -30,19 +30,19 @@ export default async function BannedPage() {
 
       <dl className="mt-10 divide-y divide-line border-y border-line">
         <div className="grid gap-1 py-5 sm:grid-cols-[8rem_1fr] sm:gap-6">
-          <dt className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-muted sm:pt-1">Grund</dt>
+          <dt className="font-num text-[11px] uppercase tracking-[0.18em] text-ink-muted sm:pt-1">Grund</dt>
           <dd className="leading-relaxed text-ink">{ban.reason?.trim() || "Kein Grund angegeben."}</dd>
         </div>
         {ban.bannedAt && (
           <div className="grid gap-1 py-5 sm:grid-cols-[8rem_1fr] sm:gap-6">
-            <dt className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-muted sm:pt-1">Seit</dt>
-            <dd className="font-mono tabular-nums text-ink">{formatDate(ban.bannedAt)}</dd>
+            <dt className="font-num text-[11px] uppercase tracking-[0.18em] text-ink-muted sm:pt-1">Seit</dt>
+            <dd className="font-num tabular-nums text-ink">{formatDate(ban.bannedAt)}</dd>
           </div>
         )}
         {viewer.handle && (
           <div className="grid gap-1 py-5 sm:grid-cols-[8rem_1fr] sm:gap-6">
-            <dt className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-muted sm:pt-1">Konto</dt>
-            <dd className="font-mono text-ink">@{viewer.handle}</dd>
+            <dt className="font-num text-[11px] uppercase tracking-[0.18em] text-ink-muted sm:pt-1">Konto</dt>
+            <dd className="font-num text-ink">@{viewer.handle}</dd>
           </div>
         )}
       </dl>

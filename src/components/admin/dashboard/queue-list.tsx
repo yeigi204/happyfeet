@@ -66,7 +66,7 @@ export function QueueList({ queues, now }: { queues: DashboardQueues; now: Date 
   };
 
   return (
-    <Card title="Warteschlangen" action={<span className="font-mono text-xs text-ink-faint">dringendste zuerst</span>} flush>
+    <Card title="Warteschlangen" action={<span className="font-num text-xs text-ink-faint">dringendste zuerst</span>} flush>
       <ul className="divide-y divide-line">
         {[...sorted, payouts].map((q) => {
           const Icon = q.icon;
@@ -79,7 +79,7 @@ export function QueueList({ queues, now }: { queues: DashboardQueues; now: Date 
               >
                 <Icon aria-hidden className="size-4 text-ink-faint group-hover:text-ink-muted" />
                 <span className="truncate text-[13.5px] font-medium text-ink">{q.title}</span>
-                <span className={cn("row-span-2 font-mono text-[28px] leading-none font-medium tracking-[-0.04em] tabular-nums", empty ? "text-ink-faint" : "text-ink")}>
+                <span className={cn("row-span-2 font-num text-[28px] leading-none font-medium tracking-[-0.04em] tabular-nums", empty ? "text-ink-faint" : "text-ink")}>
                   {formatNumber(q.count)}
                 </span>
                 <span />

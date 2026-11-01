@@ -29,7 +29,7 @@ export function CreatorCard({ creator, className }: { creator: CreatorCardData; 
       <h3 className="mt-5 truncate font-display text-[22px] leading-tight font-bold tracking-[-0.03em] text-ink">
         {creator.displayName}
       </h3>
-      <p className="mt-0.5 truncate font-mono text-xs text-ink-faint">@{creator.handle}</p>
+      <p className="mt-0.5 truncate font-num text-xs text-ink-faint">@{creator.handle}</p>
       <p className="mt-3 line-clamp-3 text-sm leading-relaxed wrap-anywhere text-ink-muted">
         {creator.bio || "Hat noch keine Bio geschrieben – die Bilder sprechen für sich."}
       </p>
@@ -37,7 +37,7 @@ export function CreatorCard({ creator, className }: { creator: CreatorCardData; 
       <div className="mt-auto pt-5">
         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 border-t border-line pt-4">
           <p className="whitespace-nowrap">
-            <span className="font-mono text-[15px] font-medium text-ink tabular-nums">{formatChf(creator.monthlyPriceRappen)}</span>
+            <span className="font-num text-[15px] font-medium text-ink tabular-nums">{formatChf(creator.monthlyPriceRappen)}</span>
             <span className="text-xs text-ink-faint"> / Monat</span>
           </p>
           <p className="text-xs text-ink-muted tabular-nums">

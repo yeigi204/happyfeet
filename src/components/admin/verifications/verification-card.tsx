@@ -51,7 +51,7 @@ export function VerificationCard({ item, now }: { item: VerificationCardItem; no
               {item.displayName}
               {pending ? <UrgencyBadge oldestAt={item.appliedAt} now={now} className="font-sans tracking-normal" /> : null}
             </h2>
-            <p className="mt-1 flex flex-wrap gap-x-2 font-mono text-xs text-ink-faint">
+            <p className="mt-1 flex flex-wrap gap-x-2 font-num text-xs text-ink-faint">
               <span className="text-ink-muted">@{item.handle}</span>
               {item.email ? <span className="break-all">{item.email}</span> : null}
             </p>
@@ -80,7 +80,7 @@ export function VerificationCard({ item, now }: { item: VerificationCardItem; no
           <div>
             <dt className="eyebrow">Alter</dt>
             <dd className="mt-1.5 flex flex-wrap items-center gap-2">
-              <span className="font-mono text-ink tabular-nums">{item.age === null ? "–" : `${item.age} J.`}</span>
+              <span className="font-num text-ink tabular-nums">{item.age === null ? "–" : `${item.age} J.`}</span>
               {item.age === null ? (
                 <Badge tone="danger">Geburtsdatum fehlt</Badge>
               ) : adult ? (
@@ -96,11 +96,11 @@ export function VerificationCard({ item, now }: { item: VerificationCardItem; no
           </div>
           <div>
             <dt className="eyebrow">Geburtsdatum</dt>
-            <dd className="mt-1.5 font-mono text-ink tabular-nums">{birthDateLabel(item.birthDate)}</dd>
+            <dd className="mt-1.5 font-num text-ink tabular-nums">{birthDateLabel(item.birthDate)}</dd>
           </div>
           <div>
             <dt className="eyebrow">Abo-Preis</dt>
-            <dd className="mt-1.5 font-mono text-ink tabular-nums">
+            <dd className="mt-1.5 font-num text-ink tabular-nums">
               {formatChf(item.monthlyPriceRappen)}
               <span className="text-ink-faint"> / Mt.</span>
             </dd>

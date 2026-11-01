@@ -123,7 +123,7 @@ export default async function PayoutsPage({ searchParams }: PageProps<"/admin/pa
       ) : (
         <Card
           title={TABS.find((t) => t.value === status)!.label}
-          action={<span className="font-mono text-xs text-ink-faint tabular-nums">Summe {formatChf(statusTotals[status].totalRappen)}</span>}
+          action={<span className="font-num text-xs text-ink-faint tabular-nums">Summe {formatChf(statusTotals[status].totalRappen)}</span>}
           flush
         >
           <Table>
@@ -155,19 +155,19 @@ export default async function PayoutsPage({ searchParams }: PageProps<"/admin/pa
                             <span className="truncate">{name}</span>
                             {p.creator.isPremium ? <PremiumBadge compact /> : null}
                           </span>
-                          {p.creator.handle ? <span className="block truncate font-mono text-[11px] text-ink-faint">@{p.creator.handle}</span> : null}
-                          <span className="block font-mono text-[11px] whitespace-nowrap text-ink-muted tabular-nums sm:hidden">{periodLabel(p)}</span>
+                          {p.creator.handle ? <span className="block truncate font-num text-[11px] text-ink-faint">@{p.creator.handle}</span> : null}
+                          <span className="block font-num text-[11px] whitespace-nowrap text-ink-muted tabular-nums sm:hidden">{periodLabel(p)}</span>
                         </span>
                       </span>
                     </TD>
                     <TD className="hidden md:table-cell">
                       <Badge>{p.schedule === "weekly" ? "Wöchentlich" : "Monatlich"}</Badge>
                     </TD>
-                    <TD className="hidden font-mono text-[13px] whitespace-nowrap text-ink-muted tabular-nums sm:table-cell">{periodLabel(p)}</TD>
+                    <TD className="hidden font-num text-[13px] whitespace-nowrap text-ink-muted tabular-nums sm:table-cell">{periodLabel(p)}</TD>
                     <TD numeric className="font-medium">
                       {formatChf(p.amountRappen)}
                     </TD>
-                    <TD className="hidden font-mono text-[13px] text-ink-muted tabular-nums sm:table-cell">
+                    <TD className="hidden font-num text-[13px] text-ink-muted tabular-nums sm:table-cell">
                       {status === "paid" && p.paidAt ? formatDate(p.paidAt) : formatDate(p.createdAt)}
                     </TD>
                     {status === "scheduled" ? (
@@ -182,7 +182,7 @@ export default async function PayoutsPage({ searchParams }: PageProps<"/admin/pa
           </Table>
           {pageCount > 1 ? (
             <nav aria-label="Seiten" className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-4 py-3">
-              <p className="font-mono text-xs text-ink-faint tabular-nums">
+              <p className="font-num text-xs text-ink-faint tabular-nums">
                 {formatNumber(firstRow)}–{formatNumber(lastRow)} von {formatNumber(list.total)}
               </p>
               <div className="flex gap-2">

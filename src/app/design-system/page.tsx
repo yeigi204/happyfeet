@@ -213,7 +213,7 @@ export default function DesignSystemPage() {
             <NailMark />
             <span className="font-display text-lg font-extrabold tracking-[-0.05em]">happyfeet</span>
           </span>
-          <span className="font-mono text-[11px] text-ink-faint">Design-System · v1 · 01.11.2026</span>
+          <span className="font-num text-[11px] text-ink-faint">Design-System · v1 · 01.11.2026</span>
         </div>
 
         <header className="grid gap-10 py-14 sm:py-20 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-end">
@@ -229,7 +229,7 @@ export default function DesignSystemPage() {
               realistischen Daten in CHF.
             </p>
           </div>
-          <nav aria-label="Abschnitte" className="grid grid-cols-2 gap-x-6 gap-y-2 border-t border-line pt-4 font-mono text-[12px] lg:grid-cols-1">
+          <nav aria-label="Abschnitte" className="grid grid-cols-2 gap-x-6 gap-y-2 border-t border-line pt-4 font-num text-[12px] lg:grid-cols-1">
             {SECTIONS.map(([id, label], i) => (
               <a key={id} href={`#${id}`} className="group flex items-baseline gap-3 text-ink-muted hover:text-ink">
                 <span className="text-ink-faint tabular-nums">{String(i + 1).padStart(2, "0")}</span>
@@ -329,7 +329,7 @@ export default function DesignSystemPage() {
                     {(["series-1", "series-2", "series-3", "series-4"] as const).map((c, i) => (
                       <div key={c}>
                         <Sparkline values={CREATORS[i + 1].trend} color={c} label={`Trend ${CREATORS[i + 1].name}`} />
-                        <p className="mt-1.5 font-mono text-[11px] text-ink-faint">{c}</p>
+                        <p className="mt-1.5 font-num text-[11px] text-ink-faint">{c}</p>
                       </div>
                     ))}
                   </div>
@@ -386,7 +386,7 @@ export default function DesignSystemPage() {
         <section id="admin" aria-labelledby="admin-title" className="grid gap-4 border-t border-line pt-12 pb-8 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-12 lg:pt-16">
           <SectionHeading id="admin" n={9} title="Admin" />
           <p className="max-w-2xl text-sm text-ink-muted lg:pt-9">
-            Dieselben Bausteine unter <code className="font-mono text-[13px] text-ink">.theme-admin</code>: warmes Tintenschwarz, Haarlinien, ein
+            Dieselben Bausteine unter <code className="font-num text-[13px] text-ink">.theme-admin</code>: warmes Tintenschwarz, Haarlinien, ein
             einziger Akzent. Kürzel sind live – probier <Kbd>⌘</Kbd>
             <Kbd>K</Kbd> oder <Kbd>?</Kbd>.
           </p>
@@ -403,7 +403,7 @@ export default function DesignSystemPage() {
           <AdminDashboardMock platform={platform} />
         </AdminShell>
       </div>
-      <p className="mx-auto max-w-[1240px] px-4 py-10 font-mono text-[11px] text-ink-faint sm:px-8">Ende · happyfeet Design-System</p>
+      <p className="mx-auto max-w-[1240px] px-4 py-10 font-num text-[11px] text-ink-faint sm:px-8">Ende · happyfeet Design-System</p>
     </div>
   );
 }
@@ -424,7 +424,7 @@ function NailMark({ className }: { className?: string }) {
 function SectionHeading({ id, n, title, lead }: { id: string; n: number; title: string; lead?: string }) {
   return (
     <div className="lg:sticky lg:top-8 lg:self-start">
-      <p className="flex items-center gap-2 font-mono text-[11px] text-ink-faint tabular-nums">
+      <p className="flex items-center gap-2 font-num text-[11px] text-ink-faint tabular-nums">
         <span aria-hidden className="size-1.5 rounded-full bg-accent" />
         {String(n).padStart(2, "0")}
       </p>
@@ -497,7 +497,7 @@ function SwatchPanel({ world }: { world: "hell" | "admin" }) {
     <div className="rounded-card border border-line bg-canvas p-4 sm:p-5">
       <div className="mb-5 flex items-baseline justify-between">
         <p className="font-display text-lg font-bold tracking-[-0.03em] text-ink">{world === "hell" ? "Hell · Puder & Creme" : "Admin · Tintenschwarz"}</p>
-        <code className="font-mono text-[11px] text-ink-faint">{world === "hell" ? ":root" : ".theme-admin"}</code>
+        <code className="font-num text-[11px] text-ink-faint">{world === "hell" ? ":root" : ".theme-admin"}</code>
       </div>
       <div className="grid gap-5">
         {SWATCHES.map((g) => (
@@ -508,8 +508,8 @@ function SwatchPanel({ world }: { world: "hell" | "admin" }) {
               {g.tokens.map(([name, light, admin]) => (
                 <li key={name} className="min-w-0">
                   <span className="block h-11 rounded-[4px] border border-line" style={{ background: `var(--color-${name})` }} />
-                  <span className="mt-1.5 block truncate font-mono text-[10.5px] text-ink">{name}</span>
-                  <span className="block font-mono text-[10.5px] text-ink-faint">{world === "hell" ? light : admin}</span>
+                  <span className="mt-1.5 block truncate font-num text-[10.5px] text-ink">{name}</span>
+                  <span className="block font-num text-[10.5px] text-ink-faint">{world === "hell" ? light : admin}</span>
                 </li>
               ))}
             </ul>
@@ -545,13 +545,13 @@ function TypeSpecimen() {
       <div className="grid gap-px bg-line md:grid-cols-[1.4fr_1fr]">
         <div className="bg-surface p-5 sm:p-8">
           <p className="eyebrow">Zahlen · Geist Mono · Schweizer Apostroph</p>
-          <p className="mt-4 font-mono text-[40px] leading-none font-medium tracking-[-0.04em] sm:text-[56px]">
+          <p className="mt-4 font-num text-[40px] leading-none font-medium tracking-[-0.04em] sm:text-[56px]">
             <span className="mr-2.5 align-text-top font-sans text-sm text-ink-faint">CHF</span>12<span className="-mx-[0.16em]">’</span>480<span className="text-ink-faint">.00</span>
           </p>
         </div>
         <div className="bg-surface p-5 sm:p-8">
           <p className="eyebrow">Tabellarisch · tabular-nums</p>
-          <dl className="mt-4 grid gap-1.5 font-mono text-[13px] tabular-nums">
+          <dl className="mt-4 grid gap-1.5 font-num text-[13px] tabular-nums">
             {[
               ["Brutto", 1_234_550],
               ["Provision 15 %", -185_183],
@@ -576,7 +576,7 @@ function Controls() {
         <div className="grid gap-5">
           {(["primary", "secondary", "ghost", "danger"] as const).map((variant) => (
             <div key={variant} className="flex flex-wrap items-center gap-2">
-              <span className="w-20 font-mono text-[11px] text-ink-faint">{variant}</span>
+              <span className="w-20 font-num text-[11px] text-ink-faint">{variant}</span>
               <Button variant={variant} size="sm">
                 Klein
               </Button>
@@ -587,7 +587,7 @@ function Controls() {
             </div>
           ))}
           <div className="flex flex-wrap items-center gap-2 border-t border-line pt-4">
-            <span className="w-20 font-mono text-[11px] text-ink-faint">Zustände</span>
+            <span className="w-20 font-num text-[11px] text-ink-faint">Zustände</span>
             <Button variant="primary" disabled>
               Deaktiviert
             </Button>
@@ -686,7 +686,7 @@ function PaymentsTable() {
     { at: "31.10.2026, 18:05", fan: "nina_bs", kind: "Verlängerung", gross: 890, fee: 134 },
   ];
   return (
-    <Card title="Letzte Zahlungen" action={<span className="font-mono text-xs text-ink-faint">5 von 1’284</span>} flush>
+    <Card title="Letzte Zahlungen" action={<span className="font-num text-xs text-ink-faint">5 von 1’284</span>} flush>
       <Table>
         <THead>
           <TR>
@@ -701,7 +701,7 @@ function PaymentsTable() {
         <TBody>
           {rows.map((r) => (
             <TR key={r.at}>
-              <TD className="font-mono text-[13px] whitespace-nowrap text-ink-muted tabular-nums">{r.at}</TD>
+              <TD className="font-num text-[13px] whitespace-nowrap text-ink-muted tabular-nums">{r.at}</TD>
               <TD>
                 <span className="flex items-center gap-2">
                   <Avatar name={r.fan} size="xs" />@{r.fan}
@@ -776,7 +776,7 @@ function AdminDashboardMock({ platform }: { platform: Platform }) {
             hint="vs. 2. Oktober"
           >
             <Sparkline values={platform.mrrSeries} label="MRR, letzte 90 Tage" className="mt-6 h-16" />
-            <div className="mt-2 flex justify-between font-mono text-[10.5px] text-ink-faint">
+            <div className="mt-2 flex justify-between font-num text-[10.5px] text-ink-faint">
               <span>4. Aug</span>
               <span>heute</span>
             </div>
@@ -789,7 +789,7 @@ function AdminDashboardMock({ platform }: { platform: Platform }) {
             ].map(([label, value]) => (
               <div key={label} className="min-w-0">
                 <dt className="eyebrow truncate">{label}</dt>
-                <dd className="mt-2 font-mono text-[13px] whitespace-nowrap text-ink tabular-nums">{value}</dd>
+                <dd className="mt-2 font-num text-[13px] whitespace-nowrap text-ink tabular-nums">{value}</dd>
               </div>
             ))}
           </dl>
@@ -877,7 +877,7 @@ function AdminDashboardMock({ platform }: { platform: Platform }) {
                 ].map(([label, value]) => (
                   <div key={label} className="bg-surface px-3 py-2.5">
                     <dt className="eyebrow">{label}</dt>
-                    <dd className="mt-2 font-mono text-[13px] whitespace-nowrap text-ink tabular-nums">{value}</dd>
+                    <dd className="mt-2 font-num text-[13px] whitespace-nowrap text-ink tabular-nums">{value}</dd>
                   </div>
                 ))}
               </dl>
@@ -945,7 +945,7 @@ function QueueList() {
     { title: "Auszahlungen", icon: Wallet, count: 5, meta: `geplant · ${formatChf(693_010)}`, href: "/admin/payouts" },
   ];
   return (
-    <Card title="Warteschlangen" action={<span className="font-mono text-xs text-ink-faint">älteste zuerst</span>} flush>
+    <Card title="Warteschlangen" action={<span className="font-num text-xs text-ink-faint">älteste zuerst</span>} flush>
       <ul className="divide-y divide-line">
         {queues.map((q) => {
           const Icon = q.icon;
@@ -955,7 +955,7 @@ function QueueList() {
               <a href={q.href} className="group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 px-4 py-3.5 transition-colors hover:bg-surface-2">
                 <Icon aria-hidden className="size-4 text-ink-faint group-hover:text-ink-muted" />
                 <span className="truncate text-[13.5px] font-medium text-ink">{q.title}</span>
-                <span className="row-span-2 font-mono text-[28px] leading-none font-medium tracking-[-0.04em] text-ink">{q.count}</span>
+                <span className="row-span-2 font-num text-[28px] leading-none font-medium tracking-[-0.04em] text-ink">{q.count}</span>
                 <span />
                 <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-faint">
                   {u ? <Badge tone={u.tone}>{u.label}</Badge> : null}
@@ -978,7 +978,7 @@ const TOP_CREATORS = [...CREATORS].sort((a, b) => b.gross30 - a.gross30);
 
 function TopCreators() {
   return (
-    <Card title="Top-Creator · 30 T" action={<span className="font-mono text-xs text-ink-faint">nach Brutto</span>} flush>
+    <Card title="Top-Creator · 30 T" action={<span className="font-num text-xs text-ink-faint">nach Brutto</span>} flush>
       <Table>
         <THead>
           <TR>
@@ -993,7 +993,7 @@ function TopCreators() {
         <TBody>
           {TOP_CREATORS.map((c, i) => (
             <TR key={c.handle}>
-              <TD className="hidden font-mono text-[12px] text-ink-faint tabular-nums sm:table-cell">{String(i + 1).padStart(2, "0")}</TD>
+              <TD className="hidden font-num text-[12px] text-ink-faint tabular-nums sm:table-cell">{String(i + 1).padStart(2, "0")}</TD>
               <TD>
                 <span className="flex min-w-0 items-center gap-2.5">
                   <Avatar name={c.name} size="sm" />
@@ -1002,7 +1002,7 @@ function TopCreators() {
                       {c.name}
                       {c.premium ? <Gem aria-label="Premium" className="size-3 shrink-0 text-premium" /> : null}
                     </span>
-                    <span className="block truncate font-mono text-[11px] text-ink-faint">@{c.handle}</span>
+                    <span className="block truncate font-num text-[11px] text-ink-faint">@{c.handle}</span>
                   </span>
                 </span>
               </TD>
@@ -1043,7 +1043,7 @@ function ActivityFeed() {
               </span>
               <span className="min-w-0">
                 <span className="block text-[13px] leading-snug text-ink-muted [&_b]:font-medium [&_b]:text-ink">{a.text}</span>
-                <span className="mt-0.5 block font-mono text-[11px] text-ink-faint">{formatRelative(a.at, NOW)} · @admin</span>
+                <span className="mt-0.5 block font-num text-[11px] text-ink-faint">{formatRelative(a.at, NOW)} · @admin</span>
               </span>
             </li>
           );

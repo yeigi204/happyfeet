@@ -59,7 +59,7 @@ export function PostCard({ post, variant, now, reportAction, lockedAction, class
               </Link>
               {post.creator.isPremium ? <PremiumBadge compact /> : null}
             </p>
-            <p className="truncate font-mono text-[11.5px] text-ink-faint">
+            <p className="truncate font-num text-[11.5px] text-ink-faint">
               @{post.creator.handle} · {time}
             </p>
           </div>

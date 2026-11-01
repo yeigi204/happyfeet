@@ -53,7 +53,7 @@ export function KpiOverview({ kpis: k, activeSeries, today, now }: KpiOverviewPr
           hint={k.mrrDeltaPct === null ? "noch keine Vergleichsbasis" : `vs. ${compareDate}`}
         >
           <Sparkline values={activeSeries.map((d) => d.active)} label="Aktive Abos, letzte 90 Tage" className="mt-6 h-16" />
-          <div className="mt-2 flex justify-between font-mono text-[10.5px] text-ink-faint">
+          <div className="mt-2 flex justify-between font-num text-[10.5px] text-ink-faint">
             <span>{dayLabel(activeSeries[0]?.date)}</span>
             <span>aktive Abos · heute</span>
           </div>
@@ -66,7 +66,7 @@ export function KpiOverview({ kpis: k, activeSeries, today, now }: KpiOverviewPr
           ].map(([label, value, title]) => (
             <div key={label} className="min-w-0" title={title}>
               <dt className="eyebrow truncate">{label}</dt>
-              <dd className="mt-2 font-mono text-[13px] whitespace-nowrap text-ink tabular-nums">{value}</dd>
+              <dd className="mt-2 font-num text-[13px] whitespace-nowrap text-ink tabular-nums">{value}</dd>
             </div>
           ))}
         </dl>

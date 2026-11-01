@@ -43,7 +43,7 @@ export function TD({ numeric, className, ...props }: ComponentPropsWithoutRef<"t
     <td
       className={cn(
         "px-3 py-2.5 align-middle text-ink first:pl-4 last:pr-4",
-        numeric && "text-right font-mono text-[13px] whitespace-nowrap tabular-nums",
+        numeric && "text-right font-num text-[13px] whitespace-nowrap tabular-nums",
         className,
       )}
       {...props}

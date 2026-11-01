@@ -126,7 +126,7 @@ export function Shortcuts() {
         <h2 id="admin-shortcuts-title" className="font-display text-xl font-bold tracking-[-0.03em]">
           Tastaturkürzel
         </h2>
-        <span className="font-mono text-[11px] text-ink-faint">gilt nicht in Eingabefeldern</span>
+        <span className="font-num text-[11px] text-ink-faint">gilt nicht in Eingabefeldern</span>
       </div>
       <div className="grid gap-6 px-5 py-5 sm:grid-cols-2">
         {HELP.map((section) => (

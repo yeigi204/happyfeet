@@ -163,7 +163,7 @@ export function ModerationTriage({ mode, items, now: nowMs, premoderationCount, 
     <div className="grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)]">
       <div className="order-2 min-w-0 lg:order-1 lg:sticky lg:top-[68px] lg:max-h-[calc(100dvh-92px)] lg:self-start lg:overflow-y-auto lg:scrollbar-none">
         <TriageList mode={mode} items={visible} activeKey={active.key} now={now} onSelect={(i) => select(i)} />
-        <p className="mt-3 hidden flex-wrap items-center gap-x-3 gap-y-1.5 px-1 font-mono text-[11px] text-ink-faint lg:flex">
+        <p className="mt-3 hidden flex-wrap items-center gap-x-3 gap-y-1.5 px-1 font-num text-[11px] text-ink-faint lg:flex">
           <span className="flex items-center gap-1">
             <Kbd>j</Kbd>
             <Kbd>k</Kbd> wählen
@@ -195,7 +195,7 @@ export function ModerationTriage({ mode, items, now: nowMs, premoderationCount, 
             >
               <ChevronDown aria-hidden />
             </Button>
-            <span className="px-1.5 font-mono text-xs text-ink-muted tabular-nums" aria-live="polite">
+            <span className="px-1.5 font-num text-xs text-ink-muted tabular-nums" aria-live="polite">
               {formatNumber(activeIndex + 1)} / {formatNumber(visible.length)}
             </span>
           </div>
@@ -242,7 +242,7 @@ function DecisionButton({
         label
       )}
       {/* Eigene Taste statt <Kbd>: übernimmt die Textfarbe des Buttons (auch auf Akzent-Rot lesbar). */}
-      <span aria-hidden className="ml-0.5 hidden h-[18px] min-w-[18px] items-center justify-center rounded-[3px] border border-current/35 px-1 font-mono text-[10px] leading-none uppercase opacity-80 sm:inline-flex">
+      <span aria-hidden className="ml-0.5 hidden h-[18px] min-w-[18px] items-center justify-center rounded-[3px] border border-current/35 px-1 font-num text-[10px] leading-none uppercase opacity-80 sm:inline-flex">
         {decision}
       </span>
     </Button>

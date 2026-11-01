@@ -225,7 +225,7 @@ export function CommandPalette({ quickSearch }: { quickSearch?: QuickSearch }) {
                 {i === activeIndex ? <span aria-hidden className="absolute inset-y-2 left-0 w-[3px] rounded-r-full bg-accent" /> : null}
                 <Icon aria-hidden className="size-4 shrink-0 text-ink-faint" />
                 <span className="min-w-0 truncate">{cmd.label}</span>
-                {cmd.sublabel ? <span className="min-w-0 truncate font-mono text-xs text-ink-faint">{cmd.sublabel}</span> : null}
+                {cmd.sublabel ? <span className="min-w-0 truncate font-num text-xs text-ink-faint">{cmd.sublabel}</span> : null}
                 <span className="ml-auto flex shrink-0 items-center gap-1">
                   {cmd.keys?.map((k, ki) => (
                     <Kbd key={ki}>{k}</Kbd>
@@ -237,7 +237,7 @@ export function CommandPalette({ quickSearch }: { quickSearch?: QuickSearch }) {
           );
         })}
         {pending ? (
-          <li role="presentation" className="px-4 py-3 font-mono text-xs text-ink-faint">
+          <li role="presentation" className="px-4 py-3 font-num text-xs text-ink-faint">
             Suche Nutzer …
           </li>
         ) : null}
@@ -253,7 +253,7 @@ export function CommandPalette({ quickSearch }: { quickSearch?: QuickSearch }) {
         ) : null}
       </ul>
 
-      <div className="flex items-center gap-4 border-t border-line px-4 py-2.5 font-mono text-[11px] text-ink-faint">
+      <div className="flex items-center gap-4 border-t border-line px-4 py-2.5 font-num text-[11px] text-ink-faint">
         <span className="flex items-center gap-1.5">
           <Kbd>↑</Kbd>
           <Kbd>↓</Kbd> wählen

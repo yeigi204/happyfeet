@@ -103,7 +103,7 @@ export default async function BecomeCreatorPage() {
                     <span aria-hidden className="grid size-9 place-items-center rounded-full border border-line-strong text-ink">
                       <Icon className="size-4" />
                     </span>
-                    <span aria-hidden className="font-mono text-[11px] text-ink-faint tabular-nums">
+                    <span aria-hidden className="font-num text-[11px] text-ink-faint tabular-nums">
                       {String(i + 1).padStart(2, "0")}
                     </span>
                   </div>
@@ -121,7 +121,7 @@ export default async function BecomeCreatorPage() {
               {reapply ? "Erneut bewerben" : "Deine Bewerbung"}
             </h2>
             <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">
-              Du bewirbst dich als <span className="font-mono text-ink">@{viewer.handle}</span>. Bio und Preis kannst du später jederzeit ändern.
+              Du bewirbst dich als <span className="font-num text-ink">@{viewer.handle}</span>. Bio und Preis kannst du später jederzeit ändern.
             </p>
 
             {reapply && profile?.verificationNote ? (

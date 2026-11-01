@@ -1,25 +1,15 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 
 import { AppProviders } from "@/components/providers";
 
 import "./globals.css";
 
-const display = Bricolage_Grotesque({
-  variable: "--font-bricolage",
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
   subsets: ["latin"],
-  display: "swap",
-});
-
-const sans = Geist({
-  variable: "--font-geist",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const mono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  style: ["normal", "italic"],
   display: "swap",
 });
 
@@ -34,8 +24,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f7f1ea" },
-    { media: "(prefers-color-scheme: dark)", color: "#0f0d0c" },
+    { media: "(prefers-color-scheme: light)", color: "#fffbfa" },
+    { media: "(prefers-color-scheme: dark)", color: "#171113" },
   ],
 };
 
@@ -46,7 +36,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     // Abweichungen in Kind-Elementen meldet React weiterhin.
     <html
       lang="de-CH"
-      className={`${display.variable} ${sans.variable} ${mono.variable} h-full antialiased`}
+      className={`${jakarta.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full" suppressHydrationWarning>

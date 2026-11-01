@@ -36,9 +36,9 @@ export function Ticker({ items, className }: { items: TickerItem[]; className?: 
           return (
             <div key={item.label} className="flex shrink-0 items-center gap-2.5 border-r border-line px-4 whitespace-nowrap">
               <dt className="text-[10.5px] font-medium tracking-[0.08em] text-ink-faint uppercase">{item.label}</dt>
-              <dd className="font-mono text-[12.5px] text-ink tabular-nums">{item.value}</dd>
+              <dd className="font-num text-[12.5px] text-ink tabular-nums">{item.value}</dd>
               {item.delta ? (
-                <dd className={cn("inline-flex items-center gap-1 font-mono text-[11px] tabular-nums", color)}>
+                <dd className={cn("inline-flex items-center gap-1 font-num text-[11px] tabular-nums", color)}>
                   <Glyph direction={dir} />
                   <span className="sr-only">{DIRECTION_TEXT[dir]}:</span>
                   {item.delta}

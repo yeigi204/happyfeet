@@ -119,7 +119,7 @@ export default async function StudioPremiumPage({ searchParams }: PageProps<"/st
                     title="Premium kündigen?"
                     description={
                       <>
-                        Premium verlängert sich nicht mehr. Bis zum <span className="font-mono text-ink">{formatDate(premium.currentPeriodEnd)}</span>{" "}
+                        Premium verlängert sich nicht mehr. Bis zum <span className="font-num text-ink">{formatDate(premium.currentPeriodEnd)}</span>{" "}
                         behältst du alle Vorteile, danach gelten wieder {formatPercentBps(premium.standardFeeBps)} Provision und monatliche
                         Auszahlungen.
                       </>
@@ -183,7 +183,7 @@ export default async function StudioPremiumPage({ searchParams }: PageProps<"/st
           {price > 0 ? (
             <div className="grid gap-6">
               <p className="text-sm leading-relaxed text-ink-muted">
-                Ein Abo bei dir kostet <span className="font-mono text-ink">{formatChf(price)}</span> im Monat. So teilt es sich auf:
+                Ein Abo bei dir kostet <span className="font-num text-ink">{formatChf(price)}</span> im Monat. So teilt es sich auf:
               </p>
               <Meter
                 title={`Standard · ${formatPercentBps(premium.standardFeeBps)}`}
@@ -201,7 +201,7 @@ export default async function StudioPremiumPage({ searchParams }: PageProps<"/st
                   { label: "Provision", value: withPremium.platformFeeRappen, color: "series-1" },
                 ]}
               />
-              <dl className="grid gap-2 border-t border-line pt-4 font-mono text-[13px] tabular-nums">
+              <dl className="grid gap-2 border-t border-line pt-4 font-num text-[13px] tabular-nums">
                 <div className="flex justify-between gap-4">
                   <dt className="font-sans text-ink-muted">Mehr pro Abo und Monat</dt>
                   <dd className="font-medium text-ink">+{formatChf(gainPerSub)}</dd>
@@ -237,7 +237,7 @@ function PlanHead({ label, current, premium }: { label: string; current: boolean
     <th scope="col" className={cn("h-10 w-[27%] px-3 text-left align-middle font-normal", current && "bg-surface-2/70")}>
       <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <span className={cn("text-[13px] font-semibold", premium ? "text-premium" : "text-ink")}>{label}</span>
-        {current ? <span className="font-mono text-[10px] tracking-[0.08em] text-ink-faint uppercase">Dein Plan</span> : null}
+        {current ? <span className="font-num text-[10px] tracking-[0.08em] text-ink-faint uppercase">Dein Plan</span> : null}
       </span>
     </th>
   );
@@ -261,6 +261,6 @@ function PlanCell({ value, current, premium }: { value: ReactNode; current: bool
     );
   }
   return (
-    <td className={cn("px-3 py-3 align-middle font-mono text-[13px] text-ink tabular-nums", current && "bg-surface-2/70")}>{content}</td>
+    <td className={cn("px-3 py-3 align-middle font-num text-[13px] text-ink tabular-nums", current && "bg-surface-2/70")}>{content}</td>
   );
 }

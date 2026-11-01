@@ -17,7 +17,7 @@ export function StudioBar({ viewer }: { viewer: CreatorViewer }) {
         <div className="flex items-center justify-between gap-4 pt-4 sm:pt-5">
           <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
             <p className="font-display text-[22px] leading-none font-extrabold tracking-[-0.045em] text-ink">Studio</p>
-            {viewer.handle ? <span className="truncate font-mono text-xs text-ink-faint">@{viewer.handle}</span> : null}
+            {viewer.handle ? <span className="truncate font-num text-xs text-ink-faint">@{viewer.handle}</span> : null}
             {verificationStatus === "approved" ? (
               isPremium ? (
                 <PremiumBadge />

@@ -19,7 +19,7 @@ export function QueuePill({ count, label, tone = "neutral", className }: QueuePi
     <span
       title={`${count} ${label}`}
       className={cn(
-        "inline-flex h-[18px] min-w-[22px] shrink-0 items-center justify-center gap-0.5 rounded-[3px] px-1 font-mono text-[10.5px] leading-none font-semibold tabular-nums",
+        "inline-flex h-[18px] min-w-[22px] shrink-0 items-center justify-center gap-0.5 rounded-[3px] px-1 font-num text-[10.5px] leading-none font-semibold tabular-nums",
         tone === "alert" ? "bg-accent text-accent-ink" : "border border-line-strong text-ink-muted",
         className,
       )}

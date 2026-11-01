@@ -89,7 +89,7 @@ export function PostGallery({ images, label }: { images: GalleryImage[]; label: 
 
       {count > 1 ? (
         <>
-          <span className="pointer-events-none absolute top-3 right-3 rounded-full bg-ink/70 px-2 py-1 font-mono text-[11px] leading-none text-canvas tabular-nums">
+          <span className="pointer-events-none absolute top-3 right-3 rounded-full bg-ink/70 px-2 py-1 font-num text-[11px] leading-none text-canvas tabular-nums">
             <span className="sr-only">Bild </span>
             {index + 1} / {count}
           </span>

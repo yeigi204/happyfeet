@@ -121,7 +121,7 @@ export default async function FeedPage({ searchParams }: PageProps<"/feed">) {
                     Mehr laden <ArrowDown aria-hidden />
                   </ButtonLink>
                 ) : (
-                  <p className="font-mono text-[11px] tracking-[0.12em] text-ink-faint uppercase">Das waren alle Posts</p>
+                  <p className="font-num text-[11px] tracking-[0.12em] text-ink-faint uppercase">Das waren alle Posts</p>
                 )}
               </div>
             </>
@@ -148,10 +148,10 @@ export default async function FeedPage({ searchParams }: PageProps<"/feed">) {
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-medium text-ink">{sub.creator.displayName}</span>
-                        <span className="block truncate font-mono text-[11px] text-ink-faint">@{sub.creator.handle}</span>
+                        <span className="block truncate font-num text-[11px] text-ink-faint">@{sub.creator.handle}</span>
                       </span>
                       {sub.cancelAtPeriodEnd && sub.currentPeriodEnd ? (
-                        <span className="shrink-0 font-mono text-[11px] text-ink-faint" title="Gekündigt – Zugang bis zu diesem Datum">
+                        <span className="shrink-0 font-num text-[11px] text-ink-faint" title="Gekündigt – Zugang bis zu diesem Datum">
                           bis {formatDate(sub.currentPeriodEnd)}
                         </span>
                       ) : null}

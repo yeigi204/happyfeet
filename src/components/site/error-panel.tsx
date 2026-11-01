@@ -42,7 +42,7 @@ export function ErrorPanel({ error, retry }: { error: unknown; retry: () => void
           Zur Startseite
         </a>
       </div>
-      {digest ? <p className="mt-8 font-mono text-[11px] text-ink-faint">Fehler-ID: {digest}</p> : null}
+      {digest ? <p className="mt-8 font-num text-[11px] text-ink-faint">Fehler-ID: {digest}</p> : null}
     </div>
   );
 }

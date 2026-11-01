@@ -55,7 +55,7 @@ export function PostTile({ post, now, deleteAction }: PostTileProps) {
           />
         ) : null}
         {post.mediaCount > 1 ? (
-          <span className="absolute right-1.5 bottom-1.5 inline-flex items-center gap-1 rounded-[4px] bg-ink/75 px-1.5 py-0.5 font-mono text-[11px] text-canvas tabular-nums sm:right-2 sm:bottom-2">
+          <span className="absolute right-1.5 bottom-1.5 inline-flex items-center gap-1 rounded-[4px] bg-ink/75 px-1.5 py-0.5 font-num text-[11px] text-canvas tabular-nums sm:right-2 sm:bottom-2">
             <Images aria-hidden className="size-3" />
             {post.mediaCount}
             <span className="sr-only"> Bilder</span>
@@ -89,7 +89,7 @@ export function PostTile({ post, now, deleteAction }: PostTileProps) {
         ) : null}
 
         <div className="mt-auto flex items-center justify-between gap-2 pt-1">
-          <p className="font-mono text-[11.5px] whitespace-nowrap text-ink-faint tabular-nums">
+          <p className="font-num text-[11.5px] whitespace-nowrap text-ink-faint tabular-nums">
             <time dateTime={at.toISOString()} title={formatDateTime(at)}>
               {post.publishedAt ? "" : "eingereicht "}
               {formatRelative(at, now)}

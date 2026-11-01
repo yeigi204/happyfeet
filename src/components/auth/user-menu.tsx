@@ -17,7 +17,7 @@ export async function UserMenu() {
       <Link
         href="/sign-in"
         title="Dev-Impersonation aktiv – Clerk ist ausgeschaltet"
-        className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 font-mono text-xs text-ink transition-colors hover:border-line-strong hover:bg-surface-2"
+        className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 font-num text-xs text-ink transition-colors hover:border-line-strong hover:bg-surface-2"
       >
         <span aria-hidden className="size-1.5 rounded-full bg-accent" />
         Dev: {label}

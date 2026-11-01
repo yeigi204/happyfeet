@@ -92,7 +92,7 @@ function HandleStatus({ availability }: { availability: Availability }) {
       return (
         <p className="flex items-center gap-1.5 text-ink-muted">
           <LoaderCircle aria-hidden className="size-4 animate-spin" />
-          Prüfe <span className="font-mono">@{availability.handle}</span> …
+          Prüfe <span className="font-num">@{availability.handle}</span> …
         </p>
       );
     case "available":
@@ -100,7 +100,7 @@ function HandleStatus({ availability }: { availability: Availability }) {
         <p className="flex items-center gap-1.5 text-success">
           <Check aria-hidden className="size-4" />
           <span>
-            <span className="font-mono">@{availability.handle}</span> ist frei
+            <span className="font-num">@{availability.handle}</span> ist frei
           </span>
         </p>
       );
@@ -109,7 +109,7 @@ function HandleStatus({ availability }: { availability: Availability }) {
         <p className="flex items-center gap-1.5 text-danger">
           <X aria-hidden className="size-4" />
           <span>
-            <span className="font-mono">@{availability.handle}</span> ist schon vergeben
+            <span className="font-num">@{availability.handle}</span> ist schon vergeben
           </span>
         </p>
       );
@@ -145,7 +145,7 @@ export function OnboardingForm({ maxBirthDate, returnTo = null }: { maxBirthDate
         <div
           className={`flex items-center rounded-control border bg-surface transition-colors has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-accent ${borderFor(handleError)}`}
         >
-          <span aria-hidden className="pl-3.5 font-mono text-base text-ink-muted select-none">
+          <span aria-hidden className="pl-3.5 font-num text-base text-ink-muted select-none">
             @
           </span>
           <input
@@ -167,7 +167,7 @@ export function OnboardingForm({ maxBirthDate, returnTo = null }: { maxBirthDate
             aria-invalid={handleError ? true : undefined}
             aria-describedby="handle-message"
             // Fokusrahmen sitzt am umgebenden Feld (inkl. „@“), daher hier keiner.
-            className="block w-full rounded-control bg-transparent py-3 pr-3.5 pl-1 font-mono text-base text-ink placeholder:text-ink-faint focus-visible:outline-none"
+            className="block w-full rounded-control bg-transparent py-3 pr-3.5 pl-1 font-num text-base text-ink placeholder:text-ink-faint focus-visible:outline-none"
           />
         </div>
       </FieldShell>
@@ -210,7 +210,7 @@ export function OnboardingForm({ maxBirthDate, returnTo = null }: { maxBirthDate
           defaultValue={state.values?.birthDate}
           aria-invalid={errors.birthDate ? true : undefined}
           aria-describedby="birthDate-message"
-          className={`${inputBase} font-mono tabular-nums ${borderFor(errors.birthDate)}`}
+          className={`${inputBase} font-num tabular-nums ${borderFor(errors.birthDate)}`}
         />
       </FieldShell>
 

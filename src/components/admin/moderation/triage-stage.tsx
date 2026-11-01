@@ -85,7 +85,7 @@ export function TriageStage({ item, now, premoderationCount, onImageError }: Tri
             </p>
           )}
           {count > 1 ? (
-            <span className="absolute top-3 left-3 rounded-[4px] border border-line-strong bg-surface/90 px-1.5 py-1 font-mono text-[11px] leading-none text-ink tabular-nums">
+            <span className="absolute top-3 left-3 rounded-[4px] border border-line-strong bg-surface/90 px-1.5 py-1 font-num text-[11px] leading-none text-ink tabular-nums">
               {mediaIndex + 1} / {count}
             </span>
           ) : null}
@@ -122,7 +122,7 @@ export function TriageStage({ item, now, premoderationCount, onImageError }: Tri
               <p className="text-xs text-ink-faint">Ohne weitere Angaben gemeldet.</p>
             )}
             <p className="text-xs text-ink-faint">
-              {report.reporterHandle ? <span className="font-mono text-ink-muted">@{report.reporterHandle}</span> : "Gelöschtes Konto"} · <Time date={report.createdAt} now={now} />
+              {report.reporterHandle ? <span className="font-num text-ink-muted">@{report.reporterHandle}</span> : "Gelöschtes Konto"} · <Time date={report.createdAt} now={now} />
               {report.openReportsOnPost > 1 ? ` · ${formatNumber(report.openReportsOnPost)} offene Meldungen zu diesem Post` : null}
             </p>
           </div>
@@ -135,7 +135,7 @@ export function TriageStage({ item, now, premoderationCount, onImageError }: Tri
               <span className="truncate">{post.creator.displayName}</span>
               {post.creator.isPremium ? <PremiumBadge compact /> : null}
             </p>
-            <p className="truncate font-mono text-xs text-ink-faint">@{post.creator.handle}</p>
+            <p className="truncate font-num text-xs text-ink-faint">@{post.creator.handle}</p>
           </div>
         </div>
 

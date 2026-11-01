@@ -216,7 +216,7 @@ export function NewPostForm({ action, premoderation }: NewPostFormProps) {
           <h2 id={headingId} className="text-[13px] font-medium text-ink">
             Bilder
           </h2>
-          <p className={cn("font-mono text-xs tabular-nums", full ? "text-ink" : "text-ink-faint")}>
+          <p className={cn("font-num text-xs tabular-nums", full ? "text-ink" : "text-ink-faint")}>
             {items.length} / {POST_LIMITS.maxImages}
           </p>
         </div>
@@ -326,13 +326,13 @@ export function NewPostForm({ action, premoderation }: NewPostFormProps) {
                     />
                     <span
                       className={cn(
-                        "absolute top-1.5 left-1.5 inline-flex h-[22px] items-center rounded-[4px] px-1.5 font-mono text-[11px] font-medium tabular-nums",
+                        "absolute top-1.5 left-1.5 inline-flex h-[22px] items-center rounded-[4px] px-1.5 font-num text-[11px] font-medium tabular-nums",
                         index === 0 ? "bg-accent text-accent-ink" : "bg-ink/75 text-canvas",
                       )}
                     >
                       {index === 0 ? "Titelbild" : index + 1}
                     </span>
-                    <span className="absolute right-1.5 bottom-1.5 rounded-[4px] bg-ink/75 px-1.5 py-0.5 font-mono text-[10.5px] text-canvas tabular-nums">
+                    <span className="absolute right-1.5 bottom-1.5 rounded-[4px] bg-ink/75 px-1.5 py-0.5 font-num text-[10.5px] text-canvas tabular-nums">
                       {formatMegabytes(item.file.size)}
                     </span>
                   </div>
@@ -372,7 +372,7 @@ export function NewPostForm({ action, premoderation }: NewPostFormProps) {
                     <span className="grid justify-items-center gap-2">
                       <Plus aria-hidden className="size-6 text-ink-muted" />
                       <span className="text-sm font-medium text-ink">Weitere Bilder</span>
-                      <span className="font-mono text-[11px] text-ink-faint tabular-nums">noch {POST_LIMITS.maxImages - items.length}</span>
+                      <span className="font-num text-[11px] text-ink-faint tabular-nums">noch {POST_LIMITS.maxImages - items.length}</span>
                     </span>
                   </button>
                 </li>
@@ -411,7 +411,7 @@ export function NewPostForm({ action, premoderation }: NewPostFormProps) {
             <ul className="mt-2 grid gap-1 text-[13px] text-ink-muted">
               {rejected.map((file, i) => (
                 <li key={`${file.name}-${i}`} className="flex min-w-0 gap-1.5">
-                  <span className="truncate font-mono text-ink">{file.name}</span>
+                  <span className="truncate font-num text-ink">{file.name}</span>
                   <span className="shrink-0">– {file.reason}</span>
                 </li>
               ))}
@@ -468,7 +468,7 @@ export function NewPostForm({ action, premoderation }: NewPostFormProps) {
           hint={
             <span className="flex justify-between gap-3">
               <span>Erscheint unter den Bildern.</span>
-              <span className={cn("shrink-0 font-mono tabular-nums", captionRatio >= 1 ? "text-danger" : captionRatio > 0.9 ? "text-warning" : undefined)}>
+              <span className={cn("shrink-0 font-num tabular-nums", captionRatio >= 1 ? "text-danger" : captionRatio > 0.9 ? "text-warning" : undefined)}>
                 {formatNumber(caption.length)} / {formatNumber(POST_LIMITS.maxCaptionLength)}
               </span>
             </span>

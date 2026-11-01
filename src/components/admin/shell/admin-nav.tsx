@@ -66,7 +66,7 @@ export function AdminBrand({ className }: { className?: string }) {
       <span aria-hidden className="font-display text-[19px] leading-none font-extrabold tracking-[-0.05em] text-ink">
         happyfeet
       </span>
-      <span aria-hidden className="rounded-[3px] border border-line-strong px-1 py-[3px] font-mono text-[9px] leading-none tracking-[0.14em] text-ink-muted uppercase">
+      <span aria-hidden className="rounded-[3px] border border-line-strong px-1 py-[3px] font-num text-[9px] leading-none tracking-[0.14em] text-ink-muted uppercase">
         Admin
       </span>
     </Link>

@@ -144,9 +144,9 @@ export default async function AuditPage({ searchParams }: PageProps<"/admin/audi
               <header className="flex h-11 items-center justify-between gap-3 border-b border-line px-4">
                 <h2 id={`day-${group.day}`} className="text-[13px] font-semibold text-ink">
                   {group.day === today ? "Heute" : group.day === yesterday ? "Gestern" : group.day}
-                  {group.day === today || group.day === yesterday ? <span className="ml-2 font-mono text-xs font-normal text-ink-faint">{group.day}</span> : null}
+                  {group.day === today || group.day === yesterday ? <span className="ml-2 font-num text-xs font-normal text-ink-faint">{group.day}</span> : null}
                 </h2>
-                <span className="font-mono text-xs text-ink-faint tabular-nums">
+                <span className="font-num text-xs text-ink-faint tabular-nums">
                   {formatNumber(group.items.length)} {group.items.length === 1 ? "Eintrag" : "Einträge"}
                 </span>
               </header>
@@ -160,7 +160,7 @@ export default async function AuditPage({ searchParams }: PageProps<"/admin/audi
                       <time
                         dateTime={item.createdAt.toISOString()}
                         title={formatDateTime(item.createdAt)}
-                        className="hidden pt-px font-mono text-xs text-ink-faint tabular-nums sm:block"
+                        className="hidden pt-px font-num text-xs text-ink-faint tabular-nums sm:block"
                       >
                         {formatDateTime(item.createdAt).split(", ")[1]}
                       </time>
@@ -171,15 +171,15 @@ export default async function AuditPage({ searchParams }: PageProps<"/admin/audi
                         <p className="eyebrow mb-1.5">{d.label}</p>
                         <AuditSummary segments={d.summary} className="block text-[13.5px] leading-snug" />
                         {d.detail ? <p className="mt-1 max-w-prose text-[13px] leading-snug whitespace-pre-line text-ink-faint">«{d.detail}»</p> : null}
-                        <p className="mt-1.5 flex flex-wrap gap-x-2 gap-y-1 font-mono text-[11px] text-ink-faint sm:hidden">
+                        <p className="mt-1.5 flex flex-wrap gap-x-2 gap-y-1 font-num text-[11px] text-ink-faint sm:hidden">
                           <span>{actorLabel(item.actor)}</span>
                           <span>{formatDateTime(item.createdAt)}</span>
                         </p>
                       </div>
                       <div className="hidden min-w-0 text-right sm:block">
-                        <p className="font-mono text-xs text-ink-muted">{actorLabel(item.actor)}</p>
-                        <p className="mt-1 font-mono text-[11px] text-ink-faint">{formatRelative(item.createdAt, now)}</p>
-                        {target ? <p className="mt-1 font-mono text-[11px] text-ink-faint">{target}</p> : null}
+                        <p className="font-num text-xs text-ink-muted">{actorLabel(item.actor)}</p>
+                        <p className="mt-1 font-num text-[11px] text-ink-faint">{formatRelative(item.createdAt, now)}</p>
+                        {target ? <p className="mt-1 font-num text-[11px] text-ink-faint">{target}</p> : null}
                       </div>
                     </li>
                   );
@@ -196,7 +196,7 @@ export default async function AuditPage({ searchParams }: PageProps<"/admin/audi
               </ButtonLink>
             </div>
           ) : (
-            <p className="text-center font-mono text-[11px] text-ink-faint">Anfang des Protokolls</p>
+            <p className="text-center font-num text-[11px] text-ink-faint">Anfang des Protokolls</p>
           )}
         </div>
       )}

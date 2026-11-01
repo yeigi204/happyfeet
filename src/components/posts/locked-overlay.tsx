@@ -29,7 +29,7 @@ export function LockedOverlay({ preview, imageCount, action }: { preview: Galler
       <div aria-hidden className="absolute inset-0 -z-10 bg-canvas/35" />
 
       {imageCount > 1 ? (
-        <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-ink/70 px-2 py-1 font-mono text-[11px] leading-none text-canvas">
+        <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-ink/70 px-2 py-1 font-num text-[11px] leading-none text-canvas">
           <Images aria-hidden className="size-3" />
           {imageCount} Bilder
         </span>

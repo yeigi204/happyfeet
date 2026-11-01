@@ -66,7 +66,7 @@ export function CreatorProfileForm({ action, defaults, rules, plan, submitLabel,
         hint={
           <span className="flex justify-between gap-3">
             <span>Erscheint auf deinem Profil. Was zeigst du, und wie oft gibt es Neues?</span>
-            <span className={cn("shrink-0 font-mono tabular-nums", bioNearLimit && "text-warning")}>
+            <span className={cn("shrink-0 font-num tabular-nums", bioNearLimit && "text-warning")}>
               {formatNumber(bio.length)} / {formatNumber(rules.bioMaxLength)}
             </span>
           </span>
@@ -102,7 +102,7 @@ export function CreatorProfileForm({ action, defaults, rules, plan, submitLabel,
               markEdited("price");
             }}
             placeholder="9.90"
-            className="font-mono text-base tabular-nums"
+            className="font-num text-base tabular-nums"
             disabled={pending}
           />
         </Field>

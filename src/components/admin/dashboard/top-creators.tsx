@@ -19,7 +19,7 @@ export type TopCreator = {
 
 export function TopCreators({ creators }: { creators: TopCreator[] }) {
   return (
-    <Card title="Top-Creator · 30 T" action={<span className="font-mono text-xs text-ink-faint">nach Brutto</span>} flush>
+    <Card title="Top-Creator · 30 T" action={<span className="font-num text-xs text-ink-faint">nach Brutto</span>} flush>
       {creators.length === 0 ? (
         <div className="p-4">
           <EmptyState title="Noch keine Umsätze" description="Sobald Fans abonnieren, steht hier, wer am meisten bewegt." className="border-0 bg-transparent px-0 py-2" />
@@ -40,7 +40,7 @@ export function TopCreators({ creators }: { creators: TopCreator[] }) {
           <TBody>
             {creators.map((c, i) => (
               <TR key={c.userId}>
-                <TD className="hidden font-mono text-[12px] text-ink-faint tabular-nums sm:table-cell">{String(i + 1).padStart(2, "0")}</TD>
+                <TD className="hidden font-num text-[12px] text-ink-faint tabular-nums sm:table-cell">{String(i + 1).padStart(2, "0")}</TD>
                 <TD>
                   <Link href={`/admin/users?q=${encodeURIComponent(c.handle)}`} className="flex min-w-0 items-center gap-2.5 rounded-control hover:text-ink">
                     <Avatar name={c.displayName} size="sm" />
@@ -49,7 +49,7 @@ export function TopCreators({ creators }: { creators: TopCreator[] }) {
                         <span className="truncate">{c.displayName}</span>
                         {c.isPremium ? <Gem aria-label="Premium" className="size-3 shrink-0 text-premium" /> : null}
                       </span>
-                      <span className="block truncate font-mono text-[11px] text-ink-faint">@{c.handle}</span>
+                      <span className="block truncate font-num text-[11px] text-ink-faint">@{c.handle}</span>
                     </span>
                   </Link>
                 </TD>

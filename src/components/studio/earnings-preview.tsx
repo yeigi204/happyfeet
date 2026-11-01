@@ -24,7 +24,7 @@ export function EarningsPreview({ priceRappen, standardFeeBps, premiumFeeBps, pl
   return (
     <div className="rounded-control border border-line bg-surface-2/60 p-3.5">
       <p className="eyebrow">Pro Abo und Monat</p>
-      <dl className="mt-3 grid gap-1.5 font-mono text-[13px] tabular-nums">
+      <dl className="mt-3 grid gap-1.5 font-num text-[13px] tabular-nums">
         <div className="flex justify-between gap-4">
           <dt className="font-sans text-ink-muted">Fan zahlt</dt>
           <dd className="text-ink">{valid ? formatChf(priceRappen) : dash}</dd>

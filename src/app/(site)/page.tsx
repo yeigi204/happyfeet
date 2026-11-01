@@ -77,7 +77,7 @@ export default async function LandingPage() {
               </ButtonLink>
             )}
           </div>
-          <ul className="mt-10 flex flex-wrap gap-x-6 gap-y-2 font-mono text-[11px] tracking-[0.12em] text-ink-faint uppercase">
+          <ul className="mt-10 flex flex-wrap gap-x-6 gap-y-2 font-num text-[11px] tracking-[0.12em] text-ink-faint uppercase">
             <li>Ab 18</li>
             <li>Geprüfte Creator</li>
             <li>Bezahlt in CHF</li>
@@ -95,15 +95,15 @@ export default async function LandingPage() {
               <ol className="mt-3 grid gap-1.5 text-sm">
                 {creators.slice(0, 5).map((creator, i) => (
                   <li key={creator.userId} className="flex min-w-0 items-baseline gap-2.5">
-                    <span className="font-mono text-[11px] text-ink-faint tabular-nums">{String(i + 1).padStart(2, "0")}</span>
+                    <span className="font-num text-[11px] text-ink-faint tabular-nums">{String(i + 1).padStart(2, "0")}</span>
                     <Link
                       href={`/c/${creator.handle}`}
                       className="truncate rounded-control text-ink underline-offset-4 hover:text-accent hover:underline"
                     >
                       {creator.displayName}
                     </Link>
-                    <span className="hidden truncate font-mono text-xs text-ink-faint sm:inline">@{creator.handle}</span>
-                    <span className="ml-auto shrink-0 font-mono text-xs text-ink-muted tabular-nums">
+                    <span className="hidden truncate font-num text-xs text-ink-faint sm:inline">@{creator.handle}</span>
+                    <span className="ml-auto shrink-0 font-num text-xs text-ink-muted tabular-nums">
                       {formatChf(creator.monthlyPriceRappen)}
                     </span>
                   </li>
@@ -189,11 +189,11 @@ export default async function LandingPage() {
             <span className="text-ink-faint">Mit Premium {formatPercentBps(FULL_BPS - settings.premiumFeeBps)}.</span>
           </h2>
           <p className="mt-6 max-w-md text-[15px] leading-relaxed text-ink-muted">
-            Premium kostet <span className="font-mono text-ink">{formatChf(settings.premiumPriceRappen)}</span> im Monat
+            Premium kostet <span className="font-num text-ink">{formatChf(settings.premiumPriceRappen)}</span> im Monat
             {breakEven !== null ? (
               <>
                 {" "}
-                und rechnet sich ab rund <span className="font-mono text-ink">{formatChf(breakEven, { compact: true })}</span> Abo-Umsatz
+                und rechnet sich ab rund <span className="font-num text-ink">{formatChf(breakEven, { compact: true })}</span> Abo-Umsatz
                 pro Monat
               </>
             ) : null}
@@ -203,7 +203,7 @@ export default async function LandingPage() {
 
         <div className="rounded-card border border-line bg-surface p-5 sm:p-8">
           <p className="text-sm text-ink-muted">
-            Beispiel: ein Abo für <span className="font-mono text-ink">{formatChf(gross)}</span> im Monat
+            Beispiel: ein Abo für <span className="font-num text-ink">{formatChf(gross)}</span> im Monat
           </p>
           <div className="mt-6 grid gap-8">
             <Meter
@@ -226,13 +226,13 @@ export default async function LandingPage() {
           <dl className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-control border border-line bg-line">
             <div className="bg-surface p-4">
               <dt className="eyebrow">Standard · pro Abo</dt>
-              <dd className="mt-2 font-mono text-xl font-medium tracking-[-0.03em] text-ink tabular-nums">
+              <dd className="mt-2 font-num text-xl font-medium tracking-[-0.03em] text-ink tabular-nums">
                 {formatChf(standard.creatorNetRappen)}
               </dd>
             </div>
             <div className="bg-surface p-4">
               <dt className="eyebrow">Premium · pro Abo</dt>
-              <dd className="mt-2 font-mono text-xl font-medium tracking-[-0.03em] text-ink tabular-nums">
+              <dd className="mt-2 font-num text-xl font-medium tracking-[-0.03em] text-ink tabular-nums">
                 {formatChf(premium.creatorNetRappen)}
               </dd>
             </div>
@@ -302,7 +302,7 @@ export default async function LandingPage() {
       <Container>
         <div className="flex flex-col gap-8 rounded-card bg-ink px-6 py-12 text-canvas sm:px-12 sm:py-16 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="font-mono text-[10.5px] tracking-[0.09em] text-canvas/60 uppercase">Bereit?</p>
+            <p className="font-num text-[10.5px] tracking-[0.09em] text-canvas/60 uppercase">Bereit?</p>
             <p className="mt-4 max-w-2xl font-display text-[34px] leading-[0.95] font-bold tracking-[-0.045em] sm:text-[52px]">
               Such dir deine Lieblings-Creator aus.
             </p>
@@ -339,7 +339,7 @@ function Side({
 }) {
   return (
     <div className="flex flex-col bg-canvas p-6 sm:p-10">
-      <p className="flex items-center gap-2 font-mono text-[11px] tracking-[0.12em] text-accent-strong uppercase">
+      <p className="flex items-center gap-2 font-num text-[11px] tracking-[0.12em] text-accent-strong uppercase">
         <span aria-hidden className="size-1.5 rounded-full bg-accent" />
         {kicker}
       </p>
@@ -347,7 +347,7 @@ function Side({
       <ol className="mt-8 grid gap-6">
         {steps.map((step, i) => (
           <li key={step.title} className="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-x-3">
-            <span className="font-mono text-[13px] text-ink-faint tabular-nums">{String(i + 1).padStart(2, "0")}</span>
+            <span className="font-num text-[13px] text-ink-faint tabular-nums">{String(i + 1).padStart(2, "0")}</span>
             <div>
               <p className="font-medium text-ink">{step.title}</p>
               <p className="mt-1 text-[15px] leading-relaxed text-ink-muted">{step.text}</p>

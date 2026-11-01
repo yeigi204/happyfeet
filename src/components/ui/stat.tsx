@@ -79,11 +79,11 @@ export function Stat({ label, value, delta, hint, children, size = "md", classNa
   return (
     <div className={cn("min-w-0", className)}>
       <p className={cn("text-ink-muted", size === "lg" ? "eyebrow" : "text-[12.5px]")}>{label}</p>
-      <p className={cn("mt-2 font-mono font-medium whitespace-nowrap text-ink", size === "lg" && "flex items-start", VALUE_SIZES[size])}>{renderValue(value, size)}</p>
+      <p className={cn("mt-2 font-num font-medium whitespace-nowrap text-ink", size === "lg" && "flex items-start", VALUE_SIZES[size])}>{renderValue(value, size)}</p>
       {delta || hint ? (
         <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
           {delta ? (
-            <span className={cn("inline-flex items-center gap-0.5 font-mono font-medium tabular-nums", deltaColor)}>
+            <span className={cn("inline-flex items-center gap-0.5 font-num font-medium tabular-nums", deltaColor)}>
               <Arrow aria-hidden className="size-3.5" />
               <span className="sr-only">{DIRECTION_TEXT[delta.direction]}:</span>
               {delta.value}

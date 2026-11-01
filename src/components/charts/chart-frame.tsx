@@ -105,12 +105,12 @@ export function ChartTooltip({
       className="pointer-events-none absolute z-10 min-w-44 rounded-control border border-line-strong bg-surface px-3 py-2"
       style={{ left: `${(x / width) * 100}%`, top, transform: flip ? `translateX(calc(-100% - ${dx}px))` : `translateX(${dx}px)` }}
     >
-      <p className="font-mono text-[11px] whitespace-nowrap text-ink-faint tabular-nums">{heading}</p>
+      <p className="font-num text-[11px] whitespace-nowrap text-ink-faint tabular-nums">{heading}</p>
       <ul className="mt-1.5 grid grid-cols-[12px_auto_1fr] items-center gap-x-2 gap-y-1">
         {rows.map((r) => (
           <li key={r.key} className={cn("col-span-3 grid grid-cols-subgrid items-center", r.separated && "mt-0.5 border-t border-line pt-1.5")}>
             {r.color ? <span className="h-0.5 w-3 rounded-full" style={{ background: r.color }} /> : <span />}
-            <span className="text-right font-mono text-[13px] font-medium whitespace-nowrap text-ink tabular-nums">{r.value}</span>
+            <span className="text-right font-num text-[13px] font-medium whitespace-nowrap text-ink tabular-nums">{r.value}</span>
             <span className="text-xs whitespace-nowrap text-ink-muted">{r.label}</span>
           </li>
         ))}
@@ -136,7 +136,7 @@ export function YGrid({ ticks, labels, y, left, right }: { ticks: number[]; labe
             strokeWidth={1}
             shapeRendering="crispEdges"
           />
-          <text x={left - 8} y={y(t)} dy="0.32em" textAnchor="end" className="fill-ink-faint font-mono text-[10.5px] tabular-nums">
+          <text x={left - 8} y={y(t)} dy="0.32em" textAnchor="end" className="fill-ink-faint font-num text-[10.5px] tabular-nums">
             {labels[i]}
           </text>
         </g>
@@ -155,7 +155,7 @@ export function XLabels({ indices, dates, x, y, left, right }: { indices: number
         const cx = x(i);
         const anchor = cx - half < left - 4 ? "start" : cx + half > right + 4 ? "end" : "middle";
         return (
-          <text key={i} x={cx} y={y} textAnchor={anchor} className="fill-ink-faint font-mono text-[10.5px] tabular-nums">
+          <text key={i} x={cx} y={y} textAnchor={anchor} className="fill-ink-faint font-num text-[10.5px] tabular-nums">
             {label}
           </text>
         );

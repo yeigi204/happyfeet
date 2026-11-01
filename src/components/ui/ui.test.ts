@@ -131,7 +131,7 @@ describe("Table", () => {
     );
     const numericTd = markup.match(/<td class="([^"]*)">CHF/);
     expect(numericTd?.[1]).toContain("text-right");
-    expect(numericTd?.[1]).toContain("font-mono");
+    expect(numericTd?.[1]).toContain("font-num");
     expect(numericTd?.[1]).toContain("tabular-nums");
     expect(markup).toMatch(/<th[^>]*class="[^"]*text-right[^"]*"[^>]*>Netto/);
     expect(markup).toMatch(/<th[^>]*scope="col"/);

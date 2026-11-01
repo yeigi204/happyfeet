@@ -32,7 +32,7 @@ export function ChartTable({ data, series, format, caption, total }: ChartTableP
       <TBody>
         {rows.map((row) => (
           <TR key={row.date}>
-            <TD className="font-mono text-[13px] whitespace-nowrap text-ink-muted tabular-nums">{formatDayLong(row.date)}</TD>
+            <TD className="font-num text-[13px] whitespace-nowrap text-ink-muted tabular-nums">{formatDayLong(row.date)}</TD>
             {series.map((s) => (
               <TD key={s.key} numeric>
                 {formatChartValue(numericValue(row, s.key), format)}

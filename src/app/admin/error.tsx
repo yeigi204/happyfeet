@@ -31,7 +31,7 @@ export default function AdminError({ error, retry }: { error: unknown; retry: ()
           Zum Dashboard
         </ButtonLink>
       </div>
-      {digest ? <p className="font-mono text-[11px] text-ink-faint">Fehler-ID {digest}</p> : null}
+      {digest ? <p className="font-num text-[11px] text-ink-faint">Fehler-ID {digest}</p> : null}
     </div>
   );
 }

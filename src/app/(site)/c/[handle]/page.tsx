@@ -131,7 +131,7 @@ export default async function CreatorProfilePage({ params, searchParams }: PageP
               {creator.displayName}
             </h1>
             <div className="mt-3 flex flex-wrap items-center gap-2">
-              <span className="font-mono text-sm text-ink-muted">@{creator.handle}</span>
+              <span className="font-num text-sm text-ink-muted">@{creator.handle}</span>
               {approved ? <Badge icon={<BadgeCheck aria-hidden className="text-ink-muted" />}>Geprüft</Badge> : null}
               {creator.isPremium ? <PremiumBadge /> : null}
             </div>
@@ -163,7 +163,7 @@ export default async function CreatorProfilePage({ params, searchParams }: PageP
             <h2 id="posts-title" className="font-display text-2xl font-bold tracking-[-0.03em]">
               Posts
             </h2>
-            <p className="font-mono text-xs text-ink-faint tabular-nums">
+            <p className="font-num text-xs text-ink-faint tabular-nums">
               {countLabel(posts.length, "Post", "Posts", formatNumber)}
               {hiddenCount > 0 ? ` · ${formatNumber(hiddenCount)} nicht öffentlich` : null}
               {!viewerRelation.isOwner && !viewerRelation.isSubscribed && posts.some((p) => p.locked)
@@ -236,7 +236,7 @@ function ProfileFact({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <dt className="eyebrow">{label}</dt>
-      <dd className="mt-1.5 font-mono text-[15px] font-medium text-ink tabular-nums">{value}</dd>
+      <dd className="mt-1.5 font-num text-[15px] font-medium text-ink tabular-nums">{value}</dd>
     </div>
   );
 }
@@ -318,11 +318,11 @@ function AboPanel({
             {canceled ? (
               <>
                 Du hast gekündigt. Alle Posts bleiben bis zum{" "}
-                <span className="font-mono text-ink">{formatDate(sub.currentPeriodEnd)}</span> sichtbar.
+                <span className="font-num text-ink">{formatDate(sub.currentPeriodEnd)}</span> sichtbar.
               </>
             ) : (
               <>
-                Aktiv bis <span className="font-mono text-ink">{formatDate(sub.currentPeriodEnd)}</span> – danach verlängert es sich
+                Aktiv bis <span className="font-num text-ink">{formatDate(sub.currentPeriodEnd)}</span> – danach verlängert es sich
                 automatisch um einen Monat.
               </>
             )}
@@ -379,7 +379,7 @@ function AboPanel({
           </div>
         )}
       </div>
-      <p className="mt-4 text-center font-mono text-[10.5px] tracking-[0.08em] text-ink-faint uppercase">Bezahlt in CHF · Ab 18</p>
+      <p className="mt-4 text-center font-num text-[10.5px] tracking-[0.08em] text-ink-faint uppercase">Bezahlt in CHF · Ab 18</p>
     </div>
   );
 }

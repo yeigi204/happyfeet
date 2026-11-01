@@ -174,7 +174,7 @@ export function ActionDialog({ title, description, confirmLabel, tone = "primary
 
         <div className={cn("flex flex-wrap items-center justify-end gap-2 px-5 py-3.5", hasBody && "border-t border-line")}>
           {note ? (
-            <span aria-hidden className="mr-auto hidden items-center gap-1 font-mono text-[11px] text-ink-faint sm:flex">
+            <span aria-hidden className="mr-auto hidden items-center gap-1 font-num text-[11px] text-ink-faint sm:flex">
               <Kbd>⌘</Kbd>
               <Kbd>↵</Kbd> senden
             </span>

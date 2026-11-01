@@ -95,7 +95,7 @@ function SubscriptionList({ title, subscriptions }: { title: string; subscriptio
     <section aria-labelledby={id} className="mt-10">
       <h2 id={id} className="flex items-baseline gap-2 font-display text-xl font-bold tracking-[-0.03em]">
         {title}
-        <span className="font-mono text-xs font-normal text-ink-faint tabular-nums">{formatNumber(subscriptions.length)}</span>
+        <span className="font-num text-xs font-normal text-ink-faint tabular-nums">{formatNumber(subscriptions.length)}</span>
       </h2>
       <ul className="mt-4 divide-y divide-line overflow-hidden rounded-card border border-line bg-surface">
         {subscriptions.map((sub) => (
@@ -116,7 +116,7 @@ function SubscriptionRow({ sub }: { sub: MySubscription }) {
       badge: <Badge tone="success">Aktiv</Badge>,
       text: end ? (
         <>
-          Verlängert sich am <span className="font-mono text-ink">{end}</span>
+          Verlängert sich am <span className="font-num text-ink">{end}</span>
         </>
       ) : (
         "Läuft"
@@ -127,7 +127,7 @@ function SubscriptionRow({ sub }: { sub: MySubscription }) {
       badge: <Badge tone="warning">Gekündigt</Badge>,
       text: end ? (
         <>
-          Freigeschaltet bis <span className="font-mono text-ink">{end}</span>
+          Freigeschaltet bis <span className="font-num text-ink">{end}</span>
         </>
       ) : (
         "Läuft aus"
@@ -138,7 +138,7 @@ function SubscriptionRow({ sub }: { sub: MySubscription }) {
       badge: <Badge>Beendet</Badge>,
       text: end ? (
         <>
-          Endete am <span className="font-mono text-ink">{end}</span>
+          Endete am <span className="font-num text-ink">{end}</span>
         </>
       ) : (
         "Beendet"
@@ -163,7 +163,7 @@ function SubscriptionRow({ sub }: { sub: MySubscription }) {
             {status.badge}
           </p>
           <p className="mt-1 text-[13px] text-ink-muted">
-            <span className="font-mono text-ink-faint">@{sub.creator.handle}</span>
+            <span className="font-num text-ink-faint">@{sub.creator.handle}</span>
             <span aria-hidden> · </span>
             {status.text}
           </p>
@@ -172,7 +172,7 @@ function SubscriptionRow({ sub }: { sub: MySubscription }) {
 
       <div className="flex flex-wrap items-center justify-between gap-3 pl-[3.875rem] sm:justify-end sm:pl-0">
         <p className="whitespace-nowrap">
-          <span className="font-mono text-[15px] font-medium text-ink tabular-nums">{formatChf(sub.priceRappen)}</span>
+          <span className="font-num text-[15px] font-medium text-ink tabular-nums">{formatChf(sub.priceRappen)}</span>
           <span className="text-xs text-ink-faint"> / Monat</span>
         </p>
         <div className="flex justify-end sm:min-w-[9.5rem]">

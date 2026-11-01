@@ -118,7 +118,7 @@ export default async function StudioPayoutsPage() {
                 <TBody>
                   {payouts.map((payout) => (
                     <TR key={payout.id}>
-                      <TD className="font-mono text-[12.5px] text-ink-muted tabular-nums">{periodLabel(payout)}</TD>
+                      <TD className="font-num text-[12.5px] text-ink-muted tabular-nums">{periodLabel(payout)}</TD>
                       <TD className="text-ink-muted max-sm:hidden">{SCHEDULE[payout.schedule].label}</TD>
                       <TD>
                         <Badge tone={STATUS[payout.status].tone} icon={STATUS[payout.status].icon}>
@@ -145,19 +145,19 @@ export default async function StudioPayoutsPage() {
           </h2>
           <ol className="mt-4 grid gap-4 text-sm leading-relaxed text-ink-muted">
             <li className="grid grid-cols-[22px_minmax(0,1fr)] gap-2">
-              <span aria-hidden className="font-mono text-[11px] leading-6 text-ink-faint">01</span>
+              <span aria-hidden className="font-num text-[11px] leading-6 text-ink-faint">01</span>
               <span>
                 Ein Fan zahlt sein Abo – dein Anteil von <span className="text-ink">{share}</span> landet sofort im verfügbaren Guthaben.
               </span>
             </li>
             <li className="grid grid-cols-[22px_minmax(0,1fr)] gap-2">
-              <span aria-hidden className="font-mono text-[11px] leading-6 text-ink-faint">02</span>
+              <span aria-hidden className="font-num text-[11px] leading-6 text-ink-faint">02</span>
               <span>
                 {premium ? "Jeden Montag" : "Am 1. jedes Monats"} fassen wir dein Guthaben bis zu diesem Stichtag zu einer geplanten Auszahlung zusammen.
               </span>
             </li>
             <li className="grid grid-cols-[22px_minmax(0,1fr)] gap-2">
-              <span aria-hidden className="font-mono text-[11px] leading-6 text-ink-faint">03</span>
+              <span aria-hidden className="font-num text-[11px] leading-6 text-ink-faint">03</span>
               <span>Unser Team überweist sie. Danach steht sie hier als bezahlt.</span>
             </li>
           </ol>

@@ -38,7 +38,7 @@ export function FeeMixCard({ feeMix, settings }: FeeMixCardProps) {
             ].map(([label, value]) => (
               <div key={label} className="bg-surface px-3 py-2.5">
                 <dt className="eyebrow">{label}</dt>
-                <dd className="mt-2 font-mono text-[13px] whitespace-nowrap text-ink tabular-nums">{value}</dd>
+                <dd className="mt-2 font-num text-[13px] whitespace-nowrap text-ink tabular-nums">{value}</dd>
               </div>
             ))}
           </dl>

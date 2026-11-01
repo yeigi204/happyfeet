@@ -25,7 +25,7 @@ export function Meter({ parts, format, title, className }: MeterProps) {
     <figure className={cn("min-w-0", className)}>
       <figcaption className="flex items-baseline justify-between gap-3">
         <span className="text-[13px] font-semibold text-ink">{title}</span>
-        <span className="font-mono text-[13px] text-ink-muted tabular-nums">{formatChartValue(total, format)}</span>
+        <span className="font-num text-[13px] text-ink-muted tabular-nums">{formatChartValue(total, format)}</span>
       </figcaption>
 
       <div role="group" aria-label={`${title}: ${withShare.map(describe).join(", ")}`} className="mt-3 flex h-7 w-full gap-0.5">
@@ -42,7 +42,7 @@ export function Meter({ parts, format, title, className }: MeterProps) {
             style={{ flexGrow: p.share, flexBasis: 0, background: seriesColorVar(p.color), color: `var(--color-on-${p.color})` }}
           >
             {p.share >= INLINE_LABEL_MIN_SHARE ? (
-              <span aria-hidden className="absolute top-1/2 left-2 -translate-y-1/2 font-mono text-[11px] font-semibold tabular-nums">
+              <span aria-hidden className="absolute top-1/2 left-2 -translate-y-1/2 font-num text-[11px] font-semibold tabular-nums">
                 {formatPercent(p.share, 0)}
               </span>
             ) : null}
@@ -54,7 +54,7 @@ export function Meter({ parts, format, title, className }: MeterProps) {
                 i === visible.length - 1 && visible.length > 1 ? "right-0" : "left-0",
               )}
             >
-              <span className="block font-mono text-[13px] font-medium tabular-nums">{formatChartValue(p.value, format)}</span>
+              <span className="block font-num text-[13px] font-medium tabular-nums">{formatChartValue(p.value, format)}</span>
               <span className="block text-xs text-ink-muted">
                 {p.label} · {formatPercent(p.share, 1)}
               </span>
@@ -68,8 +68,8 @@ export function Meter({ parts, format, title, className }: MeterProps) {
           <li key={p.label} className="grid grid-cols-[auto_minmax(0,1fr)_auto_2.75rem] items-baseline gap-x-2 text-[13px]">
             <span aria-hidden className="size-2.5 translate-y-px rounded-[2px]" style={{ background: seriesColorVar(p.color) }} />
             <span className="leading-snug text-ink-muted">{p.label}</span>
-            <span className="font-mono text-ink tabular-nums">{formatChartValue(p.value, format)}</span>
-            <span className="text-right font-mono text-ink-faint tabular-nums">{formatPercent(p.share, 0)}</span>
+            <span className="font-num text-ink tabular-nums">{formatChartValue(p.value, format)}</span>
+            <span className="text-right font-num text-ink-faint tabular-nums">{formatPercent(p.share, 0)}</span>
           </li>
         ))}
       </ul>

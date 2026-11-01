@@ -33,7 +33,7 @@ export function SiteFooter() {
         </nav>
       </Container>
       <div className="border-t border-line">
-        <Container className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-4 font-mono text-[11px] tracking-[0.12em] text-ink-faint uppercase">
+        <Container className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-4 font-num text-[11px] tracking-[0.12em] text-ink-faint uppercase">
           <span>happyfeet · Schweiz · CHF</span>
           <span className="flex items-center gap-2 text-ink-muted">
             <span className="inline-grid h-5 place-items-center rounded-[4px] border border-line-strong px-1 text-[10px] tracking-normal text-ink">

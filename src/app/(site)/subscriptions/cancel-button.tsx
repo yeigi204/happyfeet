@@ -51,7 +51,7 @@ export function CancelSubscriptionButton({
           </h2>
           <p className="text-sm leading-relaxed text-ink-muted">
             Das Abo verlängert sich nicht mehr. Du hast schon bis zum{" "}
-            <span className="font-mono text-ink">{accessUntil}</span> bezahlt – bis dahin bleiben alle Posts für dich sichtbar.
+            <span className="font-num text-ink">{accessUntil}</span> bezahlt – bis dahin bleiben alle Posts für dich sichtbar.
           </p>
           {state && !state.ok ? (
             <p role="alert" className="rounded-control border border-danger/40 bg-danger/10 px-3 py-2.5 text-sm text-ink">

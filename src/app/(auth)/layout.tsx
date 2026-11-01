@@ -22,7 +22,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         <Wordmark />
 
         <div className="max-w-md">
-          <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-ink-muted">
+          <p className="font-num text-[11px] uppercase tracking-[0.22em] text-ink-muted">
             Fussbilder im Abo · Schweiz
           </p>
           <p className="mt-8 font-display text-6xl leading-[0.92] font-semibold tracking-tight xl:text-7xl">
@@ -41,7 +41,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         <dl className="grid grid-cols-3 gap-6 border-t border-line pt-6">
           {FACTS.map((fact) => (
             <div key={fact.label}>
-              <dt className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-muted">{fact.label}</dt>
+              <dt className="font-num text-[11px] uppercase tracking-[0.18em] text-ink-muted">{fact.label}</dt>
               <dd className="mt-1.5 text-sm text-ink">{fact.value}</dd>
             </div>
           ))}
@@ -63,7 +63,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           <div className="w-full max-w-md">{children}</div>
         </main>
 
-        <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-line pt-5 font-mono text-[11px] uppercase tracking-[0.18em] text-ink-muted">
+        <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-line pt-5 font-num text-[11px] uppercase tracking-[0.18em] text-ink-muted">
           <span>happyfeet</span>
           <span>Nur für Erwachsene</span>
         </footer>
