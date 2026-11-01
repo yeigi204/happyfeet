@@ -5,7 +5,9 @@ import { cn } from "./cn";
 /** Leerer Zustand: gestrichelter Rahmen, Icon-Kachel auf Akzent-zart, ein klarer nächster Schritt. */
 export function EmptyState({ title, description, action, className }: { title: ReactNode; description?: ReactNode; action?: ReactNode; className?: string }) {
   return (
-    <div className={cn("flex flex-col items-start gap-4 rounded-card border-[1.5px] border-dashed border-line-strong px-6 py-6 sm:flex-row sm:items-center", className)}>
+    // Container-Query statt Viewport: auch in schmalen Karten bleibt der Text lesbar (Umbruch nach Containerbreite).
+    <div className={cn("@container rounded-card border-[1.5px] border-dashed border-line-strong px-6 py-6", className)}>
+      <div className="flex flex-col items-start gap-4 @lg:flex-row @lg:items-center">
       <span aria-hidden className="grid size-12 shrink-0 place-items-center rounded-control bg-accent-soft">
         {/* Marken-Motiv: fünf Zehen, nur der grosse Zeh lackiert */}
         <svg viewBox="0 0 34 26" className="h-[24px] w-[31px]">
@@ -23,6 +25,7 @@ export function EmptyState({ title, description, action, className }: { title: R
         {description ? <p className="mt-1 max-w-prose text-sm text-ink-muted">{description}</p> : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
+      </div>
     </div>
   );
 }
