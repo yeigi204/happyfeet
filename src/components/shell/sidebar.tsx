@@ -61,14 +61,14 @@ export function Sidebar({
       ) : null}
       <div className="flex-1" />
       <div className="grid gap-3 rounded-control border border-line bg-surface p-3">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <div className="shrink-0">{account}</div>
-          <div className="min-w-0">
+        <div className="flex min-w-0 items-center justify-between gap-2">
+          <div className="min-w-0 flex-1">
             <p className="truncate text-[13px] leading-tight font-bold text-ink">{profile.name}</p>
             {profile.handle ? <p className="truncate text-xs text-ink-muted">@{profile.handle}</p> : null}
           </div>
+          <div className="max-w-[60%] shrink-0 overflow-hidden">{account}</div>
         </div>
-        <ThemeToggle value={theme} className="w-full justify-between" />
+        <ThemeToggle value={theme} className="flex w-full [&>button]:flex-1 [&>button]:px-1.5" />
       </div>
     </aside>
   );

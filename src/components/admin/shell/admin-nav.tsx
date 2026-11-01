@@ -120,7 +120,7 @@ export function AdminNav({ counts, activeHref }: { counts: AdminCounts; activeHr
             className="flex h-10 items-center gap-3 rounded-control px-3 text-[13px] font-semibold text-ink-muted transition-colors hover:bg-surface-2/60 hover:text-ink"
           >
             <Search aria-hidden className="size-4" />
-            <span className="flex-1 text-left">Befehle & Suche</span>
+            <span className="flex-1 truncate text-left whitespace-nowrap">Befehle & Suche</span>
             <span className="flex gap-0.5">
               <Kbd>⌘</Kbd>
               <Kbd>K</Kbd>
