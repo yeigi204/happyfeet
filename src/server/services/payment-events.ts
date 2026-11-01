@@ -294,7 +294,14 @@ async function activatePremium(tx: Tx, event: CompletedEvent, now: Date): Promis
     const [inserted] = await tx
       .insert(premiumSubscriptions)
       .values({ ...period, creatorId: creator.id, provider: event.provider, providerRef: event.providerSubscriptionRef })
+      .onConflictDoNothing({ target: [premiumSubscriptions.provider, premiumSubscriptions.providerRef] })
       .returning({ id: premiumSubscriptions.id });
+    if (!inserted) {
+      // Ein paralleles Event hat die Zeile gerade angelegt (bisher hier noch nichts geschrieben):
+      // dieselbe Zahlung (Doppelklick) → still idempotent; eine andere (zweiter Tab) → nicht buchen.
+      if (await paymentExists(tx, event.provider, event.providerPaymentId)) return NOT_APPLIED;
+      return ignore("Premium wurde parallel aktiviert – zweite Zahlung wird weder gebucht noch verlängert", event);
+    }
     premiumId = inserted.id;
   }
 

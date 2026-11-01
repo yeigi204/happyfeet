@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { addBillingMonth } from "@/lib/domain/subscriptions";
 import { auditLog, payments, platformSettings, premiumSubscriptions } from "@/server/db/schema";
@@ -142,6 +142,25 @@ describe("Premium-Abschluss", () => {
     expect(await t.db.select().from(payments)).toHaveLength(1);
   });
 
+  it("zwei Tabs: eine zweite Premium-Zahlung bei laufendem Premium verlängert nicht und wird nicht gebucht", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const creator = await approvedCreator();
+    const first = sessionIdFrom((await startPremiumCheckout(creator, { now: NOW })).redirectUrl);
+    mock.clock.now = new Date(NOW.getTime() + 1000); // andere Ablaufzeit → andere Session/Zahlungs-ID
+    const second = sessionIdFrom((await startPremiumCheckout(creator, { now: NOW })).redirectUrl);
+    expect(second).not.toBe(first);
+
+    await completeMockCheckout(creator, first, { now: NOW });
+    const [afterFirst] = await t.db.select().from(premiumSubscriptions);
+    const event = mock.provider.completedEventFor(second, new Date(NOW.getTime() + 5000));
+    expect(await handlePaymentEvent(event)).toEqual({ applied: false });
+
+    expect(await t.db.select().from(payments)).toHaveLength(1);
+    expect(await t.db.select().from(premiumSubscriptions)).toEqual([afterFirst]);
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
   it("ein erneuter Abschluss nach Ablauf reaktiviert dieselbe Zeile mit neuem Preis-Snapshot", async () => {
     const creator = await approvedCreator();
     await buyPremium(creator, NOW);
@@ -210,5 +229,32 @@ describe("cancelPremium", () => {
     await cancelPremium(creator, { now: NOW });
     await cancelPremium(creator, { now: NOW });
     expect(await t.db.select().from(auditLog).where(eq(auditLog.action, "premium.canceled"))).toHaveLength(1);
+  });
+
+  it("Kündigung durch den Anbieter (subscription.canceled) wirkt zum Periodenende; Wiederholung ändert nichts", async () => {
+    const creator = await approvedCreator();
+    await buyPremium(creator, NOW);
+    const canceledAt = new Date(NOW.getTime() + 2 * DAY);
+    const event = {
+      type: "subscription.canceled" as const,
+      provider: "mock",
+      eventId: "mockevt_premium_cancel_1",
+      kind: "premium_plan" as const,
+      providerSubscriptionRef: `mocksub_${creator.id}`,
+      occurredAt: canceledAt,
+    };
+
+    expect(await handlePaymentEvent(event)).toEqual({ applied: true });
+    const [row] = await t.db.select().from(premiumSubscriptions);
+    expect(row).toMatchObject({ status: "canceled", cancelAtPeriodEnd: true });
+    expect(row.canceledAt).toEqual(canceledAt);
+    expect(row.currentPeriodEnd).toEqual(addBillingMonth(NOW));
+    expect((await getPremiumStatus(creator, { now: canceledAt })).isPremium).toBe(true);
+
+    expect(await handlePaymentEvent({ ...event, eventId: "mockevt_premium_cancel_2" })).toEqual({ applied: false });
+    expect(await t.db.select().from(premiumSubscriptions)).toEqual([row]);
+    const entries = await t.db.select().from(auditLog).where(eq(auditLog.action, "premium.canceled"));
+    expect(entries).toHaveLength(1);
+    expect(entries[0].actorId).toBeNull();
   });
 });

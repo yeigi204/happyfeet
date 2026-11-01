@@ -8,9 +8,24 @@ import { assertAdmin } from "@/server/auth/guards";
 import { getDb } from "@/server/db/client";
 import { payouts, users, type Payout } from "@/server/db/schema";
 import { ValidationError, zodFieldErrors } from "@/server/errors";
+import { generateDuePayouts as generateDuePayoutsAs } from "@/server/services/payouts";
 import { premiumCreatorIdsAt } from "@/server/services/premium";
 
-export { generateDuePayouts, markPayoutPaid } from "@/server/services/payouts";
+export { markPayoutPaid } from "@/server/services/payouts";
+
+/**
+ * Fällige Auszahlungen erzeugen – Admin-Variante von `generateDuePayouts` aus dem Payout-Service.
+ * Anders als dort gibt es hier keinen System-Akteur: `null` (z. B. ein nicht angemeldeter Viewer
+ * in einer Server Action) wird abgewiesen statt als System ausgeführt. Cron/Skripte nutzen
+ * `@/server/services/payouts` direkt.
+ */
+export async function generateDuePayouts(
+  admin: Viewer,
+  opts: { now?: Date } = {},
+): Promise<{ created: number; totalRappen: number }> {
+  assertAdmin(admin);
+  return generateDuePayoutsAs(admin, opts);
+}
 
 export type AdminPayoutRow = {
   id: string;

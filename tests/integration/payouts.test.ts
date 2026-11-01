@@ -101,6 +101,44 @@ describe("generateDuePayouts", () => {
     expect(await t.db.select().from(payouts)).toHaveLength(2);
   });
 
+  it("verspätet gebuchte Zahlungen aus einer schon ausgezahlten Periode gehen nicht verloren", async () => {
+    const creator = await standardCreatorWithPayments();
+    expect(await generateDuePayouts(null, { now: NOW })).toEqual({ created: 1, totalRappen: 1682 });
+
+    // Verspäteter Webhook: created_at = occurredAt (31.10.) liegt vor dem Ende der letzten Auszahlung.
+    await insertFanPayment(t.db, { creatorId: creator.id, createdAt: d("2026-10-31T23:00:00Z") });
+
+    const later = d("2026-12-03T08:00:00Z");
+    // November-Zahlung (03.11.) + nachgereichte Oktober-Zahlung
+    expect(await generateDuePayouts(null, { now: later })).toEqual({ created: 1, totalRappen: 841 + 841 });
+
+    const viewer = await viewerFor(t.db, creator.id, later);
+    const [latest] = await listCreatorPayouts(viewer, { now: later });
+    expect(latest.periodStart).toEqual(d("2026-11-01T00:00:00Z"));
+    expect(latest.periodEnd).toEqual(d("2026-12-01T00:00:00Z"));
+    // Alles bis zur Grenze ist verplant – nichts bleibt dauerhaft „verfügbar“ hängen.
+    expect((await getCreatorBalance(viewer, { now: later })).availableRappen).toBe(0);
+  });
+
+  it("eine fehlgeschlagene ältere Auszahlung wird mit der nächsten Periode nachgeholt", async () => {
+    const creator = await standardCreatorWithPayments();
+    await generateDuePayouts(null, { now: NOW }); // Okt.: 1682
+    await generateDuePayouts(null, { now: d("2026-12-03T08:00:00Z") }); // Nov.: 841
+    const [october] = await t.db.select().from(payouts).where(eq(payouts.amountRappen, 1682));
+    await t.db.update(payouts).set({ status: "failed" }).where(eq(payouts.id, october.id));
+
+    // Die Dezember-Periode enthält keine neuen Zahlungen, holt aber den fehlgeschlagenen Oktober nach.
+    expect(await generateDuePayouts(null, { now: d("2027-01-04T08:00:00Z") })).toEqual({
+      created: 1,
+      totalRappen: 1682,
+    });
+    const viewer = await viewerFor(t.db, creator.id, d("2027-01-04T08:00:00Z"));
+    expect(await getCreatorBalance(viewer, { now: d("2027-01-04T08:00:00Z") })).toMatchObject({
+      availableRappen: 0,
+      scheduledRappen: 3 * 841,
+    });
+  });
+
   it("ignoriert Rückerstattungen und erzeugt ohne Guthaben nichts", async () => {
     const { user } = await createCreator(t.db);
     await insertFanPayment(t.db, { creatorId: user.id, createdAt: d("2026-10-10T10:00:00Z"), status: "refunded" });

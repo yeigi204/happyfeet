@@ -1,12 +1,12 @@
 import "server-only";
 
-import { and, desc, eq, gte, inArray, isNotNull, lt, lte, max, min, ne, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, lte, max, min, ne, sql } from "drizzle-orm";
 
 import { lastPayoutBoundary, nextPayoutDate, payoutScheduleFor } from "@/lib/domain/payouts";
 import { planOf } from "@/lib/domain/plans";
 import type { PayoutSchedule, Viewer } from "@/lib/domain/types";
 import { assertAdmin, assertCreator } from "@/server/auth/guards";
-import { getDb, type DbOrTx } from "@/server/db/client";
+import { getDb } from "@/server/db/client";
 import { payments, payouts, users, type Payout } from "@/server/db/schema";
 import { ConflictError, NotFoundError } from "@/server/errors";
 
@@ -35,6 +35,12 @@ const PAYOUT_LOCK_KEY = "happyfeet:generate-payouts";
 const sumRappen = (column: typeof payments.creatorNetRappen | typeof payouts.amountRappen) =>
   sql<number>`coalesce(sum(${column}), 0)`.mapWith(Number);
 
+/** Summe der Creator-Anteile mit `created_at < boundary` (für eine gruppierte Zahlungs-Abfrage). */
+const earnedBefore = (boundary: Date) =>
+  sql<number>`coalesce(sum(${payments.creatorNetRappen}) filter (where ${payments.createdAt} < ${boundary.toISOString()}::timestamptz), 0)`.mapWith(
+    Number,
+  );
+
 const creatorEarnings = (creatorId: string) =>
   and(
     eq(payments.creatorId, creatorId),
@@ -42,18 +48,13 @@ const creatorEarnings = (creatorId: string) =>
     eq(payments.status, "succeeded"),
   );
 
-async function earnedBetween(db: DbOrTx, creatorId: string, from: Date, to: Date): Promise<number> {
-  const [row] = await db
-    .select({ amount: sumRappen(payments.creatorNetRappen) })
-    .from(payments)
-    .where(and(creatorEarnings(creatorId), gte(payments.createdAt, from), lt(payments.createdAt, to)));
-  return row?.amount ?? 0;
-}
-
 /**
  * Erzeugt fällige Auszahlungen (`scheduled`) für alle nicht gesperrten Creator mit Guthaben.
  * Periode: vom Ende der letzten nicht fehlgeschlagenen Auszahlung (sonst ab der ersten Zahlung)
- * bis zur letzten Plan-Grenze ≤ now. Dieselbe Periode wird nie doppelt ausgezahlt.
+ * bis zur letzten Plan-Grenze ≤ now; ist diese Grenze nicht später als der Periodenbeginn, entsteht nichts.
+ * Betrag: alle Creator-Anteile vor der Grenze minus alle nicht fehlgeschlagenen Auszahlungen. So wird
+ * nichts doppelt ausgezahlt, und weder verspätet gebuchte Zahlungen (`created_at` = Zahlungszeitpunkt,
+ * also evtl. vor dem Ende der letzten Auszahlung) noch fehlgeschlagene Auszahlungen gehen verloren.
  * `actor = null` = System (z. B. Cron); sonst nur Admins.
  */
 export async function generateDuePayouts(
@@ -62,12 +63,21 @@ export async function generateDuePayouts(
 ): Promise<{ created: number; totalRappen: number }> {
   if (actor !== null) assertAdmin(actor);
   const now = opts.now ?? new Date();
+  const boundaries: Record<PayoutSchedule, Date> = {
+    weekly: lastPayoutBoundary("weekly", now),
+    monthly: lastPayoutBoundary("monthly", now),
+  };
 
   return getDb().transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${PAYOUT_LOCK_KEY}))`);
 
     const earners = await tx
-      .select({ creatorId: payments.creatorId, firstAt: min(payments.createdAt) })
+      .select({
+        creatorId: payments.creatorId,
+        firstAt: min(payments.createdAt),
+        earnedBeforeWeekly: earnedBefore(boundaries.weekly),
+        earnedBeforeMonthly: earnedBefore(boundaries.monthly),
+      })
       .from(payments)
       .innerJoin(users, eq(users.id, payments.creatorId))
       .where(
@@ -83,29 +93,34 @@ export async function generateDuePayouts(
 
     const creatorIds = earners.flatMap((e) => (e.creatorId ? [e.creatorId] : []));
     const premium = await premiumCreatorIdsAt(creatorIds, now, tx);
-    const lastEnds =
+    const previous =
       creatorIds.length === 0
         ? []
         : await tx
-            .select({ creatorId: payouts.creatorId, lastEnd: max(payouts.periodEnd) })
+            .select({
+              creatorId: payouts.creatorId,
+              lastEnd: max(payouts.periodEnd),
+              totalRappen: sumRappen(payouts.amountRappen),
+            })
             .from(payouts)
             .where(and(inArray(payouts.creatorId, creatorIds), ne(payouts.status, "failed")))
             .groupBy(payouts.creatorId);
-    const lastEndByCreator = new Map(lastEnds.map((row) => [row.creatorId, row.lastEnd]));
+    const previousByCreator = new Map(previous.map((row) => [row.creatorId, row]));
 
-    let created = 0;
-    let totalRappen = 0;
-    for (const { creatorId, firstAt } of earners) {
+    const due: (typeof payouts.$inferInsert & { amountRappen: number })[] = [];
+    for (const { creatorId, firstAt, earnedBeforeWeekly, earnedBeforeMonthly } of earners) {
       if (!creatorId || !firstAt) continue;
       const schedule = payoutScheduleFor(planOf(premium.has(creatorId)));
-      const periodEnd = lastPayoutBoundary(schedule, now);
-      const periodStart = lastEndByCreator.get(creatorId) ?? firstAt;
+      const periodEnd = boundaries[schedule];
+      const prev = previousByCreator.get(creatorId);
+      const periodStart = prev?.lastEnd ?? firstAt;
       if (periodEnd.getTime() <= periodStart.getTime()) continue;
 
-      const amountRappen = await earnedBetween(tx, creatorId, periodStart, periodEnd);
+      const earned = schedule === "weekly" ? earnedBeforeWeekly : earnedBeforeMonthly;
+      const amountRappen = earned - (prev?.totalRappen ?? 0);
       if (amountRappen <= 0) continue;
 
-      await tx.insert(payouts).values({
+      due.push({
         creatorId,
         amountRappen,
         currency: "CHF",
@@ -115,10 +130,11 @@ export async function generateDuePayouts(
         status: "scheduled",
         createdAt: now,
       });
-      created += 1;
-      totalRappen += amountRappen;
     }
+    if (due.length > 0) await tx.insert(payouts).values(due);
 
+    const created = due.length;
+    const totalRappen = due.reduce((sum, payout) => sum + payout.amountRappen, 0);
     if (actor !== null || created > 0) {
       await writeAudit(
         {

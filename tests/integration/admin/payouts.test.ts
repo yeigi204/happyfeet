@@ -1,8 +1,9 @@
 import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 
-import { payouts, users } from "@/server/db/schema";
-import { ForbiddenError, ValidationError } from "@/server/errors";
+import { auditLog, payouts, users } from "@/server/db/schema";
+import type { Viewer } from "@/lib/domain/types";
+import { AuthError, ForbiddenError, ValidationError } from "@/server/errors";
 import * as adminPayouts from "@/server/services/admin/payouts";
 import { generateDuePayouts, listPayouts, markPayoutPaid } from "@/server/services/admin/payouts";
 import * as payoutService from "@/server/services/payouts";
@@ -66,9 +67,21 @@ describe("listPayouts", () => {
     ).rejects.toBeInstanceOf(ValidationError);
   });
 
-  it("re-exportiert generateDuePayouts und markPayoutPaid aus dem Payout-Service", () => {
-    expect(adminPayouts.generateDuePayouts).toBe(payoutService.generateDuePayouts);
+  it("re-exportiert markPayoutPaid aus dem Payout-Service", () => {
     expect(adminPayouts.markPayoutPaid).toBe(payoutService.markPayoutPaid);
+  });
+
+  it("generateDuePayouts delegiert an den Payout-Service (Audit mit Admin als Akteur)", async () => {
+    const { std, admin } = await fixture();
+    await insertFanPayment(t.db, { creatorId: std.id, createdAt: new Date("2026-11-10T10:00:00Z") });
+
+    expect(await generateDuePayouts(admin, { now: new Date("2026-12-02T10:00:00Z") })).toEqual({
+      created: 1,
+      totalRappen: 841,
+    });
+    const entries = await t.db.select().from(auditLog).where(eq(auditLog.action, "payouts.generated"));
+    expect(entries).toHaveLength(2);
+    expect(entries.every((entry) => entry.actorId === admin.id)).toBe(true);
   });
 });
 
@@ -88,5 +101,12 @@ describe("Admin-Autorisierung", () => {
       await expect(markPayoutPaid(viewer, payout.id, { now: NOW })).rejects.toBeInstanceOf(ForbiddenError);
     }
     expect((await t.db.select().from(payouts)).every((p) => p.status === "scheduled")).toBe(true);
+  });
+
+  it("generateDuePayouts der Admin-Services kennt keinen System-Akteur (null → AuthError)", async () => {
+    await insertFanPayment(t.db, { creatorId: (await createCreator(t.db)).user.id, createdAt: new Date("2026-10-10T10:00:00Z") });
+
+    await expect(generateDuePayouts(null as unknown as Viewer, { now: NOW })).rejects.toBeInstanceOf(AuthError);
+    expect(await t.db.select().from(payouts)).toHaveLength(0);
   });
 });
