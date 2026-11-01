@@ -1,6 +1,6 @@
 "use client";
 
-import { NailMark } from "@/components/site/wordmark";
+import { LogoMark } from "@/components/brand/logo";
 import { ErrorPanel } from "@/components/site/error-panel";
 
 /**
@@ -17,7 +17,7 @@ export default function AppError({ error, retry }: { error: unknown; retry: () =
           aria-label="happyfeet – zur Startseite"
           className="inline-flex items-center gap-2 rounded-control font-display text-[19px] leading-none font-extrabold tracking-[-0.05em] text-ink"
         >
-          <NailMark />
+          <LogoMark className="size-6" />
           <span aria-hidden>happyfeet</span>
         </a>
       </header>

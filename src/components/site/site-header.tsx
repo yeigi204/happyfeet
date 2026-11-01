@@ -6,7 +6,7 @@ import { getViewer } from "@/server/auth/viewer";
 
 import { Container } from "./container";
 import { SiteNav, type SiteNavItem } from "./site-nav";
-import { Wordmark } from "./wordmark";
+import { Logo } from "@/components/brand/logo";
 
 function navItemsFor(viewer: Viewer | null): SiteNavItem[] {
   const items: SiteNavItem[] = [{ href: "/explore", label: "Entdecken" }];
@@ -31,7 +31,7 @@ export async function SiteHeader({ className }: { className?: string } = {}) {
   return (
     <header className={cn("sticky top-0 z-40 border-b border-line bg-canvas", className)}>
       <Container className="flex h-16 items-center gap-4 md:gap-8">
-        <Wordmark />
+        <Logo />
         <div className="flex h-full min-w-0 flex-1 items-center justify-end gap-2 md:justify-between md:gap-4">
           <SiteNav
             items={items}

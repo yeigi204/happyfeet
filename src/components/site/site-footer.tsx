@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { legalLinks } from "./contact";
 import { Container } from "./container";
-import { Wordmark } from "./wordmark";
+import { Logo } from "@/components/brand/logo";
 
 const linkClass = "rounded-control text-ink-muted underline-offset-4 transition-colors hover:text-ink hover:underline";
 
@@ -12,7 +12,7 @@ export function SiteFooter() {
     <footer className="mt-24 border-t border-line bg-surface">
       <Container className="grid gap-10 py-12 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
         <div className="max-w-sm">
-          <Wordmark />
+          <Logo size="sm" />
           <p className="mt-4 text-sm leading-relaxed text-ink-muted">
             Fussbilder im Abo – direkt von geprüften Creatorn aus der Schweiz. Bezahlt wird in Franken, gekündigt jederzeit
             zum Monatsende.

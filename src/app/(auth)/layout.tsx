@@ -1,12 +1,12 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { Wordmark } from "@/components/site/wordmark";
+import { Logo } from "@/components/brand/logo";
 
 /**
  * Rahmen für Anmeldung, Registrierung, Onboarding und Sperrseite.
  * Links ein redaktionelles Panel (ab lg), rechts der eigentliche Inhalt – hell, warm, viel Luft.
- * Marke wie auf den öffentlichen Seiten (`Wordmark` mit Nagel).
+ * Marke wie auf den öffentlichen Seiten (`Logo`).
  */
 
 const FACTS = [
@@ -19,7 +19,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-dvh bg-canvas text-ink lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
       <aside className="sticky top-0 hidden h-dvh flex-col justify-between border-r border-line bg-surface px-12 py-10 lg:flex xl:px-16">
-        <Wordmark />
+        <Logo />
 
         <div className="max-w-md">
           <p className="font-num text-[11px] uppercase tracking-[0.22em] text-ink-muted">
@@ -50,7 +50,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
 
       <div className="flex min-h-dvh flex-col px-4 py-6 sm:px-8 lg:px-16 lg:py-10">
         <header className="flex items-center justify-between gap-4">
-          <Wordmark className="lg:invisible" />
+          <Logo className="lg:invisible" />
           <Link
             href="/explore"
             className="text-sm text-ink-muted underline-offset-4 transition-colors hover:text-ink hover:underline"

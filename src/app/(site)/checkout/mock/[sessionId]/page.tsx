@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { Container } from "@/components/site/container";
-import { NailMark } from "@/components/site/wordmark";
+import { LogoMark } from "@/components/brand/logo";
 import { Avatar } from "@/components/ui/avatar";
 import { ButtonLink } from "@/components/ui/button";
 import { PremiumBadge } from "@/components/ui/premium-badge";
@@ -123,7 +123,7 @@ export default async function MockCheckoutPage({ params }: PageProps<"/checkout/
             {isPremium ? (
               <>
                 <span aria-hidden className="grid size-12 shrink-0 place-items-center rounded-full border border-line bg-canvas">
-                  <NailMark />
+                  <LogoMark className="size-6" />
                 </span>
                 <div className="min-w-0">
                   <p className="flex items-center gap-2 font-semibold text-ink">

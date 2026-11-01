@@ -1,6 +1,6 @@
 "use client";
 
-import { NailMark } from "@/components/site/wordmark";
+import { LogoMark } from "@/components/brand/logo";
 import { ErrorPanel } from "@/components/site/error-panel";
 
 import "./globals.css";
@@ -16,7 +16,7 @@ export default function GlobalError({ error, retry }: { error: unknown; retry: (
         <title>Fehler · happyfeet</title>
         <div className="mx-auto w-full max-w-[1240px] px-4 py-5 sm:px-8">
           <span className="inline-flex items-center gap-2 font-display text-[19px] leading-none font-extrabold tracking-[-0.05em]">
-            <NailMark />
+            <LogoMark className="size-6" />
             happyfeet
           </span>
         </div>

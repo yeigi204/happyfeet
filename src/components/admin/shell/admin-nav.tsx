@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { cn } from "@/components/ui/cn";
+import { LogoMark } from "@/components/brand/logo";
 import { Kbd } from "@/components/ui/kbd";
 
 import { QueuePill } from "./queue-pill";
@@ -62,11 +63,11 @@ function Pills({ href, counts }: { href: string; counts: AdminCounts }) {
 export function AdminBrand({ className }: { className?: string }) {
   return (
     <Link href="/admin" className={cn("flex items-center gap-2.5", className)} aria-label="happyfeet Admin – Dashboard">
-      <span aria-hidden className="block h-[15px] w-3 rounded-[50%_50%_42%_42%/62%_62%_38%_38%] bg-accent" />
-      <span aria-hidden className="font-display text-[19px] leading-none font-extrabold tracking-[-0.05em] text-ink">
+      <LogoMark />
+      <span aria-hidden className="font-display text-[19px] leading-none font-extrabold tracking-[-0.03em] text-ink">
         happyfeet
       </span>
-      <span aria-hidden className="rounded-[3px] border border-line-strong px-1 py-[3px] font-num text-[9px] leading-none tracking-[0.14em] text-ink-muted uppercase">
+      <span aria-hidden className="rounded-full bg-surface-2 px-2 py-1 text-[11px] leading-none font-bold text-ink">
         Admin
       </span>
     </Link>
