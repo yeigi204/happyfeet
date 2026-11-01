@@ -100,7 +100,7 @@ export default async function MockCheckoutPage({ params }: PageProps<"/checkout/
   return (
     <Container className="py-10 sm:py-16">
       <div className="mx-auto max-w-xl">
-        <div role="note" className="flex items-start gap-3 rounded-card border border-warning/45 bg-warning/10 px-4 py-3.5">
+        <div role="note" className="flex items-start gap-3 rounded-card bg-warning-soft px-4 py-3.5">
           <TriangleAlert aria-hidden className="mt-0.5 size-5 shrink-0 text-warning" />
           <div>
             <p className="font-semibold text-ink">Testzahlung – es wird kein Geld bewegt</p>

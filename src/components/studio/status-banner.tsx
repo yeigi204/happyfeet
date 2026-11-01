@@ -26,7 +26,7 @@ export function StatusBanner({ status, note }: StatusBannerProps) {
         aria-labelledby="studio-status-title"
         className={cn(
           "grid gap-4 rounded-card border p-4 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center sm:gap-5 sm:p-5",
-          pending ? "border-warning/40 bg-warning/10" : "border-danger/40 bg-danger/10",
+          pending ? "bg-warning-soft" : "bg-danger-soft",
         )}
       >
         <span

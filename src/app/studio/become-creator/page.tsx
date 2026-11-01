@@ -125,7 +125,7 @@ export default async function BecomeCreatorPage() {
             </p>
 
             {reapply && profile?.verificationNote ? (
-              <div className="mt-5 rounded-control border border-danger/40 bg-danger/10 p-3.5">
+              <div className="mt-5 rounded-control bg-danger-soft p-3.5">
                 <p className="text-[13px] font-medium text-ink">Begründung der letzten Ablehnung</p>
                 <blockquote className="mt-1.5 border-l-2 border-danger/60 pl-3 text-sm leading-relaxed text-ink">{profile.verificationNote}</blockquote>
               </div>

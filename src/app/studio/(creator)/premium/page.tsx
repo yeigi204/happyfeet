@@ -68,7 +68,7 @@ export default async function StudioPremiumPage({ searchParams }: PageProps<"/st
           role="status"
           className={cn(
             "mt-6 flex items-start gap-3 rounded-card border p-4 animate-rise",
-            premium.isPremium ? "border-success/35 bg-success/10" : "border-warning/40 bg-warning/10",
+            premium.isPremium ? "bg-success-soft" : "bg-warning-soft",
           )}
         >
           <CheckCircle2 aria-hidden className={cn("mt-0.5 size-5 shrink-0", premium.isPremium ? "text-success" : "text-warning")} />

@@ -22,7 +22,7 @@ export function SimulateButton({
         {pending ? "Zahlung wird simuliert …" : children}
       </Button>
       {state && !state.ok ? (
-        <p role="alert" className="rounded-control border border-danger/40 bg-danger/10 px-3 py-2.5 text-sm text-ink">
+        <p role="alert" className="rounded-control bg-danger-soft px-3 py-2.5 text-sm text-ink">
           {state.error}
         </p>
       ) : null}

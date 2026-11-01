@@ -213,7 +213,7 @@ export function NewPostForm({ action, premoderation }: NewPostFormProps) {
       {/* ─── Bilder ─────────────────────────────────────────────────────── */}
       <section aria-labelledby={headingId} className="min-w-0" {...dropHandlers}>
         <div className="mb-3 flex items-baseline justify-between gap-3">
-          <h2 id={headingId} className="text-[13px] font-medium text-ink">
+          <h2 id={headingId} className="text-[13px] font-semibold text-ink">
             Bilder
           </h2>
           <p className={cn("font-num text-xs tabular-nums", full ? "text-ink" : "text-ink-faint")}>
@@ -252,7 +252,7 @@ export function NewPostForm({ action, premoderation }: NewPostFormProps) {
               >
                 <ImagePlus className="size-6" />
               </span>
-              <p className="mt-5 font-display text-2xl leading-tight font-bold tracking-[-0.03em] text-ink">
+              <p className="mt-5 font-display text-2xl leading-tight font-extrabold tracking-[-0.025em] text-ink">
                 {fileDragActive ? "Loslassen zum Hinzufügen" : (
                   <>
                     <span className="hidden sm:inline">Bilder hierher ziehen</span>
@@ -332,7 +332,7 @@ export function NewPostForm({ action, premoderation }: NewPostFormProps) {
                     >
                       {index === 0 ? "Titelbild" : index + 1}
                     </span>
-                    <span className="absolute right-1.5 bottom-1.5 rounded-[4px] bg-ink/75 px-1.5 py-0.5 font-num text-[10.5px] text-canvas tabular-nums">
+                    <span className="absolute right-1.5 bottom-1.5 rounded-full bg-[rgb(20_10_14/0.55)] px-2 py-0.5 font-num text-[11px] font-semibold text-white">
                       {formatMegabytes(item.file.size)}
                     </span>
                   </div>
@@ -365,7 +365,7 @@ export function NewPostForm({ action, premoderation }: NewPostFormProps) {
                     aria-describedby={imagesHintId}
                     className={cn(
                       "grid size-full min-h-40 place-items-center rounded-card border-2 border-dashed border-line-strong bg-surface px-3 text-center transition-colors",
-                      "hover:border-ink-faint hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+                      "hover:border-ink-faint hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus",
                       "disabled:pointer-events-none disabled:opacity-45",
                     )}
                   >
@@ -393,7 +393,7 @@ export function NewPostForm({ action, premoderation }: NewPostFormProps) {
         ) : null}
 
         {rejected.length > 0 ? (
-          <div className="mt-3 rounded-control border border-warning/40 bg-warning/10 px-3.5 py-3">
+          <div className="mt-3 rounded-control bg-warning-soft px-3.5 py-3">
             <div className="flex items-start justify-between gap-3">
               <p className="flex items-center gap-2 text-sm font-medium text-ink">
                 <TriangleAlert aria-hidden className="size-4 text-warning" />
@@ -423,14 +423,14 @@ export function NewPostForm({ action, premoderation }: NewPostFormProps) {
       {/* ─── Details ────────────────────────────────────────────────────── */}
       <div className="grid gap-6 lg:sticky lg:top-24">
         <fieldset className="grid gap-2" aria-describedby={visibilityError ? "visibility-error" : undefined}>
-          <legend className="mb-1.5 text-[13px] font-medium text-ink">Wer sieht den Post?</legend>
+          <legend className="mb-1.5 text-[13px] font-semibold text-ink">Wer sieht den Post?</legend>
           {VISIBILITY_OPTIONS.map((option) => (
             <label
               key={option.value}
               className={cn(
                 "flex cursor-pointer gap-3 rounded-control border bg-surface p-3.5 transition-colors duration-100",
-                "has-checked:border-accent has-checked:bg-accent-soft/35 hover:border-ink-faint",
-                "has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-accent",
+                "has-checked:border-accent has-checked:bg-accent-soft hover:border-ink-faint",
+                "has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-focus",
                 visibility !== option.value && "border-line-strong",
               )}
             >
@@ -447,7 +447,7 @@ export function NewPostForm({ action, premoderation }: NewPostFormProps) {
                 className="mt-0.5 size-4 shrink-0 cursor-pointer accent-accent focus-visible:outline-none"
               />
               <span className="min-w-0">
-                <span className="flex items-center gap-1.5 text-sm font-medium text-ink [&_svg]:size-3.5 [&_svg]:text-ink-muted">
+                <span className="flex items-center gap-1.5 text-sm font-bold text-ink [&_svg]:size-3.5 [&_svg]:text-ink-muted">
                   {option.icon}
                   {option.label}
                 </span>
@@ -489,10 +489,10 @@ export function NewPostForm({ action, premoderation }: NewPostFormProps) {
         </Field>
 
         {premoderation.active ? (
-          <div className="flex gap-3 rounded-control border border-line bg-surface-2/60 p-3.5">
-            <ShieldCheck aria-hidden className="mt-0.5 size-4 shrink-0 text-ink-muted" />
-            <p className="text-[13px] leading-relaxed text-ink-muted">
-              <span className="font-medium text-ink">Vorab-Prüfung:</span> Deine ersten {premoderation.total} Posts schauen wir uns an, bevor sie
+          <div className="flex gap-3 rounded-control bg-warning-soft p-3.5">
+            <ShieldCheck aria-hidden className="mt-0.5 size-4 shrink-0 text-warning" />
+            <p className="text-[13px] leading-relaxed text-warning">
+              <span className="font-bold">Vorab-Prüfung:</span> Deine ersten {premoderation.total} Posts schauen wir uns an, bevor sie
               online gehen.{" "}
               {premoderation.remaining === 1
                 ? "Noch eine Freigabe, dann geht jeder neue Post sofort online."
@@ -502,7 +502,7 @@ export function NewPostForm({ action, premoderation }: NewPostFormProps) {
         ) : null}
 
         {formError ? (
-          <p role="alert" className="rounded-control border border-danger/40 bg-danger/10 px-3 py-2.5 text-sm text-ink">
+          <p role="alert" className="rounded-control bg-danger-soft px-3 py-2.5 text-sm font-medium text-danger">
             {formError}
           </p>
         ) : null}

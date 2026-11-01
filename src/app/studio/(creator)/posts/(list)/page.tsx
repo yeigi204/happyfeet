@@ -123,7 +123,7 @@ function CreatedNotice({ status, handle }: { status: "pending" | "approved"; han
       role="status"
       className={cn(
         "mt-6 flex items-start gap-3 rounded-card border p-4 animate-rise",
-        pending ? "border-warning/40 bg-warning/10" : "border-success/35 bg-success/10",
+        pending ? "bg-warning-soft" : "bg-success-soft",
       )}
     >
       <Icon aria-hidden className={cn("mt-0.5 size-5 shrink-0", pending ? "text-warning" : "text-success")} />

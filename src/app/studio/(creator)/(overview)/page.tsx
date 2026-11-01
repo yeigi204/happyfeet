@@ -61,15 +61,20 @@ export default async function StudioOverviewPage() {
       ) : null}
 
       <StatGrid label="Kennzahlen" className={cn("grid-cols-1 min-[440px]:grid-cols-2 lg:grid-cols-3", approved ? "mt-8" : "mt-12")}>
+        <StatCell hero>
+          <Stat
+            variant="hero"
+            label="Netto diesen Monat"
+            value={formatChf(basic.netThisMonthRappen)}
+            hint={`brutto ${formatChf(basic.grossThisMonthRappen)}`}
+          />
+        </StatCell>
         <StatCell>
           <Stat
             label="Aktive Abonnenten"
             value={formatNumber(basic.activeSubscribers)}
             hint={basic.activeSubscribers === 0 ? "noch niemand" : "mit laufendem Zugang"}
           />
-        </StatCell>
-        <StatCell>
-          <Stat label="Netto diesen Monat" value={formatChf(basic.netThisMonthRappen)} hint={`brutto ${formatChf(basic.grossThisMonthRappen)}`} />
         </StatCell>
         <StatCell>
           <Stat
@@ -288,7 +293,7 @@ function StepMarker({ state, index }: { state: "done" | "current" | "todo" | "bl
   const base = "relative z-10 grid size-7 place-items-center rounded-full border font-num text-[11px] font-medium";
   if (state === "done") {
     return (
-      <span aria-hidden className={cn(base, "border-success/40 bg-success/10 text-success")}>
+      <span aria-hidden className={cn(base, "bg-success-soft text-success")}>
         <Check className="size-3.5" />
       </span>
     );
@@ -302,7 +307,7 @@ function StepMarker({ state, index }: { state: "done" | "current" | "todo" | "bl
   }
   if (state === "blocked") {
     return (
-      <span aria-hidden className={cn(base, "border-danger/50 bg-danger/10 text-danger")}>
+      <span aria-hidden className={cn(base, "bg-danger-soft text-danger")}>
         {index}
       </span>
     );
