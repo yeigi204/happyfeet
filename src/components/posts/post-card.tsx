@@ -43,9 +43,9 @@ export function PostCard({ post, variant, now, reportAction, lockedAction, class
   );
 
   return (
-    <article aria-label={`${label}, ${formatDateTime(at)}`} className={cn("min-w-0 rounded-card border border-line bg-surface", className)}>
+    <article aria-label={`${label}, ${formatDateTime(at)}`} className={cn("min-w-0 overflow-hidden rounded-card border border-line bg-surface shadow-md", className)}>
       {variant === "feed" ? (
-        <header className="flex items-center gap-3 px-4 py-3">
+        <header className="flex items-center gap-3 px-4 py-3.5">
           <Link href={`/c/${post.creator.handle}`} aria-hidden tabIndex={-1} className="shrink-0">
             <Avatar name={post.creator.displayName} src={post.creator.avatarUrl} size="md" />
           </Link>
@@ -53,20 +53,20 @@ export function PostCard({ post, variant, now, reportAction, lockedAction, class
             <p className="flex items-center gap-1.5">
               <Link
                 href={`/c/${post.creator.handle}`}
-                className="truncate rounded-control text-sm font-semibold text-ink underline-offset-4 hover:underline"
+                className="truncate rounded-control text-sm font-bold text-ink underline-offset-4 hover:underline"
               >
                 {post.creator.displayName}
               </Link>
               {post.creator.isPremium ? <PremiumBadge compact /> : null}
             </p>
-            <p className="truncate font-num text-[11.5px] text-ink-faint">
+            <p className="truncate text-xs text-ink-muted">
               @{post.creator.handle} · {time}
             </p>
           </div>
         </header>
       ) : null}
 
-      <div className={variant === "feed" ? "px-2" : "p-2"}>
+      <div className={variant === "feed" ? "[&>*]:rounded-none" : "p-2"}>
         {post.locked ? (
           <LockedOverlay preview={post.media[0]} imageCount={post.mediaCount} action={lockedAction} />
         ) : (
@@ -76,7 +76,7 @@ export function PostCard({ post, variant, now, reportAction, lockedAction, class
 
       <div className="px-4 pt-3 pb-2">
         {moderation ? (
-          <div className="mb-3 rounded-control border border-line bg-surface-2 px-3 py-2.5">
+          <div className="mb-3 rounded-control bg-surface-2 px-3 py-2.5">
             <p className="flex flex-wrap items-center gap-2 text-[13px] text-ink-muted">
               <Badge tone={moderation.tone}>{moderation.label}</Badge>
               {moderation.hint}
@@ -90,7 +90,7 @@ export function PostCard({ post, variant, now, reportAction, lockedAction, class
       </div>
 
       <footer className="flex min-h-12 items-center justify-between gap-3 px-4 pb-2">
-        <p className="flex items-center gap-2 text-xs text-ink-faint">
+        <p className="flex items-center gap-2 text-xs font-medium text-ink-muted">
           {variant === "profile" ? time : null}
           {post.visibility === "public" ? (
             <span className="inline-flex items-center gap-1" title="Für alle sichtbar, auch ohne Abo">

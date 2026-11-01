@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { PostCard } from "@/components/posts/post-card";
 import { Container } from "@/components/site/container";
+import { FollowedCreators } from "@/components/site/followed-creators";
 import { countLabel } from "@/components/site/text";
 import { Avatar } from "@/components/ui/avatar";
 import { ButtonLink } from "@/components/ui/button";
@@ -12,7 +13,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { formatDate, formatNumber } from "@/lib/format";
 import { requireOnboardedViewer } from "@/server/auth/viewer";
 import { getFeed, isUuid } from "@/server/services/posts";
-import { listMySubscriptions, type MySubscription } from "@/server/services/subscriptions";
+import { listMySubscriptions } from "@/server/services/subscriptions";
 
 import { reportPostAction } from "../c/[handle]/actions";
 
@@ -60,7 +61,11 @@ export default async function FeedPage({ searchParams }: PageProps<"/feed">) {
         description="Neue Posts von den Creatorn, die du abonniert hast – die neusten zuerst."
       />
 
-      {active.length > 0 ? <SubscriptionStrip subscriptions={active} /> : null}
+      <div className="mt-6">
+        <FollowedCreators
+          items={active.map((s) => ({ handle: s.creator.handle, displayName: s.creator.displayName, avatarUrl: s.creator.avatarUrl }))}
+        />
+      </div>
 
       <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,660px)_320px] xl:justify-between">
         <div className="min-w-0">
@@ -121,7 +126,7 @@ export default async function FeedPage({ searchParams }: PageProps<"/feed">) {
                     Mehr laden <ArrowDown aria-hidden />
                   </ButtonLink>
                 ) : (
-                  <p className="font-num text-[11px] tracking-[0.12em] text-ink-faint uppercase">Das waren alle Posts</p>
+                  <p className="text-xs font-semibold text-ink-muted">Das waren alle Posts</p>
                 )}
               </div>
             </>
@@ -129,7 +134,7 @@ export default async function FeedPage({ searchParams }: PageProps<"/feed">) {
         </div>
 
         <aside aria-label="Deine Abos" className="hidden lg:block">
-          <div className="sticky top-24 rounded-card border border-line bg-surface">
+          <div className="sticky top-8 rounded-card border border-line bg-surface shadow-sm">
             <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3">
               <h2 className="text-[13px] font-semibold text-ink">Deine Abos</h2>
               <Link href="/subscriptions" className="text-[13px] text-ink-muted underline-offset-4 hover:text-ink hover:underline">
@@ -169,27 +174,5 @@ export default async function FeedPage({ searchParams }: PageProps<"/feed">) {
         </aside>
       </div>
     </Container>
-  );
-}
-
-/** Mobil: abonnierte Creator als wischbare Reihe über dem Feed. */
-function SubscriptionStrip({ subscriptions }: { subscriptions: MySubscription[] }) {
-  return (
-    <nav aria-label="Deine Creator" className="-mx-4 mt-6 overflow-x-auto px-4 scrollbar-none sm:-mx-8 sm:px-8 lg:hidden">
-      <ul className="flex gap-4 py-1">
-        {subscriptions.map((sub) => (
-          <li key={sub.id} className="w-16 shrink-0">
-            <Link href={`/c/${sub.creator.handle}`} className="group flex flex-col items-center gap-1.5 rounded-control">
-              <span aria-hidden className="rounded-full p-0.5 shadow-[0_0_0_1.5px_var(--color-accent)]">
-                <Avatar name={sub.creator.displayName} src={sub.creator.avatarUrl} size="lg" />
-              </span>
-              <span className="w-full truncate text-center text-[11px] text-ink-muted group-hover:text-ink">
-                {sub.creator.displayName.split(" ")[0]}
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </nav>
   );
 }

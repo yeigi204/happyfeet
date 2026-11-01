@@ -126,12 +126,12 @@ export default async function CreatorProfilePage({ params, searchParams }: PageP
           <div className="mt-4">
             <h1
               id="creator-name"
-              className="font-display text-[40px] leading-[0.92] font-extrabold tracking-[-0.055em] wrap-anywhere text-ink sm:text-[60px]"
+              className="font-display text-[34px] leading-[1.02] font-extrabold tracking-[-0.035em] wrap-anywhere text-ink sm:text-[44px]"
             >
               {creator.displayName}
             </h1>
             <div className="mt-3 flex flex-wrap items-center gap-2">
-              <span className="font-num text-sm text-ink-muted">@{creator.handle}</span>
+              <span className="text-sm font-medium text-ink-muted">@{creator.handle}</span>
               {approved ? <Badge icon={<BadgeCheck aria-hidden className="text-ink-muted" />}>Geprüft</Badge> : null}
               {creator.isPremium ? <PremiumBadge /> : null}
             </div>
@@ -160,10 +160,10 @@ export default async function CreatorProfilePage({ params, searchParams }: PageP
         {/* Posts */}
         <section aria-labelledby="posts-title" className="mt-12 lg:col-start-1">
           <div className="flex items-baseline justify-between gap-4 border-b border-line pb-3">
-            <h2 id="posts-title" className="font-display text-2xl font-bold tracking-[-0.03em]">
+            <h2 id="posts-title" className="font-display text-[22px] font-extrabold tracking-[-0.025em]">
               Posts
             </h2>
-            <p className="font-num text-xs text-ink-faint tabular-nums">
+            <p className="font-num text-xs font-semibold text-ink-muted">
               {countLabel(posts.length, "Post", "Posts", formatNumber)}
               {hiddenCount > 0 ? ` · ${formatNumber(hiddenCount)} nicht öffentlich` : null}
               {!viewerRelation.isOwner && !viewerRelation.isSubscribed && posts.some((p) => p.locked)
@@ -214,7 +214,7 @@ export default async function CreatorProfilePage({ params, searchParams }: PageP
 
 function Banner({ url, name }: { url: string | null; name: string }) {
   return (
-    <div className="relative aspect-[2/1] overflow-hidden rounded-card border border-line bg-surface-2 sm:aspect-[3/1] lg:aspect-[4/1]">
+    <div className="relative aspect-[2/1] overflow-hidden rounded-panel bg-surface-2 sm:aspect-[3/1] lg:aspect-[5/1]">
       {url ? (
         <img src={url} alt={`Titelbild von ${name}`} decoding="async" className="absolute inset-0 size-full object-cover" />
       ) : (
@@ -235,8 +235,8 @@ function Banner({ url, name }: { url: string | null; name: string }) {
 function ProfileFact({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="eyebrow">{label}</dt>
-      <dd className="mt-1.5 font-num text-[15px] font-medium text-ink tabular-nums">{value}</dd>
+      <dt className="text-[13px] font-semibold text-ink-muted">{label}</dt>
+      <dd className="mt-1 font-num text-[17px] font-extrabold text-ink">{value}</dd>
     </div>
   );
 }
@@ -259,7 +259,7 @@ function AboPanel({
   if (viewerRelation.isOwner) {
     const status = viewer?.creator?.verificationStatus;
     return (
-      <div className="rounded-card border border-line bg-surface p-5">
+      <div className="rounded-card border border-line bg-surface p-5 shadow-md">
         <p className="eyebrow">Deine Seite</p>
         <p className="mt-3 font-display text-2xl leading-tight font-bold tracking-[-0.03em]">Das ist dein Profil.</p>
         <p className="mt-2 text-sm leading-relaxed text-ink-muted">
@@ -284,7 +284,7 @@ function AboPanel({
   if (creator.verificationStatus !== "approved") {
     // Nur Admins kommen hierher (Fremde erhalten für unfreigegebene Profile eine 404).
     return (
-      <div className="rounded-card border border-line bg-surface p-5">
+      <div className="rounded-card border border-line bg-surface p-5 shadow-md">
         <p className="eyebrow">Nicht öffentlich</p>
         <p className="mt-3 font-display text-2xl leading-tight font-bold tracking-[-0.03em]">
           {creator.verificationStatus === "pending" ? "Bewerbung in Prüfung." : "Bewerbung abgelehnt."}
@@ -305,7 +305,7 @@ function AboPanel({
     const sub = viewerRelation.subscription;
     const canceled = sub?.cancelAtPeriodEnd ?? false;
     return (
-      <div className="rounded-card border border-line bg-surface p-5">
+      <div className="rounded-card border border-line bg-surface p-5 shadow-md">
         <div className="flex items-center justify-between gap-3">
           <p className="eyebrow">Dein Abo</p>
           {canceled ? <Badge tone="warning">Gekündigt</Badge> : <Badge tone="success">Aktiv</Badge>}
@@ -336,7 +336,7 @@ function AboPanel({
   }
 
   return (
-    <div className="rounded-card border border-line bg-surface p-5">
+    <div className="rounded-card border border-line bg-surface p-5 shadow-md">
       <Stat label={<span className="wrap-anywhere">Abo bei {creator.displayName}</span>} value={formatChf(creator.monthlyPriceRappen)} hint="pro Monat" />
       <ul className="mt-5 grid gap-2.5 border-t border-line pt-4 text-sm text-ink">
         {[
@@ -379,7 +379,7 @@ function AboPanel({
           </div>
         )}
       </div>
-      <p className="mt-4 text-center font-num text-[10.5px] tracking-[0.08em] text-ink-faint uppercase">Bezahlt in CHF · Ab 18</p>
+      <p className="mt-4 text-center text-xs font-semibold text-ink-muted">Bezahlt in CHF · Ab 18</p>
     </div>
   );
 }

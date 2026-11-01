@@ -1,4 +1,4 @@
-import { ArrowRight, BadgeCheck, EyeOff, Flag, ShieldCheck, type LucideIcon } from "lucide-react";
+import { ArrowRight, BadgeCheck, EyeOff, Flag, Lock, ShieldCheck, Wallet, type LucideIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -52,12 +52,12 @@ export default async function LandingPage() {
             <span aria-hidden className="size-1.5 rounded-full bg-accent" />
             Fussbilder im Abo · aus der Schweiz
           </p>
-          <h1 className="mt-6 font-display text-[52px] leading-[0.88] font-extrabold tracking-[-0.06em] text-ink sm:text-[88px] xl:text-[104px]">
+          <h1 className="mt-6 font-display text-[44px] leading-[1] font-extrabold tracking-[-0.045em] text-ink sm:text-[64px] xl:text-[72px]">
             Abonniere,
             <br />
             was sonst
             <br />
-            <span className="text-accent">verpixelt</span> bleibt.
+            <em className="font-medium text-accent-strong">verpixelt</em> bleibt.
           </h1>
           <p className="mt-8 max-w-[34rem] text-[17px] leading-relaxed text-ink-muted">
             Creator aus der Schweiz zeigen hier ihre Füsse – frisch lackiert, barfuss am See, nach dem Training. Du abonnierst
@@ -77,14 +77,20 @@ export default async function LandingPage() {
               </ButtonLink>
             )}
           </div>
-          <ul className="mt-10 flex flex-wrap gap-x-6 gap-y-2 font-num text-[11px] tracking-[0.12em] text-ink-faint uppercase">
-            <li>Ab 18</li>
-            <li>Geprüfte Creator</li>
-            <li>Bezahlt in CHF</li>
+          <ul className="mt-9 flex flex-wrap gap-x-5 gap-y-2 text-[13px] font-semibold text-ink-muted">
+            <li className="inline-flex items-center gap-1.5">
+              <ShieldCheck aria-hidden className="size-4" /> Geprüfte Creator
+            </li>
+            <li className="inline-flex items-center gap-1.5">
+              <Lock aria-hidden className="size-4" /> Ab 18
+            </li>
+            <li className="inline-flex items-center gap-1.5">
+              <Wallet aria-hidden className="size-4" /> Bezahlt in CHF
+            </li>
           </ul>
         </div>
 
-        <figure className="min-w-0 overflow-hidden rounded-card border border-line bg-surface">
+        <figure className="min-w-0 overflow-hidden rounded-panel border border-line bg-surface shadow-lg">
           <div className="relative px-6 pt-10 pb-0 sm:px-10 sm:pt-14">
             <ToeGallery creators={creators.slice(0, 5)} className="mx-auto max-w-[520px]" />
             <div aria-hidden className="h-10 sm:h-14" />
@@ -115,17 +121,18 @@ export default async function LandingPage() {
       </Container>
 
       {/* ─── Zwei Seiten ─────────────────────────────────────────────────── */}
-      <section aria-labelledby="zwei-seiten" className="border-y border-line bg-surface">
+      <section aria-labelledby="zwei-seiten">
         <Container className="py-16 sm:py-24">
           <div className="max-w-2xl">
             <p className="eyebrow">So funktioniert happyfeet</p>
-            <h2 id="zwei-seiten" className="mt-4 font-display text-[36px] leading-[0.95] font-bold tracking-[-0.045em] sm:text-[52px]">
+            <h2 id="zwei-seiten" className="mt-4 font-display text-[30px] leading-[1.05] font-extrabold tracking-[-0.035em] sm:text-[40px]">
               Zwei Seiten, ein fairer Deal.
             </h2>
           </div>
 
-          <div className="mt-12 grid gap-px overflow-hidden rounded-card border border-line bg-line lg:grid-cols-2">
+          <div className="mt-10 grid gap-4 lg:grid-cols-2">
             <Side
+              tone="soft"
               kicker="Für Fans"
               title="Abonniere, wen du magst – zum fixen Monatspreis."
               steps={[
@@ -149,6 +156,7 @@ export default async function LandingPage() {
               }
             />
             <Side
+              tone="accent"
               kicker="Für Creator"
               title="Verdiene mit deinen Fussbildern – ohne Umwege."
               steps={[
@@ -183,7 +191,7 @@ export default async function LandingPage() {
       <Container className="grid gap-10 py-16 sm:py-24 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16">
         <div>
           <p className="eyebrow">Was bei dir ankommt</p>
-          <h2 className="mt-4 font-display text-[36px] leading-[0.95] font-bold tracking-[-0.045em] sm:text-[52px]">
+          <h2 className="mt-4 font-display text-[30px] leading-[1.05] font-extrabold tracking-[-0.035em] sm:text-[40px]">
             {formatPercentBps(FULL_BPS - settings.standardFeeBps)} für dich.
             <br />
             <span className="text-ink-faint">Mit Premium {formatPercentBps(FULL_BPS - settings.premiumFeeBps)}.</span>
@@ -201,7 +209,7 @@ export default async function LandingPage() {
           </p>
         </div>
 
-        <div className="rounded-card border border-line bg-surface p-5 sm:p-8">
+        <div className="rounded-card border border-line bg-surface p-5 shadow-md sm:p-8">
           <p className="text-sm text-ink-muted">
             Beispiel: ein Abo für <span className="font-num text-ink">{formatChf(gross)}</span> im Monat
           </p>
@@ -247,7 +255,7 @@ export default async function LandingPage() {
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
                 <p className="eyebrow">Gerade auf happyfeet</p>
-                <h2 id="creator-teaser" className="mt-4 font-display text-[36px] leading-[0.95] font-bold tracking-[-0.045em] sm:text-[52px]">
+                <h2 id="creator-teaser" className="mt-4 font-display text-[30px] leading-[1.05] font-extrabold tracking-[-0.035em] sm:text-[40px]">
                   Schau dich um.
                 </h2>
               </div>
@@ -276,11 +284,11 @@ export default async function LandingPage() {
           <div className="grid gap-10 lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)] lg:gap-16">
             <div>
               <p className="eyebrow">Was wir ernst nehmen</p>
-              <h2 id="sicherheit" className="mt-4 font-display text-[36px] leading-[0.95] font-bold tracking-[-0.045em] sm:text-[44px]">
+              <h2 id="sicherheit" className="mt-4 font-display text-[30px] leading-[1.05] font-extrabold tracking-[-0.035em] sm:text-[40px]">
                 Diskret, geprüft, nur für Erwachsene.
               </h2>
             </div>
-            <ul className="grid gap-px overflow-hidden rounded-card border border-line bg-line sm:grid-cols-2">
+            <ul className="grid gap-3 sm:grid-cols-2">
               <Assurance icon={ShieldCheck} title="Nur ab 18">
                 Bei der Registrierung bestätigst du dein Alter mit dem Geburtsdatum. Unter 18 gibt es keinen Zugang.
               </Assurance>
@@ -300,10 +308,10 @@ export default async function LandingPage() {
 
       {/* ─── Abschluss ──────────────────────────────────────────────────── */}
       <Container>
-        <div className="flex flex-col gap-8 rounded-card bg-ink px-6 py-12 text-canvas sm:px-12 sm:py-16 lg:flex-row lg:items-end lg:justify-between">
+        <div className="flex flex-col gap-8 rounded-panel bg-accent px-6 py-12 text-accent-ink sm:px-12 sm:py-16 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="font-num text-[10.5px] tracking-[0.09em] text-canvas/60 uppercase">Bereit?</p>
-            <p className="mt-4 max-w-2xl font-display text-[34px] leading-[0.95] font-bold tracking-[-0.045em] sm:text-[52px]">
+            <p className="eyebrow text-accent-ink/80">Bereit?</p>
+            <p className="mt-4 max-w-2xl font-display text-[30px] leading-[1.05] font-extrabold tracking-[-0.035em] sm:text-[40px]">
               Such dir deine Lieblings-Creator aus.
             </p>
           </div>
@@ -314,7 +322,7 @@ export default async function LandingPage() {
             {!viewer ? (
               <Link
                 href="/sign-up"
-                className="inline-flex h-12 items-center rounded-control border border-canvas/30 px-6 text-[15px] font-medium text-canvas transition-colors hover:border-canvas/70"
+                className="inline-flex h-12 items-center rounded-full border border-accent-ink/40 px-6 text-[15px] font-bold text-accent-ink transition-colors hover:border-accent-ink"
               >
                 Konto erstellen
               </Link>
@@ -327,44 +335,52 @@ export default async function LandingPage() {
 }
 
 function Side({
+  tone,
   kicker,
   title,
   steps,
   action,
 }: {
+  /** `soft`: vertiefte Fläche (Fans) · `accent`: Akzentfläche (Creator) – wie die Vorschau. */
+  tone: "soft" | "accent";
   kicker: string;
   title: string;
   steps: { title: string; text: string }[];
   action: ReactNode;
 }) {
+  const accent = tone === "accent";
   return (
-    <div className="flex flex-col bg-canvas p-6 sm:p-10">
-      <p className="flex items-center gap-2 font-num text-[11px] tracking-[0.12em] text-accent-strong uppercase">
-        <span aria-hidden className="size-1.5 rounded-full bg-accent" />
-        {kicker}
-      </p>
-      <h3 className="mt-4 max-w-md font-display text-[26px] leading-[1.02] font-bold tracking-[-0.035em] sm:text-[30px]">{title}</h3>
-      <ol className="mt-8 grid gap-6">
+    <div className={`flex flex-col rounded-panel p-6 sm:p-9 ${accent ? "bg-accent text-accent-ink" : "bg-surface-2 text-ink"}`}>
+      <p className={`eyebrow ${accent ? "text-accent-ink/85" : "text-accent-strong"}`}>{kicker}</p>
+      <h3 className="mt-3 max-w-md font-display text-[24px] leading-[1.08] font-extrabold tracking-[-0.03em] sm:text-[28px]">{title}</h3>
+      <ol className="mt-7 grid gap-5">
         {steps.map((step, i) => (
-          <li key={step.title} className="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-x-3">
-            <span className="font-num text-[13px] text-ink-faint tabular-nums">{String(i + 1).padStart(2, "0")}</span>
+          <li key={step.title} className="grid grid-cols-[2rem_minmax(0,1fr)] gap-x-3">
+            <span
+              aria-hidden
+              className={`grid size-7 place-items-center rounded-full font-num text-xs font-extrabold ${accent ? "bg-accent-ink/15 text-accent-ink" : "bg-surface text-ink"}`}
+            >
+              {i + 1}
+            </span>
             <div>
-              <p className="font-medium text-ink">{step.title}</p>
-              <p className="mt-1 text-[15px] leading-relaxed text-ink-muted">{step.text}</p>
+              <p className="font-bold">{step.title}</p>
+              <p className={`mt-1 text-[14.5px] leading-relaxed ${accent ? "text-accent-ink/85" : "text-ink-muted"}`}>{step.text}</p>
             </div>
           </li>
         ))}
       </ol>
-      <div className="mt-auto pt-10">{action}</div>
+      <div className="mt-auto pt-9">{action}</div>
     </div>
   );
 }
 
 function Assurance({ icon: Icon, title, children }: { icon: LucideIcon; title: string; children: ReactNode }) {
   return (
-    <li className="bg-surface p-6">
-      <Icon aria-hidden className="size-5 text-accent" strokeWidth={1.75} />
-      <p className="mt-4 font-display text-lg leading-tight font-semibold tracking-[-0.02em] text-ink">{title}</p>
+    <li className="rounded-card border border-line bg-surface p-6 shadow-sm">
+      <span aria-hidden className="grid size-10 place-items-center rounded-control bg-accent-soft text-accent-strong">
+        <Icon className="size-5" strokeWidth={1.9} />
+      </span>
+      <p className="mt-4 font-display text-lg leading-tight font-bold tracking-[-0.02em] text-ink">{title}</p>
       <p className="mt-2 text-sm leading-relaxed text-ink-muted">{children}</p>
     </li>
   );

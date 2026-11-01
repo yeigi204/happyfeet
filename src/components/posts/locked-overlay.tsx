@@ -29,18 +29,18 @@ export function LockedOverlay({ preview, imageCount, action }: { preview: Galler
       <div aria-hidden className="absolute inset-0 -z-10 bg-canvas/35" />
 
       {imageCount > 1 ? (
-        <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-ink/70 px-2 py-1 font-num text-[11px] leading-none text-canvas">
+        <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-[rgb(20_10_14/0.5)] px-2.5 py-1 font-num text-[11px] leading-none font-semibold text-white">
           <Images aria-hidden className="size-3" />
           {imageCount} Bilder
         </span>
       ) : null}
 
       <div className="flex h-full flex-col items-center justify-center gap-4 p-6 text-center">
-        <span aria-hidden className="grid size-12 place-items-center rounded-full border border-line-strong bg-surface text-ink">
+        <span aria-hidden className="grid size-12 place-items-center rounded-full bg-[rgb(20_10_14/0.42)] text-white backdrop-blur-sm">
           <LockKeyhole className="size-5" strokeWidth={1.75} />
         </span>
         <div>
-          <p className="font-display text-xl leading-tight font-bold tracking-[-0.03em] text-ink">Nur für Abonnenten</p>
+          <p className="font-display text-xl leading-tight font-extrabold tracking-[-0.025em] text-ink">Nur für Abonnenten</p>
           <p className="mt-1 text-sm text-ink-muted">
             {imageCount > 1 ? `${imageCount} Bilder in voller Auflösung` : "Das Bild in voller Auflösung"} – nach dem Abo sofort sichtbar.
           </p>

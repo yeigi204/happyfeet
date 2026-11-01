@@ -1,15 +1,11 @@
 import { initials } from "@/components/ui/avatar";
 import { cn } from "@/components/ui/cn";
 
-/** Grosses Profilbild für die Creator-Seite (grösser als `Avatar xl`), mit Rand in Hintergrundfarbe. */
+/** Grosses Profilbild für die Creator-Seite mit Akzentring (Rosé), Rand in Hintergrundfarbe. */
 export function ProfileAvatar({ name, src, className }: { name: string; src: string | null; className?: string }) {
   return (
-    <span
-      className={cn(
-        "relative inline-grid size-24 shrink-0 place-items-center overflow-hidden rounded-full border-4 border-canvas bg-accent-soft sm:size-32",
-        className,
-      )}
-    >
+    <span className={cn("inline-flex shrink-0 rounded-full bg-accent p-[3px]", className)}>
+    <span className="relative inline-grid size-24 shrink-0 place-items-center overflow-hidden rounded-full border-4 border-canvas bg-accent-soft sm:size-28">
       {src ? (
         <img src={src} alt={`Profilbild von ${name}`} width={128} height={128} decoding="async" className="size-full object-cover" />
       ) : (
@@ -17,6 +13,7 @@ export function ProfileAvatar({ name, src, className }: { name: string; src: str
           {initials(name, 1) || "?"}
         </span>
       )}
+    </span>
     </span>
   );
 }
