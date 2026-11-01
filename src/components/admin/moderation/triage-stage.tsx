@@ -63,7 +63,8 @@ export function TriageStage({ item, now, premoderationCount, onImageError }: Tri
   return (
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
       <div className="grid min-w-0 content-start gap-3">
-        <div className="relative flex h-[min(62vh,520px)] items-center justify-center overflow-hidden rounded-card border border-line bg-canvas lg:h-[min(68vh,680px)]">
+        {/* Mobil passt sich der Rahmen dem Bild an (keine leeren Balken); ab lg feste Bühne, damit die Werkzeugleiste nicht springt. */}
+        <div className="relative flex min-h-40 items-center justify-center overflow-hidden rounded-card border border-line bg-canvas lg:h-[min(68vh,680px)]">
           {media ? (
             <img
               key={media.id}
@@ -75,7 +76,7 @@ export function TriageStage({ item, now, premoderationCount, onImageError }: Tri
               decoding="async"
               onError={onImageError}
               style={{ aspectRatio: `${media.width} / ${media.height}` }}
-              className="h-auto max-h-full w-auto max-w-full animate-rise object-contain"
+              className="block h-auto max-h-[min(62vh,520px)] w-auto max-w-full animate-rise object-contain lg:max-h-full"
             />
           ) : (
             <p className="flex items-center gap-2 text-sm text-ink-muted">

@@ -1,9 +1,27 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { auditCursorParams, nextAuditCursor, parseAuditCursor } from "./audit-cursor";
 import { hundredthsToInput, parseHundredths, parseWholeNumber } from "./decimal-input";
 import { directionOf, formatSignedNumber, formatSignedPercentPoints } from "./format-delta";
+import { ACTION_NETWORK_ERROR, settleAction } from "./settle-action";
 import { urgencyFor } from "./urgency";
+
+describe("settleAction", () => {
+  it("reicht Ergebnisse unverändert durch", async () => {
+    await expect(settleAction(Promise.resolve({ ok: true as const, data: 3 }))).resolves.toEqual({ ok: true, data: 3 });
+    await expect(settleAction(Promise.resolve({ ok: false as const, error: "Nein" }))).resolves.toEqual({ ok: false, error: "Nein" });
+  });
+
+  it("macht aus einem abgebrochenen Request ein Fehler-Ergebnis statt zu werfen", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    await expect(settleAction(Promise.reject(new TypeError("Failed to fetch")))).resolves.toEqual({ ok: false, error: ACTION_NETWORK_ERROR });
+  });
+
+  it("lässt Next.js-Kontrollfluss (redirect/notFound) durch", async () => {
+    const redirect = Object.assign(new Error("NEXT_REDIRECT"), { digest: "NEXT_REDIRECT;replace;/admin;307;" });
+    await expect(settleAction(Promise.reject(redirect))).rejects.toBe(redirect);
+  });
+});
 
 const NBSP = " ";
 

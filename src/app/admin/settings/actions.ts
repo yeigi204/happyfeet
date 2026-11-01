@@ -1,7 +1,7 @@
 "use server";
 
 import { parseHundredths, parseWholeNumber } from "@/components/admin/lib/decimal-input";
-import type { FieldErrors } from "@/server/errors";
+import { ValidationError, type FieldErrors } from "@/server/errors";
 import { updatePlatformSettings } from "@/server/services/admin/settings";
 
 import { runAdminAction } from "../_lib/admin-action";
@@ -24,6 +24,14 @@ const HUNDREDTHS_FIELDS = ["standardFeeBps", "premiumFeeBps", "premiumPriceRappe
  * (ohne Fliesskomma) in bps bzw. Rappen umgerechnet; die fachliche Prüfung macht der Service.
  */
 export async function saveSettingsAction(_prev: SettingsFormState, formData: FormData): Promise<SettingsFormState> {
+  // Erst Admin prüfen (in `runAdminAction`), dann Eingaben lesen – Nicht-Admins bekommen nie Feld-Feedback.
+  const result = await runAdminAction((admin) => updatePlatformSettings(admin, parseSettingsForm(formData)));
+  if (!result.ok) return { status: "error", message: result.error, fieldErrors: result.fieldErrors };
+  return { status: "saved", savedAt: Date.now() };
+}
+
+/** Formular → bps/Rappen; ungültige Eingaben werfen einen `ValidationError` mit Fehlern pro Feld. */
+function parseSettingsForm(formData: FormData): Partial<Record<SettingsField, number>> {
   const fieldErrors: FieldErrors = {};
   const input: Partial<Record<SettingsField, number>> = {};
 
@@ -36,11 +44,6 @@ export async function saveSettingsAction(_prev: SettingsFormState, formData: For
   if (premoderation.ok) input.premoderationCount = premoderation.value;
   else fieldErrors.premoderationCount = [premoderation.reason];
 
-  if (Object.keys(fieldErrors).length > 0) {
-    return { status: "error", message: "Bitte prüfe die markierten Felder.", fieldErrors };
-  }
-
-  const result = await runAdminAction((admin) => updatePlatformSettings(admin, input));
-  if (!result.ok) return { status: "error", message: result.error, fieldErrors: result.fieldErrors };
-  return { status: "saved", savedAt: Date.now() };
+  if (Object.keys(fieldErrors).length > 0) throw new ValidationError("Bitte prüfe die markierten Felder.", fieldErrors);
+  return input;
 }

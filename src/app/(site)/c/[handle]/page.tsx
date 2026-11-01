@@ -76,15 +76,18 @@ export default async function CreatorProfilePage({ params, searchParams }: PageP
     : !(viewer?.isAdmin && viewer.status === "active");
   const hiddenCount = viewerRelation.isOwner ? posts.filter((p) => p.moderationStatus !== "approved").length : 0;
 
-  const lockedAction: ReactNode = viewerRelation.isOwner ? null : canAct ? (
-    <SubscribeButton action={subscribeAction} variant="secondary">
-      {priceLabel}
-    </SubscribeButton>
-  ) : (
-    <ButtonLink href={signInHref} variant="secondary">
-      {priceLabel}
-    </ButtonLink>
-  );
+  // Angemeldet, aber gesperrt: kein Abo-Aufruf (die Anmeldung würde nicht weiterhelfen).
+  const blocked = viewer !== null && !canAct;
+  const lockedAction: ReactNode =
+    viewerRelation.isOwner || blocked ? null : canAct ? (
+      <SubscribeButton action={subscribeAction} variant="secondary">
+        {priceLabel}
+      </SubscribeButton>
+    ) : (
+      <ButtonLink href={signInHref} variant="secondary">
+        {priceLabel}
+      </ButtonLink>
+    );
 
   return (
     <Container className="pt-4 sm:pt-8">
@@ -125,7 +128,7 @@ export default async function CreatorProfilePage({ params, searchParams }: PageP
           <div className="mt-4">
             <h1
               id="creator-name"
-              className="font-display text-[40px] leading-[0.92] font-extrabold tracking-[-0.055em] text-ink sm:text-[60px]"
+              className="font-display text-[40px] leading-[0.92] font-extrabold tracking-[-0.055em] wrap-anywhere text-ink sm:text-[60px]"
             >
               {creator.displayName}
             </h1>
@@ -135,7 +138,7 @@ export default async function CreatorProfilePage({ params, searchParams }: PageP
               {creator.isPremium ? <PremiumBadge /> : null}
             </div>
             {creator.bio ? (
-              <p className="mt-5 max-w-[60ch] text-base leading-relaxed whitespace-pre-line text-ink-muted">{creator.bio}</p>
+              <p className="mt-5 max-w-[60ch] text-base leading-relaxed whitespace-pre-line wrap-break-word text-ink-muted">{creator.bio}</p>
             ) : null}
             <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-3 border-t border-line pt-4">
               <ProfileFact label="Abonnenten" value={formatNumber(creator.subscriberCount)} />
@@ -319,7 +322,9 @@ function AboPanel({
       <Stat label={`Abo bei ${creator.displayName}`} value={formatChf(creator.monthlyPriceRappen)} hint="pro Monat" />
       <ul className="mt-5 grid gap-2.5 border-t border-line pt-4 text-sm text-ink">
         {[
-          `${countLabel(creator.postCount, "Post", "Posts", formatNumber)} in voller Auflösung`,
+          creator.postCount > 0
+            ? `${countLabel(creator.postCount, "Post", "Posts", formatNumber)} in voller Auflösung`
+            : "Alle künftigen Posts in voller Auflösung",
           "Neue Posts direkt in deinem Feed",
           "Monatlich kündbar, Zugang bis Periodenende",
         ].map((item) => (
@@ -332,6 +337,16 @@ function AboPanel({
       <div className="mt-5">
         {canAct ? (
           subscribe
+        ) : viewer ? (
+          <div role="note" className="grid gap-2 rounded-control border border-line bg-surface-2 px-4 py-3.5 text-sm">
+            <p className="font-medium text-ink">Dein Konto ist gesperrt.</p>
+            <p className="leading-relaxed text-ink-muted">
+              Solange die Sperre gilt, kannst du keine Abos abschliessen.{" "}
+              <Link href="/banned" className="font-medium text-ink underline underline-offset-4 hover:text-accent">
+                Mehr zur Sperre
+              </Link>
+            </p>
+          </div>
         ) : (
           <div className="grid gap-2">
             <ButtonLink href={signInHref} variant="primary" size="lg" className="w-full">

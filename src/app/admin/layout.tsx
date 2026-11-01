@@ -34,11 +34,12 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
       direction: directionOf(kpis.activeSubscriptionsDelta30d),
     },
     {
+      // Kein `delta`: der Ticker zeigt dort eine Richtungs-Glyphe („unverändert“) – die kritischen gehören zum Wert.
       label: "Offene Meldungen",
-      value: formatNumber(queues.reports.count),
-      ...(queues.reports.criticalCount > 0
-        ? { delta: `${formatNumber(queues.reports.criticalCount)} kritisch`, direction: "flat" as const }
-        : {}),
+      value:
+        queues.reports.criticalCount > 0
+          ? `${formatNumber(queues.reports.count)} · ${formatNumber(queues.reports.criticalCount)} kritisch`
+          : formatNumber(queues.reports.count),
     },
     { label: "Brutto 30 T", value: formatChf(kpis.grossVolume30dRappen, { compact: true }) },
     { label: "Heute neu", value: formatNumber(today?.newSubs ?? 0) },

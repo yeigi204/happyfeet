@@ -10,6 +10,8 @@ import { Kbd } from "@/components/ui/kbd";
 import { Textarea } from "@/components/ui/textarea";
 import type { ActionResult } from "@/server/errors";
 
+import { settleAction } from "./lib/settle-action";
+
 export type ActionDialogNote = {
   label: string;
   placeholder?: string;
@@ -89,7 +91,7 @@ export function ActionDialog({ title, description, confirmLabel, tone = "primary
       return;
     }
     startTransition(async () => {
-      const result = await outcome;
+      const result = await settleAction(outcome);
       if (result.ok) {
         finish();
         return;
@@ -117,6 +119,8 @@ export function ActionDialog({ title, description, confirmLabel, tone = "primary
       aria-labelledby={titleId}
       aria-describedby={description ? descriptionId : undefined}
       onClose={onClose}
+      // Esc während des Speicherns nicht schliessen (wie „Abbrechen“) – sonst gingen Ergebnis und Bestätigung verloren.
+      onCancel={(e) => pending && e.preventDefault()}
       onClick={(e) => e.target === e.currentTarget && !pending && onClose()}
       className={cn(
         // Text-Ausrichtung/-Umbruch zurücksetzen: der Dialog sitzt im DOM oft in einer Tabellenzelle (erbt sonst „text-right“).

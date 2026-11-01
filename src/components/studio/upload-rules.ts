@@ -16,9 +16,10 @@ const ALLOWED: readonly string[] = POST_LIMITS.allowedMimeTypes;
 export const ACCEPT_ATTRIBUTE = POST_LIMITS.allowedMimeTypes.join(",");
 export const MAX_IMAGE_MB = POST_LIMITS.maxImageBytes / MB;
 
-/** „4.2 MB“ – eine Nachkommastelle, Schweizer Format. */
+/** „4.2 MB“ (eine Nachkommastelle) bzw. „240 KB“ unter einem Megabyte – Schweizer Format. */
 export function formatMegabytes(bytes: number): string {
-  return `${formatNumber(Math.max(0.1, Math.round((bytes / MB) * 10) / 10))} MB`;
+  if (bytes < MB) return `${formatNumber(Math.max(1, Math.round(bytes / 1024)))} KB`;
+  return `${formatNumber(Math.round((bytes / MB) * 10) / 10)} MB`;
 }
 
 function sameFile(a: UploadCandidate, b: UploadCandidate): boolean {

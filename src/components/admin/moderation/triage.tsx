@@ -17,6 +17,7 @@ import { formatNumber } from "@/lib/format";
 import type { ActionResult } from "@/server/errors";
 
 import { ActionDialog, type ActionDialogProps } from "../action-dialog";
+import { settleAction } from "../lib/settle-action";
 import { resolveShortcut, type ShortcutState } from "../shell/shortcuts";
 import { toast, type ToastInput } from "../toast";
 import { TriageList, triageItemId } from "./triage-list";
@@ -42,6 +43,8 @@ function isEditable(target: EventTarget | null): boolean {
 }
 
 const IMAGE_REFRESH_COOLDOWN_MS = 20_000;
+/** Signierte URLs leben 300 s. Scheitert ein Bild früher, ist es kein Ablauf (z. B. fehlende Datei) → kein Refresh. */
+const SIGNED_URL_MIN_AGE_MS = 240_000;
 
 /**
  * Moderations-Triage: Liste links, grosse Bildbühne rechts, Entscheidungen per Klick oder Tastatur
@@ -58,6 +61,12 @@ export function ModerationTriage({ mode, items, now: nowMs, premoderationCount, 
   const shortcutState = useRef<ShortcutState>({ pendingSince: null });
   const scrollToActive = useRef(false);
   const lastImageRefresh = useRef(0);
+  /** Wann die aktuellen (signierten) URLs im Client angekommen sind – jede Server-Antwort bringt frische. */
+  const urlsReceivedAt = useRef(0);
+
+  useEffect(() => {
+    urlsReceivedAt.current = Date.now();
+  }, [items]);
 
   const found = visible.findIndex((i) => i.key === selection.key);
   const activeIndex = visible.length === 0 ? -1 : found >= 0 ? found : Math.min(selection.index, visible.length - 1);
@@ -84,7 +93,7 @@ export function ModerationTriage({ mode, items, now: nowMs, premoderationCount, 
     setSelection({ key: next?.key ?? null, index: next ? remaining.indexOf(next) : 0 });
     startTransition(async () => {
       removeOptimistic(removedKeys);
-      const result = await run();
+      const result = await settleAction(run());
       if (result.ok) toast(success);
       else toast({ tone: "danger", title: "Nicht gespeichert – der Eintrag ist zurück", description: result.error });
     });
@@ -134,9 +143,10 @@ export function ModerationTriage({ mode, items, now: nowMs, premoderationCount, 
     return () => window.removeEventListener("keydown", listener);
   }, []);
 
-  /** Signierte URLs leben 300 s – läuft eine ab, holen wir frische (gedrosselt). */
+  /** Signierte URLs leben 300 s – läuft eine ab, holen wir frische (gedrosselt, nie in einer Schleife). */
   const refreshImages = () => {
     const t = Date.now();
+    if (t - urlsReceivedAt.current < SIGNED_URL_MIN_AGE_MS) return;
     if (t - lastImageRefresh.current < IMAGE_REFRESH_COOLDOWN_MS) return;
     lastImageRefresh.current = t;
     router.refresh();

@@ -7,6 +7,7 @@ import { approveCreatorAction, rejectCreatorAction } from "@/app/admin/verificat
 import { Button } from "@/components/ui/button";
 
 import { ActionDialog } from "../action-dialog";
+import { settleAction } from "../lib/settle-action";
 import { toast } from "../toast";
 
 export type VerificationActionsProps = { userId: string; handle: string; canApprove: boolean };
@@ -19,7 +20,7 @@ export function VerificationActions({ userId, handle, canApprove }: Verification
 
   const approve = () => {
     startTransition(async () => {
-      const result = await approveCreatorAction(userId);
+      const result = await settleAction(approveCreatorAction(userId));
       if (result.ok) {
         setDecided("approved");
         toast({ tone: "success", title: `@${handle} ist freigeschaltet`, description: "Das Profil ist ab sofort auf Entdecken sichtbar." });

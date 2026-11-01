@@ -85,7 +85,7 @@ export function PostCard({ post, variant, now, reportAction, lockedAction, class
           </div>
         ) : null}
         {post.caption ? (
-          <p className={cn("text-[15px] leading-relaxed whitespace-pre-line text-ink", post.locked && "line-clamp-3")}>{post.caption}</p>
+          <p className={cn("text-[15px] leading-relaxed whitespace-pre-line wrap-break-word text-ink", post.locked && "line-clamp-3")}>{post.caption}</p>
         ) : null}
       </div>
 

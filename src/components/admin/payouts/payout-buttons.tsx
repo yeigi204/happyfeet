@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { formatChf, formatNumber } from "@/lib/format";
 
 import { ActionDialog } from "../action-dialog";
+import { settleAction } from "../lib/settle-action";
 import { toast } from "../toast";
 
 /** „Fällige erzeugen“: legt Auszahlungen für abgeschlossene Perioden an. Doppelte gibt es nicht. */
@@ -16,7 +17,7 @@ export function GeneratePayoutsButton() {
 
   const run = () =>
     startTransition(async () => {
-      const result = await generateDuePayoutsAction();
+      const result = await settleAction(generateDuePayoutsAction());
       if (!result.ok) {
         toast({ tone: "danger", title: "Auszahlungen nicht erzeugt", description: result.error });
         return;

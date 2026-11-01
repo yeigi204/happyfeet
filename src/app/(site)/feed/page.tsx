@@ -77,7 +77,7 @@ export default async function FeedPage({ searchParams }: PageProps<"/feed">) {
           {posts.length === 0 ? (
             paged ? (
               <EmptyState
-                title="Das war's – du bist ganz unten."
+                title="Das war’s – du bist ganz unten."
                 description="Weiter zurück gibt es keine Posts deiner Creator."
                 action={
                   <ButtonLink href="/feed" variant="secondary" size="sm">

@@ -6,9 +6,10 @@ import { requireOnboardedViewer } from "@/server/auth/viewer";
 import { getMyCreatorProfile } from "@/server/services/creators";
 
 /**
- * Rahmen des Creator-Studios. Nur die gemeinsame Schranke (angemeldet, nicht gesperrt, Onboarding fertig) –
- * jede Seite prüft selbst weiter: Studio-Seiten mit `requireCreator()`, die Bewerbung mit
- * `requireOnboardedViewer()` (sonst Weiterleitungsschleife für Nutzer ohne Creator-Profil).
+ * Rahmen des Creator-Studios. Nur die gemeinsame Schranke (angemeldet, nicht gesperrt, Onboarding fertig).
+ * Die Studio-Seiten liegen in der Gruppe `(creator)` (Layout mit `requireCreator()`); die Bewerbung liegt
+ * bewusst ausserhalb und nutzt `requireOnboardedViewer()` – sonst Weiterleitungsschleife für Nutzer ohne Profil.
+ * Jede Seite prüft den Viewer zusätzlich selbst.
  */
 export default async function StudioLayout({ children }: LayoutProps<"/studio">) {
   const viewer = await requireOnboardedViewer();

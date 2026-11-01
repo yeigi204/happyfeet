@@ -184,7 +184,7 @@ export default async function LandingPage() {
             <span className="text-ink-faint">Mit Premium {formatPercentBps(FULL_BPS - settings.premiumFeeBps)}.</span>
           </h2>
           <p className="mt-6 max-w-md text-[15px] leading-relaxed text-ink-muted">
-            Premium kostet {formatChf(settings.premiumPriceRappen)} im Monat
+            Premium kostet <span className="font-mono text-ink">{formatChf(settings.premiumPriceRappen)}</span> im Monat
             {breakEven !== null ? (
               <>
                 {" "}

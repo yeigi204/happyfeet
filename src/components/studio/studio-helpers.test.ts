@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { POST_LIMITS } from "@/lib/domain/posts";
 
 import { parseChfInput, rappenToChfInput } from "./price";
-import { moveItem, screenFiles, type UploadCandidate } from "./upload-rules";
+import { formatMegabytes, moveItem, screenFiles, type UploadCandidate } from "./upload-rules";
 
 describe("parseChfInput", () => {
   it.each([
@@ -91,6 +91,15 @@ describe("screenFiles", () => {
     expect(accepted.map((f) => f.name)).toEqual(["n0.jpg", "n1.jpg"]);
     expect(rejected.map((r) => r.name)).toEqual(["n2.jpg", "n3.jpg"]);
     expect(rejected[0].reason).toContain(String(POST_LIMITS.maxImages));
+  });
+});
+
+describe("formatMegabytes", () => {
+  it("zeigt KB unter einem Megabyte, sonst MB mit einer Nachkommastelle", () => {
+    expect(formatMegabytes(24_615)).toBe("24 KB");
+    expect(formatMegabytes(200)).toBe("1 KB");
+    expect(formatMegabytes(4.25 * 1024 * 1024)).toBe("4.3 MB");
+    expect(formatMegabytes(12 * 1024 * 1024)).toBe("12 MB");
   });
 });
 
