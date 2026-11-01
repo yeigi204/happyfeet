@@ -1,13 +1,14 @@
 import "server-only";
 
 import { auth, currentUser } from "@clerk/nextjs/server";
+import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
 
 import type { Viewer } from "@/lib/domain/types";
 import { findViewerByClerkId, upsertUserFromClerk } from "@/server/services/users";
 
-import { getImpersonatedClerkId } from "./dev-impersonation";
+import { DEV_IMPERSONATE_COOKIE, getImpersonatedClerkId, resolveDevIdentity } from "./dev-impersonation";
 import type { CreatorViewer } from "./guards";
 
 /**
@@ -18,8 +19,13 @@ import type { CreatorViewer } from "./guards";
  *   wird sie aus dem Clerk-Profil lazy angelegt.
  */
 export const getViewer = cache(async (): Promise<Viewer | null> => {
-  const impersonated = getImpersonatedClerkId();
-  if (impersonated) {
+  const envImpersonation = getImpersonatedClerkId();
+  if (envImpersonation) {
+    // Nur Dev: Identität per Cookie umschaltbar (siehe dev-impersonation.ts). Ausserhalb eines Requests
+    // (z. B. Tests) gibt es keine Cookies – dann gilt die Env-Variable.
+    const cookieValue = await readDevIdentityCookie();
+    const impersonated = resolveDevIdentity(envImpersonation, cookieValue);
+    if (!impersonated) return null;
     const viewer = await findViewerByClerkId(impersonated);
     if (!viewer) {
       console.warn(
@@ -49,6 +55,14 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
   });
   return findViewerByClerkId(userId);
 });
+
+async function readDevIdentityCookie(): Promise<string | undefined> {
+  try {
+    return (await cookies()).get(DEV_IMPERSONATE_COOKIE)?.value;
+  } catch {
+    return undefined; // kein Request-Kontext
+  }
+}
 
 /** Angemeldet – sonst zur Anmeldung. */
 export async function requireViewer(): Promise<Viewer> {

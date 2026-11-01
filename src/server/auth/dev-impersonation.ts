@@ -19,3 +19,24 @@ export function getImpersonatedClerkId(): string | null {
 export function isDevImpersonation(): boolean {
   return getImpersonatedClerkId() !== null;
 }
+
+/**
+ * Nur Dev: Cookie, mit dem man auf einem laufenden Dev-Server die Identität wechseln kann
+ * (z. B. Playwright-Screenshots als Admin, Creator, Fan oder abgemeldet), ohne den Server neu zu starten.
+ * Wird nur ausgewertet, wenn Dev-Impersonation ohnehin aktiv ist.
+ */
+export const DEV_IMPERSONATE_COOKIE = "hf_dev_as";
+/** Cookie-Wert für „abgemeldet“. */
+export const DEV_IMPERSONATE_ANONYMOUS = "anon";
+
+const SEED_CLERK_ID = /^seed_[a-z0-9_]{1,40}$/;
+
+/**
+ * Ermittelt die effektive Dev-Identität: `null` = abgemeldet, sonst eine Clerk-ID.
+ * Ungültige Cookie-Werte werden ignoriert (Fallback auf die Env-Variable).
+ */
+export function resolveDevIdentity(envClerkId: string, cookieValue: string | undefined): string | null {
+  if (cookieValue === DEV_IMPERSONATE_ANONYMOUS) return null;
+  if (cookieValue && SEED_CLERK_ID.test(cookieValue)) return cookieValue;
+  return envClerkId;
+}

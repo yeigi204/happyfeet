@@ -1,0 +1,214 @@
+import { eq } from "drizzle-orm";
+import { describe, expect, it } from "vitest";
+
+import { addBillingMonth } from "@/lib/domain/subscriptions";
+import { auditLog, payments, platformSettings, premiumSubscriptions } from "@/server/db/schema";
+import { ConflictError, ForbiddenError } from "@/server/errors";
+import { completeMockCheckout, handlePaymentEvent } from "@/server/services/payment-events";
+import { cancelPremium, getPremiumStatus, startPremiumCheckout } from "@/server/services/premium";
+
+import { setupTestDb } from "../helpers/db";
+import { createCreator, createUser, viewerFor } from "../helpers/factories";
+import { buyPremium, premiumRenewalEvent, sessionIdFrom, setupMockPayments, subscribeAndPay } from "../helpers/task8";
+
+const t = setupTestDb();
+const NOW = new Date("2026-11-04T10:00:00Z");
+const mock = setupMockPayments(NOW);
+const DAY = 24 * 60 * 60 * 1000;
+
+async function approvedCreator() {
+  const { user } = await createCreator(t.db, { user: { handle: "nora_toes" } });
+  return viewerFor(t.db, user.id, NOW);
+}
+
+describe("getPremiumStatus", () => {
+  it("Standard-Creator: kein Premium, aktueller Preis und Sätze aus den Einstellungen", async () => {
+    const creator = await approvedCreator();
+    await t.db.update(platformSettings).set({ premiumPriceRappen: 2400 }).where(eq(platformSettings.id, 1));
+
+    expect(await getPremiumStatus(creator, { now: NOW })).toEqual({
+      isPremium: false,
+      currentPeriodEnd: null,
+      cancelAtPeriodEnd: false,
+      priceRappen: 2400,
+      standardFeeBps: 1500,
+      premiumFeeBps: 500,
+    });
+  });
+
+  it("nur für Creator", async () => {
+    const fan = await viewerFor(t.db, (await createUser(t.db)).id, NOW);
+    await expect(getPremiumStatus(fan, { now: NOW })).rejects.toBeInstanceOf(ForbiddenError);
+  });
+});
+
+describe("startPremiumCheckout", () => {
+  it("startet einen Checkout über den aktuellen Premium-Preis", async () => {
+    const creator = await approvedCreator();
+    const { redirectUrl } = await startPremiumCheckout(creator, { now: NOW, appUrl: "https://hf.ch" });
+
+    expect(mock.provider.decodeSession(sessionIdFrom(redirectUrl), NOW)).toMatchObject({
+      kind: "premium_plan",
+      referenceId: creator.id,
+      payerUserId: creator.id,
+      amountRappen: 1900,
+      successUrl: "https://hf.ch/studio/premium?ok=1",
+      cancelUrl: "https://hf.ch/studio/premium",
+    });
+  });
+
+  it("nur freigegebene Creator", async () => {
+    const { user } = await createCreator(t.db, { profile: { verificationStatus: "pending" } });
+    await expect(startPremiumCheckout(await viewerFor(t.db, user.id, NOW), { now: NOW })).rejects.toBeInstanceOf(
+      ForbiddenError,
+    );
+    const fan = await viewerFor(t.db, (await createUser(t.db)).id, NOW);
+    await expect(startPremiumCheckout(fan, { now: NOW })).rejects.toBeInstanceOf(ForbiddenError);
+  });
+
+  it("nicht, wenn Premium schon läuft (auch gekündigt bis Periodenende)", async () => {
+    const creator = await approvedCreator();
+    await buyPremium(creator, NOW);
+    await expect(startPremiumCheckout(creator, { now: NOW })).rejects.toBeInstanceOf(ConflictError);
+
+    await cancelPremium(creator, { now: NOW });
+    await expect(startPremiumCheckout(creator, { now: new Date(NOW.getTime() + DAY) })).rejects.toBeInstanceOf(
+      ConflictError,
+    );
+  });
+});
+
+describe("Premium-Abschluss", () => {
+  it("aktiviert Premium; die Zahlung ist reiner Plattform-Umsatz (fee_bps 10000, creator_net 0)", async () => {
+    const creator = await approvedCreator();
+    const { redirectUrl } = await startPremiumCheckout(creator, { now: NOW });
+
+    const result = await completeMockCheckout(creator, sessionIdFrom(redirectUrl), { now: NOW });
+
+    expect(result).toEqual({ kind: "premium_plan", creatorHandle: null });
+    const [row] = await t.db.select().from(premiumSubscriptions);
+    expect(row).toMatchObject({
+      creatorId: creator.id,
+      status: "active",
+      priceRappen: 1900,
+      cancelAtPeriodEnd: false,
+      provider: "mock",
+      providerRef: `mocksub_${creator.id}`,
+    });
+    expect(row.currentPeriodStart).toEqual(NOW);
+    expect(row.currentPeriodEnd).toEqual(addBillingMonth(NOW));
+
+    const [payment] = await t.db.select().from(payments);
+    expect(payment).toMatchObject({
+      kind: "premium_plan",
+      premiumSubscriptionId: row.id,
+      subscriptionId: null,
+      payerId: creator.id,
+      creatorId: null,
+      grossRappen: 1900,
+      feeBps: 10000,
+      platformFeeRappen: 1900,
+      creatorNetRappen: 0,
+    });
+    expect(payment.createdAt).toEqual(NOW);
+
+    const status = await getPremiumStatus(creator, { now: NOW });
+    expect(status).toMatchObject({ isPremium: true, cancelAtPeriodEnd: false, priceRappen: 1900 });
+    expect(status.currentPeriodEnd).toEqual(addBillingMonth(NOW));
+    expect((await viewerFor(t.db, creator.id, NOW)).creator?.isPremium).toBe(true);
+
+    const entries = await t.db.select().from(auditLog).where(eq(auditLog.action, "premium.activated"));
+    expect(entries).toHaveLength(1);
+  });
+
+  it("Fan-Zahlungen nach dem Upgrade kosten 5 % Provision", async () => {
+    const creator = await approvedCreator();
+    await buyPremium(creator, NOW);
+    const fan = await viewerFor(t.db, (await createUser(t.db)).id, NOW);
+
+    await subscribeAndPay(t.db, fan, creator.id, NOW);
+
+    const [fanPayment] = await t.db.select().from(payments).where(eq(payments.kind, "fan_subscription"));
+    expect(fanPayment).toMatchObject({ feeBps: 500, creatorNetRappen: 940, creatorPlan: "premium" });
+  });
+
+  it("Wiederholung desselben Events bucht nur einmal", async () => {
+    const creator = await approvedCreator();
+    const { redirectUrl } = await startPremiumCheckout(creator, { now: NOW });
+    const event = mock.provider.completedEventFor(sessionIdFrom(redirectUrl), NOW);
+
+    expect(await handlePaymentEvent(event)).toEqual({ applied: true });
+    expect(await handlePaymentEvent(event)).toEqual({ applied: false });
+    expect(await t.db.select().from(payments)).toHaveLength(1);
+  });
+
+  it("ein erneuter Abschluss nach Ablauf reaktiviert dieselbe Zeile mit neuem Preis-Snapshot", async () => {
+    const creator = await approvedCreator();
+    await buyPremium(creator, NOW);
+    await cancelPremium(creator, { now: NOW });
+    const [first] = await t.db.select().from(premiumSubscriptions);
+
+    const later = new Date(addBillingMonth(NOW).getTime() + 3 * DAY);
+    mock.clock.now = later;
+    await t.db.update(platformSettings).set({ premiumPriceRappen: 2200 }).where(eq(platformSettings.id, 1));
+    expect((await getPremiumStatus(creator, { now: later })).isPremium).toBe(false);
+
+    await buyPremium(creator, later);
+
+    const rows = await t.db.select().from(premiumSubscriptions);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ id: first.id, status: "active", cancelAtPeriodEnd: false, priceRappen: 2200 });
+    expect(rows[0].canceledAt).toBeNull();
+    expect(rows[0].currentPeriodStart).toEqual(later);
+    expect(rows[0].currentPeriodEnd).toEqual(addBillingMonth(later));
+    expect(await t.db.select().from(payments)).toHaveLength(2);
+  });
+
+  it("Verlängerung (periodIndex = Anzahl Premium-Zahlungen) verlängert ab Periodenende", async () => {
+    const creator = await approvedCreator();
+    await buyPremium(creator, NOW);
+    const end = addBillingMonth(NOW);
+
+    const event = await premiumRenewalEvent(t.db, mock.provider, creator.id, 1900, end);
+    expect(await handlePaymentEvent(event)).toEqual({ applied: true });
+    expect(await handlePaymentEvent(event)).toEqual({ applied: false });
+
+    const [row] = await t.db.select().from(premiumSubscriptions);
+    expect(row.currentPeriodStart).toEqual(end);
+    expect(row.currentPeriodEnd).toEqual(addBillingMonth(end));
+    const premiumPayments = await t.db.select().from(payments).where(eq(payments.kind, "premium_plan"));
+    expect(premiumPayments).toHaveLength(2);
+    expect(premiumPayments.every((p) => p.feeBps === 10000 && p.creatorNetRappen === 0)).toBe(true);
+  });
+});
+
+describe("cancelPremium", () => {
+  it("kündigt zum Periodenende: Premium bleibt bis dahin aktiv, danach Standard", async () => {
+    const creator = await approvedCreator();
+    await buyPremium(creator, NOW);
+    const end = addBillingMonth(NOW);
+
+    await cancelPremium(creator, { now: new Date(NOW.getTime() + DAY) });
+
+    const [row] = await t.db.select().from(premiumSubscriptions);
+    expect(row).toMatchObject({ status: "canceled", cancelAtPeriodEnd: true });
+    expect(row.canceledAt).toEqual(new Date(NOW.getTime() + DAY));
+
+    const during = await getPremiumStatus(creator, { now: new Date(end.getTime() - 1000) });
+    expect(during).toMatchObject({ isPremium: true, cancelAtPeriodEnd: true });
+    const after = await getPremiumStatus(creator, { now: new Date(end.getTime() + 1000) });
+    expect(after).toMatchObject({ isPremium: false, currentPeriodEnd: null });
+
+    expect(await t.db.select().from(auditLog).where(eq(auditLog.action, "premium.canceled"))).toHaveLength(1);
+  });
+
+  it("ist idempotent und verlangt ein laufendes Premium", async () => {
+    const creator = await approvedCreator();
+    await expect(cancelPremium(creator, { now: NOW })).rejects.toBeInstanceOf(ConflictError);
+
+    await buyPremium(creator, NOW);
+    await cancelPremium(creator, { now: NOW });
+    await cancelPremium(creator, { now: NOW });
+    expect(await t.db.select().from(auditLog).where(eq(auditLog.action, "premium.canceled"))).toHaveLength(1);
+  });
+});

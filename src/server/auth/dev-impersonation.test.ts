@@ -67,3 +67,22 @@ describe("isDevImpersonation", () => {
     expect(() => isDevImpersonation()).toThrow();
   });
 });
+
+describe("resolveDevIdentity", () => {
+  it("nutzt ohne Cookie die Env-Variable", async () => {
+    const { resolveDevIdentity } = await import("./dev-impersonation");
+    expect(resolveDevIdentity("seed_admin", undefined)).toBe("seed_admin");
+  });
+
+  it("wechselt per Cookie auf einen anderen Seed-User oder abgemeldet", async () => {
+    const { resolveDevIdentity } = await import("./dev-impersonation");
+    expect(resolveDevIdentity("seed_admin", "seed_fan_3")).toBe("seed_fan_3");
+    expect(resolveDevIdentity("seed_admin", "anon")).toBeNull();
+  });
+
+  it("ignoriert Cookie-Werte, die keine Seed-IDs sind", async () => {
+    const { resolveDevIdentity } = await import("./dev-impersonation");
+    expect(resolveDevIdentity("seed_admin", "user_2abcREALCLERK")).toBe("seed_admin");
+    expect(resolveDevIdentity("seed_admin", "seed_../x")).toBe("seed_admin");
+  });
+});
