@@ -7,15 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { REPORT_REASONS } from "@/lib/domain/reports";
+import { REPORT_DETAILS_MAX_LENGTH, REPORT_REASONS } from "@/lib/domain/reports";
 import type { ReportReason } from "@/lib/domain/types";
 import type { ActionResult } from "@/server/errors";
 
 export type ReportState = ActionResult<{ reportId: string }> | null;
 export type ReportAction = (state: ReportState, formData: FormData) => Promise<ReportState>;
 
-/** Muss zu `REPORT_DETAILS_MAX_LENGTH` im Melde-Service passen. */
-const DETAILS_MAX_LENGTH = 2000;
+const DETAILS_MAX_LENGTH = REPORT_DETAILS_MAX_LENGTH;
 
 const REASONS = Object.entries(REPORT_REASONS) as [ReportReason, (typeof REPORT_REASONS)[ReportReason]][];
 

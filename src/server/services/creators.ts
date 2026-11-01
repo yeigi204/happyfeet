@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { HANDLE_PATTERN, normalizeHandle } from "@/lib/domain/handles";
 import { validateMonthlyPrice } from "@/lib/domain/pricing";
-import type { PlatformSettings, Viewer } from "@/lib/domain/types";
+import type { PlatformSettings, Viewer, VerificationStatus } from "@/lib/domain/types";
 import { assertAuthenticated, assertCreator, assertOnboarded } from "@/server/auth/guards";
 import { getDb } from "@/server/db/client";
 import { creatorProfiles, posts, subscriptions, users, type CreatorProfile } from "@/server/db/schema";
@@ -40,7 +40,11 @@ export type CreatorCard = {
 
 export type CreatorPageData = {
   /** Karte plus Banner (nur auf der Profilseite). */
-  creator: CreatorCard & { bannerUrl: string | null };
+  creator: CreatorCard & {
+    bannerUrl: string | null;
+    /** Für Fremde immer "approved"; Eigentümer und Admins sehen auch unfreigegebene Profile. */
+    verificationStatus: VerificationStatus;
+  };
   viewerRelation: {
     isOwner: boolean;
     isSubscribed: boolean;
@@ -352,7 +356,11 @@ export async function getCreatorPage(
   ]);
 
   return {
-    creator: { ...toCard(row, urls), bannerUrl: row.bannerKey ? (urls.get(row.bannerKey) ?? null) : null },
+    creator: {
+      ...toCard(row, urls),
+      bannerUrl: row.bannerKey ? (urls.get(row.bannerKey) ?? null) : null,
+      verificationStatus: row.verificationStatus,
+    },
     viewerRelation: {
       isOwner,
       isSubscribed: subscription !== undefined,

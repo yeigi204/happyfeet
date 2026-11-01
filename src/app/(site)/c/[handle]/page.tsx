@@ -69,17 +69,14 @@ export default async function CreatorProfilePage({ params, searchParams }: PageP
   const canAct = viewer !== null && viewer.status === "active";
   const subscribeAction = startCheckoutAction.bind(null, creator.userId);
   const signInHref = `/sign-in?redirect_url=${encodeURIComponent(profilePath)}`;
-  // Fremde sehen nur freigegebene Profile; beim Eigentümer zählt sein Prüfstatus. Admins sehen auch
-  // unfreigegebene Profile, deren Status hier unbekannt ist – dann lieber kein „Geprüft“.
-  const approved = viewerRelation.isOwner
-    ? viewer?.creator?.verificationStatus === "approved"
-    : !(viewer?.isAdmin && viewer.status === "active");
+  // Fremde sehen nur freigegebene Profile; Eigentümer und Admins auch unfreigegebene.
+  const approved = creator.verificationStatus === "approved";
   const hiddenCount = viewerRelation.isOwner ? posts.filter((p) => p.moderationStatus !== "approved").length : 0;
 
   // Angemeldet, aber gesperrt: kein Abo-Aufruf (die Anmeldung würde nicht weiterhelfen).
   const blocked = viewer !== null && !canAct;
   const lockedAction: ReactNode =
-    viewerRelation.isOwner || blocked ? null : canAct ? (
+    viewerRelation.isOwner || blocked || !approved ? null : canAct ? (
       <SubscribeButton action={subscribeAction} variant="secondary">
         {priceLabel}
       </SubscribeButton>
@@ -278,6 +275,26 @@ function AboPanel({
               Neuer Post
             </ButtonLink>
           ) : null}
+        </div>
+      </div>
+    );
+  }
+
+  if (creator.verificationStatus !== "approved") {
+    // Nur Admins kommen hierher (Fremde erhalten für unfreigegebene Profile eine 404).
+    return (
+      <div className="rounded-card border border-line bg-surface p-5">
+        <p className="eyebrow">Nicht öffentlich</p>
+        <p className="mt-3 font-display text-2xl leading-tight font-bold tracking-[-0.03em]">
+          {creator.verificationStatus === "pending" ? "Bewerbung in Prüfung." : "Bewerbung abgelehnt."}
+        </p>
+        <p className="mt-2 text-sm leading-relaxed text-ink-muted">
+          Fans sehen dieses Profil nicht und können es nicht abonnieren.
+        </p>
+        <div className="mt-5 grid gap-2">
+          <ButtonLink href="/admin/verifications" variant="secondary" className="w-full">
+            Zu den Verifizierungen
+          </ButtonLink>
         </div>
       </div>
     );

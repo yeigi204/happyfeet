@@ -7,3 +7,6 @@ export const REPORT_REASONS: Record<ReportReason, { label: string; severity: "cr
   spam: { label: "Spam", severity: "normal" },
   other: { label: "Anderes", severity: "normal" },
 };
+
+/** Maximale Länge der Freitext-Beschreibung einer Meldung (Service und Formular). */
+export const REPORT_DETAILS_MAX_LENGTH = 2000;

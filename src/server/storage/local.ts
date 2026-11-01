@@ -61,7 +61,7 @@ export class LocalMediaStorage implements MediaStorage {
   readonly rootDir: string;
 
   constructor(opts: { rootDir?: string } = {}) {
-    this.rootDir = path.resolve(opts.rootDir ?? defaultLocalMediaRoot());
+    this.rootDir = path.resolve(/*turbopackIgnore: true*/ opts.rootDir ?? defaultLocalMediaRoot());
   }
 
   async put(key: string, data: Buffer, contentType: string): Promise<void> {
@@ -122,7 +122,8 @@ export async function readLocalMedia(
   const contentType = contentTypeForKey(key);
   if (!file || !contentType) return null;
   try {
-    return { data: await readFile(file), contentType };
+    // Nur Dev-Treiber: kein Datei-Tracing für Produktions-Bundles (lokaler Storage ist dort verboten).
+    return { data: await readFile(/*turbopackIgnore: true*/ file), contentType };
   } catch (error) {
     const code = (error as NodeJS.ErrnoException).code;
     if (code === "ENOENT" || code === "EISDIR" || code === "ENOTDIR") return null;

@@ -3,7 +3,7 @@ import "server-only";
 import { eq } from "drizzle-orm";
 
 import { isPostListed } from "@/lib/domain/access";
-import { REPORT_REASONS } from "@/lib/domain/reports";
+import { REPORT_DETAILS_MAX_LENGTH, REPORT_REASONS } from "@/lib/domain/reports";
 import type { ReportReason, Viewer } from "@/lib/domain/types";
 import { assertOnboarded } from "@/server/auth/guards";
 import { getDb } from "@/server/db/client";
@@ -12,7 +12,7 @@ import { ConflictError, ForbiddenError, NotFoundError, ValidationError, type Fie
 
 import { accessIdentity, isCreatorHidden, isUuid } from "./posts";
 
-export const REPORT_DETAILS_MAX_LENGTH = 2000;
+export { REPORT_DETAILS_MAX_LENGTH };
 
 const POST_NOT_FOUND = "Dieser Post wurde nicht gefunden.";
 

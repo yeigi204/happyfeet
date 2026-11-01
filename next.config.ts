@@ -8,6 +8,8 @@ const nextConfig: NextConfig = {
       // 10 Bilder à max. 10 MB + Multipart-Overhead (siehe POST_LIMITS in src/lib/domain/posts.ts)
       bodySizeLimit: "105mb",
     },
+    // Der Proxy (Clerk) puffert Request-Bodies – Standard 10 MB würde Uploads abschneiden.
+    proxyClientMaxBodySize: "105mb",
   },
   turbopack: {
     rules: {
