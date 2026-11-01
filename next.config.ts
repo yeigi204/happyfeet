@@ -1,9 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
+  // cacheComponents bewusst aus: fast alle Seiten sind authentifiziert & dynamisch.
+  // Siehe docs/superpowers/specs/2026-11-01-happyfeet-grundgeruest-design.md
+  experimental: {
+    serverActions: {
+      // 10 Bilder à max. 10 MB + Multipart-Overhead (siehe POST_LIMITS in src/lib/domain/posts.ts)
+      bodySizeLimit: "105mb",
+    },
+  },
   turbopack: {
     rules: {
       "*.css": {
