@@ -6,19 +6,19 @@ import { AppProviders } from "@/components/providers";
 import "./globals.css";
 
 const display = Bricolage_Grotesque({
-  variable: "--font-display",
+  variable: "--font-bricolage",
   subsets: ["latin"],
   display: "swap",
 });
 
 const sans = Geist({
-  variable: "--font-sans-ui",
+  variable: "--font-geist",
   subsets: ["latin"],
   display: "swap",
 });
 
 const mono = Geist_Mono({
-  variable: "--font-mono-ui",
+  variable: "--font-geist-mono",
   subsets: ["latin"],
   display: "swap",
 });

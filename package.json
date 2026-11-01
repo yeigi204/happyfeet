@@ -17,6 +17,7 @@
     "admin:grant": "tsx --conditions=react-server scripts/grant-admin.ts"
   },
   "dependencies": {
+    "@clerk/localizations": "^4.24.4",
     "@clerk/nextjs": "^7.9.23",
     "@supabase/supabase-js": "^2.118.0",
     "clsx": "^2.1.1",
