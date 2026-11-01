@@ -34,7 +34,7 @@ export function Field({ label, hint, error, children, className }: FieldProps) {
 
   return (
     <div className={cn("grid gap-1.5", className)}>
-      <label htmlFor={controlId} className="text-[13px] font-medium text-ink">
+      <label htmlFor={controlId} className="text-[13px] font-semibold text-ink">
         {label}
       </label>
       {control}
@@ -49,7 +49,7 @@ export function Field({ label, hint, error, children, className }: FieldProps) {
         </p>
       ) : null}
       {error ? (
-        <p id={errorId} role="alert" className="flex items-center gap-1.5 text-xs font-medium text-danger">
+        <p id={errorId} role="alert" className="flex items-center gap-1.5 text-xs font-semibold text-danger">
           <span aria-hidden className="inline-block size-1.5 rounded-full bg-danger" />
           {error}
         </p>

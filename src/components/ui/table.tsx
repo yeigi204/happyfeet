@@ -29,7 +29,7 @@ export function TH({ numeric, className, scope = "col", ...props }: ComponentPro
     <th
       scope={scope}
       className={cn(
-        "eyebrow h-9 px-3 align-middle font-normal whitespace-nowrap first:pl-4 last:pr-4",
+        "h-9 px-3 align-middle text-xs font-semibold whitespace-nowrap text-ink-muted first:pl-4 last:pr-4",
         numeric ? "text-right" : "text-left",
         className,
       )}
@@ -43,7 +43,7 @@ export function TD({ numeric, className, ...props }: ComponentPropsWithoutRef<"t
     <td
       className={cn(
         "px-3 py-2.5 align-middle text-ink first:pl-4 last:pr-4",
-        numeric && "text-right font-num text-[13px] whitespace-nowrap tabular-nums",
+        numeric && "text-right font-num text-sm whitespace-nowrap tabular-nums",
         className,
       )}
       {...props}

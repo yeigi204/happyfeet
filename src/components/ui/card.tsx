@@ -11,17 +11,18 @@ export type CardProps = {
   flush?: boolean;
 };
 
-/** Haarlinie statt Schatten. Titel klein und ruhig – der Inhalt ist laut, nicht der Rahmen. */
+/** Karte: grosser Radius, Haarlinie, sanfter Schatten (im Dunkelmodus ohne Schatten). Titel ruhig, Inhalt laut. */
 export function Card({ title, action, children, className, flush }: CardProps) {
+  const hasHeader = Boolean(title || action);
   return (
-    <section className={cn("min-w-0 rounded-card border border-line bg-surface", className)}>
-      {title || action ? (
-        <header className="flex min-h-11 items-center justify-between gap-3 border-b border-line px-4 py-2.5">
-          {title ? <h2 className="text-[13px] font-semibold tracking-[-0.005em] text-ink">{title}</h2> : <span />}
+    <section className={cn("min-w-0 rounded-card border border-line bg-surface shadow-sm", className)}>
+      {hasHeader ? (
+        <header className="flex min-h-12 items-center justify-between gap-3 px-5 pt-4">
+          {title ? <h2 className="text-[15px] font-bold tracking-[-0.01em] text-ink">{title}</h2> : <span />}
           {action ? <div className="flex shrink-0 items-center gap-2 text-[13px] text-ink-muted">{action}</div> : null}
         </header>
       ) : null}
-      <div className={flush ? undefined : "p-4"}>{children}</div>
+      <div className={flush ? undefined : hasHeader ? "px-5 pt-3 pb-5" : "p-5"}>{children}</div>
     </section>
   );
 }

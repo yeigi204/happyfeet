@@ -7,24 +7,24 @@ export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 export type ButtonSize = "sm" | "md" | "lg";
 
 const BASE =
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-control font-medium select-none " +
-  "transition-[background-color,border-color,color] duration-100 active:translate-y-px " +
-  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent " +
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full font-bold select-none " +
+  "transition-[background-color,box-shadow,color] duration-100 active:translate-y-px " +
+  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus " +
   "disabled:pointer-events-none disabled:opacity-45 aria-disabled:pointer-events-none aria-disabled:opacity-45 " +
   "[&_svg]:size-4 [&_svg]:shrink-0";
 
 const VARIANTS: Record<ButtonVariant, string> = {
-  // Hover mischt Richtung Tinte: hell → dunkler, Admin → heller. Ein Token, beide Welten.
-  primary: "bg-accent text-accent-ink hover:bg-[color-mix(in_oklab,var(--color-accent),var(--color-ink)_14%)]",
-  secondary: "border border-line-strong bg-surface text-ink hover:border-ink-faint hover:bg-surface-2",
-  ghost: "text-ink-muted hover:bg-surface-2 hover:text-ink",
-  danger: "border border-danger/45 text-danger hover:border-danger hover:bg-danger/10",
+  // Hover mischt Richtung Tinte: hell → dunkler, dunkel → heller. Ein Token, beide Modi.
+  primary: "bg-accent text-accent-ink hover:bg-[color-mix(in_oklab,var(--color-accent),var(--color-ink)_12%)]",
+  secondary: "bg-surface-2 text-ink hover:bg-[color-mix(in_oklab,var(--color-surface-2),var(--color-ink)_7%)]",
+  ghost: "text-ink shadow-[inset_0_0_0_1px_var(--color-line-strong)] hover:bg-surface-2",
+  danger: "bg-danger-soft text-danger hover:bg-[color-mix(in_oklab,var(--color-danger-soft),var(--color-danger)_14%)]",
 };
 
 const SIZES: Record<ButtonSize, string> = {
-  sm: "h-8 px-3 text-[13px]",
-  md: "h-10 px-4 text-sm",
-  lg: "h-12 px-6 text-[15px]",
+  sm: "h-8 px-3.5 text-[13px]",
+  md: "h-10 px-[18px] text-sm",
+  lg: "h-12 px-[22px] text-[15px]",
 };
 
 export function buttonClasses(opts: { variant?: ButtonVariant; size?: ButtonSize; className?: string } = {}): string {

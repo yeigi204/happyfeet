@@ -10,10 +10,10 @@ export type SelectProps = ComponentPropsWithoutRef<"select">;
 export function Select({ className, children, ...props }: SelectProps) {
   return (
     <span className={cn("relative block", className)}>
-      <select className={cn(controlClasses, "h-10 cursor-pointer appearance-none pr-9 pl-3")} {...props}>
+      <select className={cn(controlClasses, "h-11 cursor-pointer appearance-none pr-10 pl-3.5")} {...props}>
         {children}
       </select>
-      <ChevronDown aria-hidden className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-ink-faint" />
+      <ChevronDown aria-hidden className="pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2 text-ink-faint" />
     </span>
   );
 }

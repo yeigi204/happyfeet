@@ -12,84 +12,57 @@ export type StatProps = {
   hint?: ReactNode;
   /** Trend (z. B. `<Sparkline>`) unter dem Wert. */
   children?: ReactNode;
-  /** `lg` = Hero-Kennzahl (genau eine pro Ansicht). */
+  /** `lg` = besonders grosse Zahl. */
   size?: "sm" | "md" | "lg";
+  /** `hero` = wichtigste Kennzahl einer Seite auf Akzentfläche (genau eine pro Ansicht). */
+  variant?: "default" | "hero";
   className?: string;
 };
 
 const VALUE_SIZES = {
-  sm: "text-lg",
-  md: "text-[26px] leading-none tracking-[-0.03em]",
-  lg: "text-[52px] leading-[0.9] tracking-[-0.05em] sm:text-[76px]",
+  sm: "text-lg tracking-[-0.02em]",
+  md: "text-[30px] leading-none tracking-[-0.035em]",
+  lg: "text-[44px] leading-none tracking-[-0.045em] sm:text-[56px]",
 } as const;
 
 const DIRECTION_TEXT = { up: "gestiegen", down: "gesunken", flat: "unverändert" } as const;
 
-/** Mono-Apostroph belegt eine volle Zelle – optisch enger setzen, damit „48’210“ ein Wort bleibt. */
-function tighten(text: string, size: StatProps["size"]): ReactNode {
-  const parts = text.split("’");
-  if (parts.length === 1) return text;
-  const margin = size === "lg" ? "-mx-[0.16em]" : "-mx-[0.11em]";
-  return parts.flatMap((part, i) =>
-    i === 0
-      ? [part]
-      : [
-          <span key={i} className={margin}>
-            ’
-          </span>,
-          part,
-        ],
-  );
-}
-
-/**
- * „CHF 48’210.00“ → kleines, gedämpftes „CHF“ + Betrag + gedämpfte Rappen.
- * Andere Werte (ReactNode) werden unverändert gerendert.
- */
-function renderValue(value: ReactNode, size: StatProps["size"]): ReactNode {
+/** „CHF 48’210.00“ → kleines, gedämpftes „CHF“ + Betrag. Andere Werte (ReactNode) bleiben unverändert. */
+function renderValue(value: ReactNode, hero: boolean): ReactNode {
   if (typeof value !== "string") return value;
-  const m = value.match(/^(CHF)[\s\u00a0](-?[\d’'.]+?)(\.\d{2})?$/);
-  if (!m) return tighten(value, size);
-  const [, unit, amount, cents] = m;
+  const m = value.match(/^(CHF)[\s\u00a0](-?[\d’'.]+)$/);
+  if (!m) return value;
+  const [, unit, amount] = m;
   return (
     <>
-      <span
-        data-unit
-        className={cn(
-          "font-sans font-medium tracking-normal text-ink-faint",
-          // Hero: „CHF“ hängt oben an der Versalhöhe der Ziffern (Wert-Zeile ist dort ein Flex-Container)
-          size === "lg" ? "mt-[0.45em] mr-2.5 text-[13px] sm:mt-[0.6em] sm:text-[15px]" : "mr-1 text-[0.5em]",
-        )}
-      >
+      <span data-unit className={cn("mr-1 text-[0.47em] font-semibold tracking-normal", hero ? "text-accent-ink/80" : "text-ink-muted")}>
         {unit}
       </span>
-      <span>
-        {tighten(amount, size)}
-        {cents ? <span className={cn("text-ink-faint", size === "lg" && "text-[0.55em] tracking-[-0.02em]")}>{cents}</span> : null}
-      </span>
+      {amount}
     </>
   );
 }
 
-export function Stat({ label, value, delta, hint, children, size = "md", className }: StatProps) {
+export function Stat({ label, value, delta, hint, children, size = "md", variant = "default", className }: StatProps) {
+  const hero = variant === "hero";
   const good = delta ? (delta.good ?? (delta.direction === "up" ? true : delta.direction === "down" ? false : undefined)) : undefined;
-  const deltaColor = !delta || delta.direction === "flat" ? "text-ink-muted" : good ? "text-success" : "text-danger";
+  const deltaColor = hero ? "text-accent-ink" : !delta || delta.direction === "flat" ? "text-ink-muted" : good ? "text-success" : "text-danger";
   const Arrow = delta?.direction === "up" ? ArrowUpRight : delta?.direction === "down" ? ArrowDownRight : Minus;
 
   return (
-    <div className={cn("min-w-0", className)}>
-      <p className={cn("text-ink-muted", size === "lg" ? "eyebrow" : "text-[12.5px]")}>{label}</p>
-      <p className={cn("mt-2 font-num font-medium whitespace-nowrap text-ink", size === "lg" && "flex items-start", VALUE_SIZES[size])}>{renderValue(value, size)}</p>
+    <div className={cn("min-w-0", hero && "rounded-card bg-accent p-5 text-accent-ink", className)}>
+      <p className={cn("text-[13px] font-semibold", hero ? "text-accent-ink/90" : "text-ink-muted")}>{label}</p>
+      <p className={cn("mt-2 font-num font-extrabold whitespace-nowrap", hero ? "text-accent-ink" : "text-ink", VALUE_SIZES[size])}>{renderValue(value, hero)}</p>
       {delta || hint ? (
-        <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+        <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px]">
           {delta ? (
-            <span className={cn("inline-flex items-center gap-0.5 font-num font-medium tabular-nums", deltaColor)}>
+            <span className={cn("inline-flex items-center gap-0.5 font-num font-bold", deltaColor)}>
               <Arrow aria-hidden className="size-3.5" />
               <span className="sr-only">{DIRECTION_TEXT[delta.direction]}:</span>
               {delta.value}
             </span>
           ) : null}
-          {hint ? <span className="text-ink-faint">{hint}</span> : null}
+          {hint ? <span className={hero ? "text-accent-ink/85" : "text-ink-muted"}>{hint}</span> : null}
         </p>
       ) : null}
       {children ? <div className="mt-3">{children}</div> : null}

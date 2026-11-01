@@ -11,7 +11,7 @@ const SIZES: Record<AvatarSize, string> = {
 };
 
 // Warme Token-Flächen statt zufälliger Farben – deterministisch pro Name.
-const FILLS = ["bg-surface-2", "bg-accent-soft", "bg-premium-soft"] as const;
+const FILLS = ["bg-surface-2", "bg-accent-soft"] as const;
 
 /**
  * Initialen aus bis zu `max` Namensteilen. Nur Teile, die mit Buchstabe oder Ziffer beginnen, und immer ganze
@@ -34,19 +34,36 @@ function hash(s: string): number {
   return Math.abs(h);
 }
 
-export function Avatar({ name, src, size = "md", className }: { name: string; src?: string | null; size?: AvatarSize; className?: string }) {
-  const box = cn("relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-line", SIZES[size], className);
-  if (src) {
-    return (
-      <span className={box}>
-        {/* Signierte, kurzlebige URLs – next/image würde sie cachen/umschreiben. */}
-        <img src={src} alt={name} className="size-full object-cover" />
-      </span>
-    );
-  }
-  return (
+export function Avatar({
+  name,
+  src,
+  size = "md",
+  ring = false,
+  className,
+}: {
+  name: string;
+  src?: string | null;
+  size?: AvatarSize;
+  /** Akzentring (z. B. Creator-Profil, „Deine Creator“). */
+  ring?: boolean;
+  className?: string;
+}) {
+  const box = cn(
+    "relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full",
+    ring ? "border-2 border-surface" : "border border-line",
+    SIZES[size],
+    ring ? undefined : className,
+  );
+  const inner = src ? (
+    <span className={box}>
+      {/* Signierte, kurzlebige URLs – next/image würde sie cachen/umschreiben. */}
+      <img src={src} alt={name} className="size-full object-cover" />
+    </span>
+  ) : (
     <span className={cn(box, FILLS[hash(name) % FILLS.length], "font-display font-bold tracking-tight text-ink")} role="img" aria-label={name}>
       <span aria-hidden>{initials(name) || "?"}</span>
     </span>
   );
+  if (!ring) return inner;
+  return <span className={cn("inline-flex shrink-0 rounded-full bg-accent p-[2.5px]", className)}>{inner}</span>;
 }

@@ -1,4 +1,4 @@
-import { Check, Gem, OctagonAlert, TriangleAlert } from "lucide-react";
+import { Check, Clock, OctagonAlert, Sparkle } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { cn } from "./cn";
@@ -6,15 +6,12 @@ import { cn } from "./cn";
 export type BadgeTone = "neutral" | "accent" | "success" | "warning" | "danger" | "premium";
 
 const TONES: Record<BadgeTone, { box: string; icon: ReactNode }> = {
-  neutral: { box: "border-line bg-surface-2 text-ink-muted", icon: null },
-  accent: {
-    box: "border-accent/35 bg-accent-soft text-ink",
-    icon: <span aria-hidden className="size-1.5 rounded-full bg-accent" />,
-  },
-  success: { box: "border-success/35 bg-success/10 text-ink", icon: <Check aria-hidden className="text-success" /> },
-  warning: { box: "border-warning/40 bg-warning/10 text-ink", icon: <TriangleAlert aria-hidden className="text-warning" /> },
-  danger: { box: "border-danger/40 bg-danger/10 text-ink", icon: <OctagonAlert aria-hidden className="text-danger" /> },
-  premium: { box: "border-premium/40 bg-premium-soft text-ink", icon: <Gem aria-hidden className="text-premium" /> },
+  neutral: { box: "bg-surface-2 text-ink", icon: null },
+  accent: { box: "bg-accent-soft text-accent-strong", icon: <span aria-hidden className="size-1.5 rounded-full bg-accent" /> },
+  success: { box: "bg-success-soft text-success", icon: <Check aria-hidden /> },
+  warning: { box: "bg-warning-soft text-warning", icon: <Clock aria-hidden /> },
+  danger: { box: "bg-danger-soft text-danger", icon: <OctagonAlert aria-hidden /> },
+  premium: { box: "bg-accent-soft text-accent-strong", icon: <Sparkle aria-hidden className="fill-current" /> },
 };
 
 export type BadgeProps = {
@@ -33,8 +30,8 @@ export function Badge({ tone = "neutral", children, className, icon, title }: Ba
     <span
       title={title}
       className={cn(
-        "inline-flex h-[22px] shrink-0 items-center gap-1.5 rounded-[4px] border px-1.5 text-[11.5px] leading-none font-medium whitespace-nowrap",
-        "[&_svg]:size-3 [&_svg]:shrink-0",
+        "inline-flex h-6 shrink-0 items-center gap-1 rounded-full px-2.5 text-xs leading-none font-bold whitespace-nowrap",
+        "[&_svg]:size-3.5 [&_svg]:shrink-0",
         t.box,
         className,
       )}

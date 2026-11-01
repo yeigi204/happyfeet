@@ -4,12 +4,12 @@ import { describe, expect, it } from "vitest";
 
 import { Avatar, initials } from "./avatar";
 import { Badge } from "./badge";
-import { Button, ButtonLink } from "./button";
+import { Button, ButtonLink, buttonClasses } from "./button";
 import { Card } from "./card";
 import { cn } from "./cn";
 import { EmptyState } from "./empty-state";
 import { Field } from "./field";
-import { Input } from "./input";
+import { Input, controlClasses } from "./input";
 import { Kbd } from "./kbd";
 import { PageHeader } from "./page-header";
 import { PremiumBadge } from "./premium-badge";
@@ -53,7 +53,7 @@ describe("Button", () => {
   it("renders ButtonLink as an anchor with the button look", () => {
     const markup = html(h(ButtonLink, { href: "/studio", variant: "secondary" }, "Zum Studio"));
     expect(attr(markup, "a", "href")).toBe("/studio");
-    expect(markup).toContain("border-line-strong");
+    expect(markup).toContain("bg-surface-2");
   });
 });
 
@@ -162,10 +162,10 @@ describe("Stat", () => {
     expect(markup.replace(/<[^>]+>/g, "")).toContain("CHF48’210.00");
   });
 
-  it("sets the mono apostrophe tighter so grouped numbers read as one word", () => {
+  it("renders grouped numbers as plain text (proportional Jakarta needs no apostrophe hack)", () => {
     const markup = html(h(Stat, { label: "Aktive Abos", value: "5’784" }));
-    expect(markup).toMatch(/<span class="-mx-\[[\d.]+em\]">’<\/span>/);
-    expect(markup.replace(/<[^>]+>/g, "")).toContain("5’784");
+    expect(markup).toContain("5’784");
+    expect(markup).not.toMatch(/-mx-\[/);
   });
 
   it("renders hint and trend children", () => {
@@ -241,5 +241,46 @@ describe("PageHeader", () => {
 describe("Kbd", () => {
   it("renders a kbd element", () => {
     expect(html(h(Kbd, null, "⌘K"))).toMatch(/<kbd[^>]*>⌘K<\/kbd>/);
+  });
+});
+
+describe("Rosé-Bausteine", () => {
+  it("buttons are pills with soft secondary and danger variants", () => {
+    expect(buttonClasses()).toContain("rounded-full");
+    expect(buttonClasses({ variant: "secondary" })).toContain("bg-surface-2");
+    const danger = buttonClasses({ variant: "danger" });
+    expect(danger).toContain("bg-danger-soft");
+    expect(danger).toContain("text-danger");
+  });
+
+  it("controls show a focus ring and a soft error ring", () => {
+    expect(controlClasses).toContain("rounded-control");
+    expect(controlClasses).toContain("focus-visible:ring-surface-2");
+    expect(controlClasses).toContain("aria-invalid:ring-danger-soft");
+  });
+
+  it("hero stat sits on the accent", () => {
+    const markup = html(h(Stat, { variant: "hero", label: "MRR", value: "CHF 3’738.50" }));
+    expect(markup).toMatch(/\bbg-accent(?![-\w])/);
+    expect(markup).toContain("text-accent-ink");
+  });
+
+  it("avatar ring wraps the picture in the accent", () => {
+    const exact = /\bbg-accent(?![-\w])/;
+    expect(html(h(Avatar, { ring: true, name: "Nina Zehnder" }))).toMatch(exact);
+    expect(html(h(Avatar, { name: "Nina Zehnder" }))).not.toMatch(exact);
+  });
+
+  it("status badges use their soft surface", () => {
+    expect(html(h(Badge, { tone: "success", children: "Aktiv" }))).toContain("bg-success-soft");
+    expect(html(h(Badge, { tone: "warning", children: "In Prüfung" }))).toContain("bg-warning-soft");
+    expect(html(h(Badge, { tone: "danger", children: "Gesperrt" }))).toContain("bg-danger-soft");
+    expect(html(h(Badge, { tone: "premium", children: "Premium" }))).toContain("bg-accent-soft");
+  });
+
+  it("cards use the card radius and a soft shadow", () => {
+    const markup = html(h(Card, null, "x"));
+    expect(markup).toContain("rounded-card");
+    expect(markup).toContain("shadow-sm");
   });
 });
