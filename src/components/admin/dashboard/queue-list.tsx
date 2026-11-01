@@ -66,7 +66,7 @@ export function QueueList({ queues, now }: { queues: DashboardQueues; now: Date 
   };
 
   return (
-    <Card title="Warteschlangen" action={<span className="font-num text-xs text-ink-faint">dringendste zuerst</span>} flush>
+    <Card title="Warteschlangen" action={<span className="text-xs font-semibold text-ink-muted">dringendste zuerst</span>} flush>
       <ul className="divide-y divide-line">
         {[...sorted, payouts].map((q) => {
           const Icon = q.icon;
@@ -75,15 +75,16 @@ export function QueueList({ queues, now }: { queues: DashboardQueues; now: Date 
             <li key={q.title}>
               <Link
                 href={q.href}
-                className="group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5 px-4 py-3.5 transition-colors hover:bg-surface-2 focus-visible:-outline-offset-2"
+                className="group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3.5 gap-y-1.5 px-5 py-3.5 transition-colors hover:bg-surface-2/60 focus-visible:-outline-offset-2"
               >
-                <Icon aria-hidden className="size-4 text-ink-faint group-hover:text-ink-muted" />
-                <span className="truncate text-[13.5px] font-medium text-ink">{q.title}</span>
-                <span className={cn("row-span-2 font-num text-[28px] leading-none font-medium tracking-[-0.04em] tabular-nums", empty ? "text-ink-faint" : "text-ink")}>
+                <span aria-hidden className="row-span-2 grid size-10 place-items-center rounded-control bg-surface-2 text-ink">
+                  <Icon className="size-[18px]" />
+                </span>
+                <span className="truncate text-sm font-bold text-ink">{q.title}</span>
+                <span className={cn("row-span-2 font-num text-[26px] leading-none font-extrabold tracking-[-0.03em]", empty ? "text-ink-faint" : "text-ink")}>
                   {formatNumber(q.count)}
                 </span>
-                <span />
-                <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-faint">
+                <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-muted">
                   {empty && q.title !== "Auszahlungen" ? (
                     <Badge tone="success" icon={<Check aria-hidden />}>
                       Erledigt

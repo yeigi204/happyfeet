@@ -25,9 +25,9 @@ export type TriageListProps = {
 /** Linke Spalte: die Warteschlange. Klick oder `j`/`k` wählt aus. */
 export function TriageList({ mode, items, activeKey, now, onSelect }: TriageListProps) {
   return (
-    <section aria-label="Warteschlange" className="min-w-0 rounded-card border border-line bg-surface">
-      <header className="flex h-11 items-center justify-between gap-3 border-b border-line px-4">
-        <h2 className="text-[13px] font-semibold text-ink">
+    <section aria-label="Warteschlange" className="min-w-0 overflow-hidden rounded-card border border-line bg-surface shadow-sm">
+      <header className="flex h-12 items-center justify-between gap-3 border-b border-line px-4">
+        <h2 className="text-[15px] font-bold text-ink">
           {mode === "reports" ? "Offene Meldungen" : "Wartende Posts"}
           <span className="ml-2 font-num text-xs font-normal text-ink-faint tabular-nums">{formatNumber(items.length)}</span>
         </h2>
@@ -54,7 +54,7 @@ export function TriageList({ mode, items, activeKey, now, onSelect }: TriageList
                 )}
               >
                 <span aria-hidden className="absolute inset-y-2 left-0 w-[3px] rounded-r-full bg-accent opacity-0 group-aria-[current=true]:opacity-100" />
-                <span className="grid size-12 place-items-center overflow-hidden rounded-control border border-line bg-canvas">
+                <span className="grid size-12 place-items-center overflow-hidden rounded-control bg-surface-2">
                   {thumb ? (
                     <img src={thumb.url} alt="" width={48} height={48} loading="lazy" decoding="async" className="size-full object-cover" />
                   ) : (

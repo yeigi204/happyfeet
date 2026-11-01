@@ -39,7 +39,7 @@ function PremoderationProgress({ approved, required }: { approved: number; requi
       <p className="eyebrow mb-2">Vorab-Prüfung</p>
       <div aria-hidden className="flex gap-1">
         {Array.from({ length: Math.min(required, 20) }, (_, i) => (
-          <span key={i} className={cn("h-1.5 flex-1 rounded-full", i < done ? "bg-series-2" : "bg-line-strong")} />
+          <span key={i} className={cn("h-1.5 flex-1 rounded-full", i < done ? "bg-accent" : "bg-line-strong")} />
         ))}
       </div>
       <p className="mt-2 text-xs text-ink-muted">
@@ -108,7 +108,7 @@ export function TriageStage({ item, now, premoderationCount, onImageError }: Tri
         ) : null}
       </div>
 
-      <aside aria-label="Details" className="grid content-start gap-5 self-start rounded-card border border-line bg-surface p-4 sm:p-5">
+      <aside aria-label="Details" className="grid content-start gap-5 self-start rounded-card border border-line bg-surface p-4 shadow-sm sm:p-5">
         {report ? (
           <div className="grid gap-3 border-b border-line pb-5">
             <div className="flex flex-wrap items-center gap-2">

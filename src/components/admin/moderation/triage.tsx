@@ -161,7 +161,7 @@ export function ModerationTriage({ mode, items, now: nowMs, premoderationCount, 
 
   return (
     <div className="grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)]">
-      <div className="order-2 min-w-0 lg:order-1 lg:sticky lg:top-[68px] lg:max-h-[calc(100dvh-92px)] lg:self-start lg:overflow-y-auto lg:scrollbar-none">
+      <div className="order-2 min-w-0 lg:order-1 lg:sticky lg:top-[80px] lg:max-h-[calc(100dvh-104px)] lg:self-start lg:overflow-y-auto lg:scrollbar-none">
         <TriageList mode={mode} items={visible} activeKey={active.key} now={now} onSelect={(i) => select(i)} />
         <p className="mt-3 hidden flex-wrap items-center gap-x-3 gap-y-1.5 px-1 font-num text-[11px] text-ink-faint lg:flex">
           <span className="flex items-center gap-1">
@@ -180,7 +180,7 @@ export function ModerationTriage({ mode, items, now: nowMs, premoderationCount, 
       </div>
 
       <section aria-label="Prüfung" className="order-1 grid min-w-0 content-start gap-4 lg:order-2">
-        <div className="z-10 flex flex-wrap items-center gap-2 rounded-card border border-line bg-surface p-2 lg:sticky lg:top-[56px]">
+        <div className="z-10 flex flex-wrap items-center gap-2 rounded-card border border-line bg-surface p-2 shadow-sm lg:sticky lg:top-[72px]">
           <div className="flex items-center gap-1">
             <Button variant="ghost" size="sm" className="px-2" onClick={() => select(activeIndex - 1, true)} disabled={activeIndex <= 0} aria-label="Vorheriger Eintrag (k)">
               <ChevronUp aria-hidden />
