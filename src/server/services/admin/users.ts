@@ -8,6 +8,7 @@ import { assertAdmin } from "@/server/auth/guards";
 import { getDb } from "@/server/db/client";
 import { creatorProfiles, premiumSubscriptions, subscriptions, users } from "@/server/db/schema";
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "@/server/errors";
+import { getPaymentProvider } from "@/server/payments";
 import { writeAudit } from "@/server/services/audit";
 
 export type AdminUserRow = {
@@ -164,7 +165,7 @@ export async function banUser(admin: Viewer, userId: string, reason: string, opt
   const parsedReason = parseReason(reason);
   const now = opts.now ?? new Date();
 
-  await getDb().transaction(async (tx) => {
+  const toCancelAtProvider = await getDb().transaction(async (tx) => {
     const [target] = await tx
       .select({ id: users.id, isAdmin: users.isAdmin, status: users.status, handle: users.handle })
       .from(users)
@@ -179,17 +180,52 @@ export async function banUser(admin: Viewer, userId: string, reason: string, opt
       .update(users)
       .set({ status: "banned", bannedReason: parsedReason, bannedAt: now, updatedAt: now })
       .where(eq(users.id, userId));
+
+    // Keine weiteren Abbuchungen: laufende Abos (als Fan UND als Creator) zum Periodenende kündigen,
+    // offene Checkouts verfallen lassen, Premium-Plan kündigen. Erstattungen sind ein manueller Prozess.
+    const involvesUser = or(eq(subscriptions.fanId, userId), eq(subscriptions.creatorId, userId));
+    const canceledSubs = await tx
+      .update(subscriptions)
+      .set({ status: "canceled", cancelAtPeriodEnd: true, canceledAt: now })
+      .where(and(involvesUser, eq(subscriptions.status, "active")))
+      .returning({ provider: subscriptions.provider, providerRef: subscriptions.providerRef });
+    await tx
+      .update(subscriptions)
+      .set({ status: "expired" })
+      .where(and(involvesUser, eq(subscriptions.status, "pending")));
+    const canceledPremium = await tx
+      .update(premiumSubscriptions)
+      .set({ status: "canceled", cancelAtPeriodEnd: true, canceledAt: now })
+      .where(and(eq(premiumSubscriptions.creatorId, userId), eq(premiumSubscriptions.status, "active")))
+      .returning({ provider: premiumSubscriptions.provider, providerRef: premiumSubscriptions.providerRef });
+
     await writeAudit(
       {
         actorId: admin.id,
         action: "user.banned",
         targetType: "user",
         targetId: userId,
-        metadata: { reason: parsedReason, handle: target.handle },
+        metadata: {
+          reason: parsedReason,
+          handle: target.handle,
+          canceledSubscriptions: canceledSubs.length,
+          canceledPremium: canceledPremium.length > 0,
+        },
       },
       tx,
     );
+    return [...canceledSubs, ...canceledPremium];
   });
+
+  // Erst nach dem Commit beim Provider kündigen (best effort – die DB ist die Quelle der Wahrheit).
+  for (const { provider, providerRef } of toCancelAtProvider) {
+    if (!providerRef) continue;
+    try {
+      await getPaymentProvider(provider).cancelSubscription(providerRef);
+    } catch (error) {
+      console.error(`[admin] Kündigung beim Provider fehlgeschlagen (${provider}:${providerRef})`, error);
+    }
+  }
 }
 
 /** Hebt eine Sperre auf. */

@@ -98,11 +98,13 @@ export const creatorProfiles = pgTable(
     verificationNote: text("verification_note"),
     verifiedAt: ts("verified_at"),
     verifiedBy: uuid("verified_by").references(() => users.id, { onDelete: "set null" }),
+    /** Zeitpunkt der (letzten) Bewerbung – bestimmt die Reihenfolge der Verifizierungs-Queue. */
+    appliedAt: ts("applied_at").notNull().defaultNow(),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
   (t) => [
-    index("creator_profiles_verification_idx").on(t.verificationStatus, t.createdAt),
+    index("creator_profiles_verification_idx").on(t.verificationStatus, t.appliedAt),
     check("creator_price_positive", sql`${t.monthlyPriceRappen} > 0`),
   ],
 );
@@ -222,6 +224,10 @@ export const payouts = pgTable(
   (t) => [
     index("payouts_creator_idx").on(t.creatorId, t.createdAt),
     index("payouts_status_idx").on(t.status),
+    // Dieselbe Periode eines Creators darf nie doppelt ausbezahlt werden (fehlgeschlagene zählen nicht).
+    uniqueIndex("payouts_one_per_period")
+      .on(t.creatorId, t.periodEnd)
+      .where(sql`${t.status} <> 'failed'`),
     check("payouts_amount_positive", sql`${t.amountRappen} > 0`),
   ],
 );

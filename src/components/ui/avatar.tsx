@@ -36,7 +36,6 @@ export function Avatar({ name, src, size = "md", className }: { name: string; sr
     return (
       <span className={box}>
         {/* Signierte, kurzlebige URLs – next/image würde sie cachen/umschreiben. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={src} alt={name} className="size-full object-cover" />
       </span>
     );

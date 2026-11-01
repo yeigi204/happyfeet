@@ -277,7 +277,7 @@ export async function getAdminDashboard(admin: Viewer, opts: { now?: Date } = {}
     query(db, sql`
       select
         (select count(*)::int from ${creatorProfiles} where verification_status = 'pending') as verifications,
-        (select min(updated_at) from ${creatorProfiles} where verification_status = 'pending') as verifications_oldest,
+        (select min(applied_at) from ${creatorProfiles} where verification_status = 'pending') as verifications_oldest,
         (select count(*)::int from ${posts} where moderation_status = 'pending' and deleted_at is null) as premoderation,
         (select min(created_at) from ${posts} where moderation_status = 'pending' and deleted_at is null)
           as premoderation_oldest,

@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 
-import { auditLog, users } from "@/server/db/schema";
+import { auditLog, premiumSubscriptions, subscriptions, users } from "@/server/db/schema";
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "@/server/errors";
 import { banUser, quickSearch, searchUsers, unbanUser } from "@/server/services/admin/users";
 
@@ -160,6 +160,29 @@ describe("banUser / unbanUser", () => {
     const bannedEntry = audit.find((a) => a.action === "user.banned")!;
     expect(bannedEntry).toMatchObject({ actorId: f.admin.id, targetType: "user", targetId: f.luca.id });
     expect(bannedEntry.metadata).toMatchObject({ reason: "Belästigende Nachrichten" });
+  });
+
+  it("kündigt beim Sperren alle laufenden Abos (als Fan und als Creator) und den Premium-Plan zum Periodenende", async () => {
+    const f = await fixture();
+    // nina ist Premium-Creator mit 2 aktiven Abonnenten; luca hat ein Abo bei nina.
+    await banUser(f.admin, f.nina.id, "Fremde Bilder", { now: NOW });
+
+    const subs = await t.db.select().from(subscriptions).where(eq(subscriptions.creatorId, f.nina.id));
+    const live = subs.filter((s) => s.currentPeriodEnd && s.currentPeriodEnd > NOW);
+    expect(live.length).toBeGreaterThan(0);
+    for (const s of live) {
+      expect(s).toMatchObject({ status: "canceled", cancelAtPeriodEnd: true });
+      expect(s.canceledAt).toEqual(NOW);
+    }
+    const [premium] = await t.db.select().from(premiumSubscriptions).where(eq(premiumSubscriptions.creatorId, f.nina.id));
+    expect(premium).toMatchObject({ status: "canceled", cancelAtPeriodEnd: true });
+
+    await banUser(f.admin, f.luca.id, "Spam", { now: NOW });
+    const lucaSubs = await t.db.select().from(subscriptions).where(eq(subscriptions.fanId, f.luca.id));
+    expect(lucaSubs.every((s) => s.status === "canceled" || s.status === "expired")).toBe(true);
+
+    const entry = (await t.db.select().from(auditLog)).find((a) => a.action === "user.banned" && a.targetId === f.nina.id)!;
+    expect(entry.metadata).toMatchObject({ canceledSubscriptions: live.length, canceledPremium: true });
   });
 
   it("verbietet Selbst-Sperre und das Sperren von Admins", async () => {

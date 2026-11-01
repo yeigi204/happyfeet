@@ -59,6 +59,7 @@ describe("applyAsCreator", () => {
       monthlyPriceRappen: 990,
       verificationStatus: "pending",
       verifiedAt: null,
+      appliedAt: NOW,
     });
     expect(await profileOf(user.id)).toMatchObject({ verificationStatus: "pending", monthlyPriceRappen: 990 });
     const audit = await t.db.select().from(auditLog);
@@ -85,7 +86,12 @@ describe("applyAsCreator", () => {
 
   it("nach einer Ablehnung ist eine neue Bewerbung möglich", async () => {
     const { user } = await createCreator(t.db, {
-      profile: { verificationStatus: "rejected", verificationNote: "Ausweis unleserlich", verifiedAt: NOW },
+      profile: {
+        verificationStatus: "rejected",
+        verificationNote: "Ausweis unleserlich",
+        verifiedAt: NOW,
+        appliedAt: new Date(NOW.getTime() - 30 * 86_400_000),
+      },
     });
 
     const profile = await applyAsCreator(
@@ -100,6 +106,8 @@ describe("applyAsCreator", () => {
       verifiedAt: null,
       bio: "Neuer Versuch",
       monthlyPriceRappen: 1490,
+      // neue Bewerbung → stellt sich mit dem aktuellen Zeitpunkt hinten an
+      appliedAt: NOW,
     });
   });
 

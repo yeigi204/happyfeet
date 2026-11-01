@@ -44,6 +44,7 @@ async function fixture() {
     profile: {
       verificationStatus: "pending",
       verifiedAt: null,
+      appliedAt: daysBefore(NOW, 2),
       createdAt: daysBefore(NOW, 2),
       updatedAt: daysBefore(NOW, 2),
     },
@@ -120,7 +121,13 @@ async function fixture() {
   });
   await insertPayout(t.db, { creatorId: a.id, amountRappen: 500 });
   await insertPayout(t.db, { creatorId: b.id, amountRappen: 700, schedule: "weekly" });
-  await insertPayout(t.db, { creatorId: a.id, amountRappen: 300, status: "paid" });
+  await insertPayout(t.db, {
+    creatorId: a.id,
+    amountRappen: 300,
+    status: "paid",
+    periodStart: new Date("2026-09-01T00:00:00Z"),
+    periodEnd: new Date("2026-10-01T00:00:00Z"),
+  });
 
   // 13 Audit-Einträge → Feed zeigt die neuesten 12
   for (let i = 0; i < 13; i++) {

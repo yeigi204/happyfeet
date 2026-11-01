@@ -21,8 +21,10 @@ async function fixture() {
       verifiedAt: null,
       bio: "Barfuss am Zürichsee.",
       monthlyPriceRappen: 1490,
-      createdAt: daysBefore(NOW, 4),
-      updatedAt: daysBefore(NOW, 4),
+      appliedAt: daysBefore(NOW, 4),
+      createdAt: daysBefore(NOW, 30),
+      // Profil während der Prüfung bearbeitet → darf die Position in der Queue NICHT verändern.
+      updatedAt: daysBefore(NOW, 0.5),
     },
   });
   const { user: newer } = await createCreator(t.db, {
@@ -30,6 +32,7 @@ async function fixture() {
     profile: {
       verificationStatus: "pending",
       verifiedAt: null,
+      appliedAt: daysBefore(NOW, 1),
       createdAt: daysBefore(NOW, 1),
       updatedAt: daysBefore(NOW, 1),
     },

@@ -1027,6 +1027,7 @@ function buildData(settings: { standardFeeBps: number; premiumFeeBps: number; pr
       verificationNote: c.note ?? null,
       verifiedAt: c.decidedAt,
       verifiedBy: c.decidedAt ? admin.id : null,
+      appliedAt,
       createdAt: appliedAt,
       updatedAt: c.decidedAt ?? appliedAt,
     };

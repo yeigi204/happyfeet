@@ -38,7 +38,7 @@ const NOT_FOUND = "Dieser Creator-Antrag existiert nicht.";
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** Zeitpunkt der (letzten) Bewerbung – auch die Queue-Kennzahl im Dashboard nutzt diese Definition. */
-const appliedAtSql = sql<Date>`case when ${creatorProfiles.verificationStatus} = 'pending' then ${creatorProfiles.updatedAt} else ${creatorProfiles.createdAt} end`;
+
 
 function safeAge(birthDate: string | null, now: Date): number | null {
   if (!birthDate) return null;
@@ -88,8 +88,7 @@ export async function listVerificationQueue(
       birthDate: users.birthDate,
       bio: creatorProfiles.bio,
       monthlyPriceRappen: creatorProfiles.monthlyPriceRappen,
-      appliedAt: creatorProfiles.createdAt,
-      updatedAt: creatorProfiles.updatedAt,
+      appliedAt: creatorProfiles.appliedAt,
       status: creatorProfiles.verificationStatus,
       note: creatorProfiles.verificationNote,
       verifiedAt: creatorProfiles.verifiedAt,
@@ -99,7 +98,7 @@ export async function listVerificationQueue(
     .where(eq(creatorProfiles.verificationStatus, status))
     .orderBy(
       ...(status === "pending"
-        ? [asc(appliedAtSql), asc(users.id)]
+        ? [asc(creatorProfiles.appliedAt), asc(users.id)]
         : [sql`${creatorProfiles.verifiedAt} desc nulls last`, desc(creatorProfiles.createdAt), asc(users.id)]),
     )
     .limit(clampLimit(input.limit));
@@ -113,7 +112,7 @@ export async function listVerificationQueue(
     age: safeAge(row.birthDate, now),
     bio: row.bio,
     monthlyPriceRappen: row.monthlyPriceRappen,
-    appliedAt: row.status === "pending" ? row.updatedAt : row.appliedAt,
+    appliedAt: row.appliedAt,
     status: row.status,
     note: row.note,
     verifiedAt: row.verifiedAt,

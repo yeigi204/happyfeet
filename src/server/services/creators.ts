@@ -115,6 +115,7 @@ export async function applyAsCreator(
           bio,
           monthlyPriceRappen,
           verificationStatus: "pending",
+          appliedAt: now,
           createdAt: now,
           updatedAt: now,
         })
@@ -130,6 +131,7 @@ export async function applyAsCreator(
           verificationNote: null,
           verifiedAt: null,
           verifiedBy: null,
+          appliedAt: now,
           updatedAt: now,
         })
         .where(and(eq(creatorProfiles.userId, viewer.id), eq(creatorProfiles.verificationStatus, "rejected")))
