@@ -5,7 +5,6 @@ import type { ReactNode } from "react";
 
 import { AdminShell } from "@/components/admin/shell/admin-shell";
 import type { QuickSearchResult } from "@/components/admin/shell/command-palette";
-import type { TickerItem } from "@/components/admin/shell/ticker";
 import { AreaChart } from "@/components/charts/area-chart";
 import { BarChart } from "@/components/charts/bar-chart";
 import { ChartLegend } from "@/components/charts/chart-legend";
@@ -396,7 +395,7 @@ export default function DesignSystemPage() {
       <div className="border-y border-line">
         <AdminShell
           counts={{ verifications: platform.kpis.creatorsPending, moderation: 6, reports: 7 }}
-          ticker={tickerFor(platform.kpis)}
+          theme="system"
           quickSearch={demoQuickSearch}
           activeHref="/admin"
         >
@@ -730,19 +729,6 @@ function PaymentsTable() {
  * ──────────────────────────────────────────────────────────────────────────── */
 
 type Platform = ReturnType<typeof buildPlatform>;
-
-function tickerFor(k: Platform["kpis"]): TickerItem[] {
-  return [
-    { label: "MRR", value: formatChf(k.mrr), delta: signedPct(k.mrrDelta), direction: k.mrrDelta >= 0 ? "up" : "down" },
-    { label: "Plattform 30 T", value: formatChf(k.platform30), delta: signedPct(k.platformDelta), direction: k.platformDelta >= 0 ? "up" : "down" },
-    { label: "Brutto 30 T", value: formatChf(k.gross30, { compact: true }), delta: signedPct(k.grossDelta), direction: k.grossDelta >= 0 ? "up" : "down" },
-    { label: "Aktive Abos", value: formatNumber(k.activeSubs), delta: signed(k.activeDelta), direction: "up" },
-    { label: "Heute neu", value: formatNumber(k.newToday) },
-    { label: "Heute gekündigt", value: formatNumber(k.canceledToday) },
-    { label: "Premium-Anteil", value: formatPercent(k.creatorsPremium / k.creatorsApproved, 1) },
-    { label: "Offene Meldungen", value: "7", delta: "2 kritisch", direction: "flat" },
-  ];
-}
 
 function AdminDashboardMock({ platform }: { platform: Platform }) {
   const k = platform.kpis;

@@ -6,7 +6,7 @@ export type QueuePillProps = {
   count: number;
   /** Was gezählt wird, z. B. „offene Meldungen“ (Screenreader + Tooltip). */
   label: string;
-  /** `alert` = Nagellack-Rot, nur für Dinge, die nicht warten sollten (Meldungen). */
+  /** `alert` = Akzent mit Fahne, nur für Dinge, die nicht warten sollten (Meldungen). */
   tone?: "neutral" | "alert";
   className?: string;
 };
@@ -19,8 +19,8 @@ export function QueuePill({ count, label, tone = "neutral", className }: QueuePi
     <span
       title={`${count} ${label}`}
       className={cn(
-        "inline-flex h-[18px] min-w-[22px] shrink-0 items-center justify-center gap-0.5 rounded-[3px] px-1 font-num text-[10.5px] leading-none font-semibold tabular-nums",
-        tone === "alert" ? "bg-accent text-accent-ink" : "border border-line-strong text-ink-muted",
+        "inline-flex h-5 min-w-6 shrink-0 items-center justify-center gap-0.5 rounded-full px-1.5 font-num text-[11px] leading-none font-bold",
+        tone === "alert" ? "bg-accent text-accent-ink" : "bg-surface-2 text-ink",
         className,
       )}
     >

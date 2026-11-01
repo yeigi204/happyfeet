@@ -10,7 +10,7 @@ import { getViewer } from "@/server/auth/viewer";
 /**
  * Gemeinsamer Rahmen aller Admin-Server-Actions: Identität serverseitig neu ermitteln (nie aus dem
  * Client übernehmen), Admin prüfen, Use-Case ausführen, Fehler in ein `ActionResult` übersetzen und
- * danach den ganzen Admin-Bereich neu rendern lassen (Zähler in Navigation & Ticker inklusive).
+ * danach den ganzen Admin-Bereich neu rendern lassen (Zähler in der Navigation inklusive).
  * Die Services prüfen `assertAdmin` zusätzlich selbst.
  */
 export async function runAdminAction<T>(fn: (admin: Viewer) => Promise<T>): Promise<ActionResult<T>> {

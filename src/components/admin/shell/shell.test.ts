@@ -12,7 +12,6 @@ const { ADMIN_NAV, isNavActive } = await import("./admin-nav");
 const { filterCommands, isSafeHref } = await import("./command-palette");
 const { QueuePill } = await import("./queue-pill");
 const { resolveShortcut, GO_TIMEOUT_MS } = await import("./shortcuts");
-const { Ticker } = await import("./ticker");
 
 const html = (el: Parameters<typeof renderToStaticMarkup>[0]) => renderToStaticMarkup(el);
 
@@ -155,27 +154,17 @@ describe("QueuePill", () => {
   });
 });
 
-describe("Ticker", () => {
-  it("renders label, value and an accessible delta direction", () => {
-    const markup = html(h(Ticker, { items: [{ label: "MRR", value: "CHF 48’210.00", delta: "+4.2 %", direction: "up" }] }));
-    expect(markup).toContain("MRR");
-    expect(markup).toContain("CHF 48’210.00");
-    expect(markup).toContain("+4.2 %");
-    expect(markup).toContain("gestiegen");
-  });
-});
-
 describe("AdminShell", () => {
   const markup = html(
     h(AdminShell, {
       counts: { verifications: 3, moderation: 6, reports: 7 },
-      ticker: [{ label: "Aktive Abos", value: "4’912" }],
+      theme: "system",
       children: h("p", null, "Seiteninhalt"),
     }),
   );
 
-  it("switches to the admin theme and renders the page", () => {
-    expect(markup).toContain("theme-admin");
+  it("folgt dem globalen Theme (kein eigenes Admin-Theme) und rendert die Seite", () => {
+    expect(markup).not.toContain("theme-admin");
     expect(markup).toContain("Seiteninhalt");
     expect(markup).toContain('id="admin-main"');
     expect(markup).toContain("Zum Inhalt springen");
@@ -186,10 +175,16 @@ describe("AdminShell", () => {
     expect(markup).toMatch(/<a[^>]*href="\/admin\/moderation"[^>]*aria-current="page"|<a[^>]*aria-current="page"[^>]*href="\/admin\/moderation"/);
   });
 
-  it("shows queue counters and the ticker", () => {
+  it("gruppiert die Navigation und zeigt die Warteschlangen-Zähler", () => {
+    for (const group of ["Übersicht", "Warteschlangen", "Verwaltung"]) expect(markup).toContain(group);
     expect(markup).toContain("Posts in Vorab-Prüfung");
     expect(markup).toContain("offene Meldungen");
     expect(markup).toContain("Anträge");
-    expect(markup).toContain("4’912");
+  });
+
+  it("hat Suchpille und Darstellungs-Umschalter in der oberen Leiste, aber keinen Ticker", () => {
+    expect(markup).toContain("Nutzer, Creator, Befehle");
+    expect(markup).toContain('aria-label="Darstellung"');
+    expect(markup).not.toContain("Offene Meldungen ·");
   });
 });

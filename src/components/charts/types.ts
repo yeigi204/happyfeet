@@ -1,6 +1,6 @@
 /**
  * Gemeinsame Chart-Typen. Farben sind Rollen (Token `--color-series-N`), nie Hex-Werte:
- * die Werte wechseln zwischen heller Welt und `.theme-admin` automatisch.
+ * die Werte wechseln zwischen Hell und Dunkel automatisch.
  * Reihenfolge der Slots ist fix (validiert auf CVD-Abstand) – Serien nie zyklisch einfärben.
  */
 

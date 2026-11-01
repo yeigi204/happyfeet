@@ -59,7 +59,7 @@ function Pills({ href, counts }: { href: string; counts: AdminCounts }) {
   return null;
 }
 
-/** Marke: Nagel-Glyphe in Nagellack-Rot + Wortmarke. */
+/** Marke: Logo-Bildmarke + Wortmarke + „Admin“. */
 export function AdminBrand({ className }: { className?: string }) {
   return (
     <Link href="/admin" className={cn("flex items-center gap-2.5", className)} aria-label="happyfeet Admin – Dashboard">
@@ -81,13 +81,14 @@ export function AdminNav({ counts, activeHref }: { counts: AdminCounts; activeHr
 
   return (
     <>
-      {/* Desktop: feste Leiste links */}
-      <nav aria-label="Admin-Navigation" className="hidden border-r border-line lg:sticky lg:top-11 lg:flex lg:h-[calc(100dvh-2.75rem)] lg:flex-col">
-        <div className="flex-1 overflow-y-auto px-2.5 py-5">
+      {/* Desktop: Seitenleiste links (wie Fan-/Studio-Shell) */}
+      <aside className="sticky top-0 hidden h-dvh flex-col border-r border-line bg-canvas lg:flex">
+        <AdminBrand className="px-6 pt-6 pb-4" />
+        <nav aria-label="Admin-Navigation" className="flex-1 overflow-y-auto px-3.5 pb-4">
           {groups.map((group) => (
-            <div key={group} className="mb-5">
-              <p className="eyebrow px-3 pb-2">{group}</p>
-              <ul className="grid gap-px">
+            <div key={group} className="mt-3">
+              <p className="px-3 pt-2 pb-1.5 text-[11px] font-bold tracking-[0.1em] text-ink-faint uppercase">{group}</p>
+              <ul className="grid gap-1">
                 {ADMIN_NAV.filter((i) => i.group === group).map((item) => {
                   const active = isNavActive(current, item.href);
                   const Icon = item.icon;
@@ -97,12 +98,11 @@ export function AdminNav({ counts, activeHref }: { counts: AdminCounts; activeHr
                         href={item.href}
                         aria-current={active ? "page" : undefined}
                         className={cn(
-                          "group relative flex h-9 items-center gap-3 rounded-control px-3 text-[13.5px] text-ink-muted transition-colors duration-100",
-                          "hover:bg-surface hover:text-ink aria-[current=page]:bg-surface-2 aria-[current=page]:text-ink",
+                          "group flex items-center gap-3 rounded-control px-3 py-2.5 text-[14.5px] font-semibold text-ink-muted transition-colors duration-100",
+                          "hover:bg-surface-2/60 hover:text-ink aria-[current=page]:bg-surface-2 aria-[current=page]:text-ink",
                         )}
                       >
-                        <span aria-hidden className="absolute inset-y-2 -left-2.5 w-[3px] rounded-r-full bg-accent opacity-0 group-aria-[current=page]:opacity-100" />
-                        <Icon aria-hidden className="size-4 shrink-0 text-ink-faint group-hover:text-ink-muted group-aria-[current=page]:text-accent" />
+                        <Icon aria-hidden className="size-5 shrink-0 group-aria-[current=page]:text-accent" />
                         <span className="min-w-0 flex-1 truncate">{item.label}</span>
                         <Pills href={item.href} counts={counts} />
                       </Link>
@@ -112,29 +112,29 @@ export function AdminNav({ counts, activeHref }: { counts: AdminCounts; activeHr
               </ul>
             </div>
           ))}
-        </div>
-        <div className="grid gap-1 border-t border-line p-2.5">
+        </nav>
+        <div className="grid gap-1 border-t border-line p-3.5">
           <button
             type="button"
             onClick={openCommandPalette}
-            className="flex h-9 items-center gap-3 rounded-control px-3 text-[13px] text-ink-muted transition-colors hover:bg-surface hover:text-ink"
+            className="flex h-10 items-center gap-3 rounded-control px-3 text-[13px] font-semibold text-ink-muted transition-colors hover:bg-surface-2/60 hover:text-ink"
           >
-            <Search aria-hidden className="size-4 text-ink-faint" />
+            <Search aria-hidden className="size-4" />
             <span className="flex-1 text-left">Befehle & Suche</span>
             <span className="flex gap-0.5">
               <Kbd>⌘</Kbd>
               <Kbd>K</Kbd>
             </span>
           </button>
-          <p className="flex items-center justify-between px-3 py-1.5 text-xs text-ink-faint">
+          <p className="flex items-center justify-between px-3 py-1.5 text-xs text-ink-muted">
             Alle Kürzel
             <Kbd>?</Kbd>
           </p>
         </div>
-      </nav>
+      </aside>
 
-      {/* Mobil: horizontale Leiste unter dem Kopf */}
-      <nav aria-label="Admin-Navigation" className="relative flex gap-1 overflow-x-auto border-b border-line px-3 py-2 scrollbar-none lg:hidden">
+      {/* Mobil: Pillen-Leiste unter der oberen Leiste (horizontal scrollbar) */}
+      <nav aria-label="Admin-Navigation" className="relative flex gap-1.5 overflow-x-auto border-b border-line px-4 py-2.5 scrollbar-none lg:hidden">
         {ADMIN_NAV.map((item) => {
           const Icon = item.icon;
           return (
@@ -142,9 +142,9 @@ export function AdminNav({ counts, activeHref }: { counts: AdminCounts; activeHr
               key={item.href}
               href={item.href}
               aria-current={isNavActive(current, item.href) ? "page" : undefined}
-              className="group inline-flex h-8 shrink-0 items-center gap-2 rounded-control px-2.5 text-[13px] text-ink-muted aria-[current=page]:bg-surface-2 aria-[current=page]:text-ink"
+              className="group inline-flex h-9 shrink-0 items-center gap-2 rounded-full px-3.5 text-[13px] font-semibold text-ink-muted aria-[current=page]:bg-ink aria-[current=page]:text-canvas"
             >
-              <Icon aria-hidden className="size-3.5 text-ink-faint group-aria-[current=page]:text-accent" />
+              <Icon aria-hidden className="size-4" />
               {item.label}
               <Pills href={item.href} counts={counts} />
             </Link>

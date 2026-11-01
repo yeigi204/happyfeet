@@ -79,13 +79,13 @@ export function CommandPaletteTrigger({ className }: { className?: string }) {
       type="button"
       onClick={openCommandPalette}
       className={cn(
-        "flex h-full items-center gap-3 px-4 text-[13px] text-ink-muted transition-colors duration-100 hover:bg-surface hover:text-ink",
+        "flex h-10 w-full max-w-[420px] items-center gap-2.5 rounded-full bg-surface-2 px-4 text-sm text-ink-muted transition-colors duration-100 hover:text-ink",
         className,
       )}
     >
-      <Search aria-hidden className="size-4" />
-      <span className="sr-only sm:not-sr-only">Suchen</span>
-      <span aria-hidden className="hidden gap-0.5 sm:flex">
+      <Search aria-hidden className="size-4 shrink-0" />
+      <span className="truncate">Nutzer, Creator, Befehle</span>
+      <span aria-hidden className="ml-auto hidden gap-0.5 sm:flex">
         <Kbd>⌘</Kbd>
         <Kbd>K</Kbd>
       </span>
@@ -176,8 +176,8 @@ export function CommandPalette({ quickSearch }: { quickSearch?: QuickSearch }) {
       onClose={() => setOpen(false)}
       onClick={(e) => e.target === e.currentTarget && setOpen(false)}
       className={cn(
-        "m-0 mx-auto mt-[12vh] w-[min(640px,calc(100vw-32px))] max-w-none overflow-hidden rounded-card border border-line-strong bg-surface p-0 text-ink outline-none",
-        "backdrop:bg-[rgb(8_6_5/0.74)] open:animate-rise",
+        "m-0 mx-auto mt-[12vh] w-[min(640px,calc(100vw-32px))] max-w-none overflow-hidden rounded-panel border border-line bg-surface p-0 text-ink shadow-lg outline-none",
+        "backdrop:bg-[rgb(23_12_16/0.55)] backdrop:backdrop-blur-[2px] open:animate-rise",
       )}
     >
       <div className="flex h-13 items-center gap-3 border-b border-line px-4">
